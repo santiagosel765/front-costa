@@ -13,7 +13,7 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, map, takeUntil } from 'rxjs';
 
 import {
   MODULE_ICON_MAP,
@@ -21,7 +21,8 @@ import {
   MODULE_ROUTE_MAP,
   normalizeModuleName,
 } from '../../core/constants/module-route-map';
-import { ModuleDTO, ModulesService } from '../../core/services/modules.service';
+import { ModuleDTO } from '../../core/services/modules.service';
+import { ModulesStore } from '../../core/state/modules.store';
 
 interface SidebarMenuItem {
   key: string;
@@ -41,7 +42,7 @@ interface SidebarMenuItem {
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() collapsed = false;
 
-  private readonly modulesService = inject(ModulesService);
+  private readonly modulesStore = inject(ModulesStore);
   private readonly message = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -53,15 +54,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loading = true;
 
-    this.modulesService
-      // Se consumen todos los módulos habilitados para el usuario (paginados en backend)
-      // y se convierten en items del menú lateral.
-      .getAllModules()
-      .pipe(takeUntil(this.destroy$))
+    this.modulesStore
+      // Se consume el store centralizado de módulos habilitados para alinear menú y guards.
+      .loadOnce()
+      .pipe(
+        map(() => this.modulesStore.getEnabledModules()),
+        takeUntil(this.destroy$),
+      )
       .subscribe({
-        next: (all) => {
-          this.menuItems = all
-            .filter((module) => module.status === 1)
+        next: (enabledModules) => {
+          this.menuItems = enabledModules
             .map((module) => this.buildMenuItem(module))
             .filter((item): item is SidebarMenuItem => !!item);
 
