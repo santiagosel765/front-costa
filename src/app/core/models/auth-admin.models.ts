@@ -53,3 +53,25 @@ export interface PermissionMatrixCell {
   moduleId: string;
   enabled: boolean;
 }
+
+
+export interface AuthUserUpsertPayload {
+  username: string;
+  email: string;
+  fullName: string;
+  status: number;
+  roleIds: string[];
+  password?: string;
+}
+
+export interface AuthRoleUpsertPayload {
+  name: string;
+  description?: string;
+  status: number;
+}
+
+export interface AuthModuleUpsertPayload {
+  name: string;
+  description?: string;
+  status: number;
+}

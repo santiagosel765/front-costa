@@ -1,11 +1,13 @@
 // login.component.ts
 import { Component, inject, OnInit } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService, LoginRequest } from '../../services/auth.service';
 import { finalize, tap } from 'rxjs/operators';
 import { ModulesStore } from '../../core/state/modules.store';
+import { mapHttpErrorMessage } from '../../core/utils/api-error.util';
 
 // Imports de ng-zorro
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -63,7 +65,6 @@ export class LoginComponent implements OnInit {
         .login(credentials)
         .pipe(
           tap((response) => {
-            console.log('Login exitoso:', response);
             this.authService.saveToken(response.token);
             this.modulesStore.reset();
           }),
@@ -77,23 +78,10 @@ export class LoginComponent implements OnInit {
             // Redirigir al dashboard o página principal
             this.router.navigate(['/main/welcome']);
           },
-          error: (error) => {
-            console.error('Error completo:', error);
-            console.error('Status:', error.status);
-            console.error('Error body:', error.error);
-
-            // Mostrar mensaje de error más específico
-            let errorMessage = 'Error al iniciar sesión';
-
-            if (error.status === 401) {
-              errorMessage = 'Credenciales incorrectas';
-            } else if (error.status === 404) {
-              errorMessage = 'Servicio no encontrado';
-            } else if (error.status === 500) {
-              errorMessage = 'Error interno del servidor';
-            } else if (error.error?.message) {
-              errorMessage = error.error.message;
-            }
+          error: (error: HttpErrorResponse) => {
+            const errorMessage = error.status === 401
+              ? 'Credenciales incorrectas'
+              : mapHttpErrorMessage(error);
 
             this.message.error(errorMessage);
           },

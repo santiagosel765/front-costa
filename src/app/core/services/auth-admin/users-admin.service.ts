@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../api.service';
-import { AuthUserSummary, UserRoleAssignment } from '../../models/auth-admin.models';
+import { AuthUserSummary, AuthUserUpsertPayload, UserRoleAssignment } from '../../models/auth-admin.models';
 
 @Injectable({ providedIn: 'root' })
 export class UsersAdminService {
@@ -17,11 +17,11 @@ export class UsersAdminService {
     return this.api.get<AuthUserSummary>(`${this.base}/${id}`);
   }
 
-  create(payload: Partial<AuthUserSummary>): Observable<AuthUserSummary> {
+  create(payload: AuthUserUpsertPayload): Observable<AuthUserSummary> {
     return this.api.post<AuthUserSummary>(this.base, payload);
   }
 
-  update(id: string, payload: Partial<AuthUserSummary>): Observable<AuthUserSummary> {
+  update(id: string, payload: AuthUserUpsertPayload): Observable<AuthUserSummary> {
     return this.api.put<AuthUserSummary>(`${this.base}/${id}`, payload);
   }
 
