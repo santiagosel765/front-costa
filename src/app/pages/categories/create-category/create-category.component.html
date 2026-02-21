@@ -1,0 +1,136 @@
+<!-- create-category.component.html -->
+<nz-modal
+  [(nzVisible)]="isVisible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="modalWidth"
+  [nzOkText]="'Crear Categoría'"
+  [nzCancelText]="'Cancelar'"
+  [nzOkLoading]="isSubmitting"
+  [nzOkDisabled]="!categoryForm.valid"
+  (nzOnOk)="onSubmit()"
+  (nzOnCancel)="onCancel()"
+  nzCentered
+  class="create-category-modal"
+>
+  
+
+  <ng-container *nzModalContent>
+  <div class="modal-content">
+    
+    <!-- Header con ícono -->
+    <div class="modal-header">
+      <div class="header-icon">
+        <nz-icon nzType="plus-circle" class="icon-create"></nz-icon>
+      </div>
+      <div class="header-text">
+        <h3>{{ modalTitle }}</h3>
+        <p>Completa la información para crear una nueva categoría</p>
+      </div>
+    </div>
+
+    <!-- Buscador de categorías padre -->
+    <div class="search-section" *ngIf="parentCategories.length > 0">
+      <h4>Buscar Categoría Padre</h4>
+      <nz-input-group nzPrefixIcon="search" class="parent-search">
+        <input 
+          type="text" 
+          nz-input 
+          [(ngModel)]="parentSearchText"
+          (ngModelChange)="filterParentCategories()"
+          placeholder="Buscar categoría padre..."
+          autocomplete="off"
+        />
+      </nz-input-group>
+    </div>
+
+    <!-- Formulario -->
+    <form nz-form [formGroup]="categoryForm" class="category-form">
+      
+      <!-- Categoría Padre -->
+      <nz-form-item *ngIf="parentCategories.length > 0">
+        <nz-form-label [nzRequired]="false">Categoría Padre</nz-form-label>
+        <nz-form-control 
+          nzExtra="Selecciona una categoría padre para crear una subcategoría (opcional)"
+        >
+          <nz-select 
+            formControlName="parentId"
+            nzPlaceHolder="Seleccionar categoría padre (opcional)"
+            nzAllowClear
+            nzSize="large"
+            class="parent-select"
+            nzNotFoundContent="No se encontraron categorías"
+          >
+            <nz-option 
+              *ngFor="let parent of filteredParentCategories" 
+              [nzValue]="parent.id" 
+              [nzLabel]="parent.name"
+            >
+              <span class="parent-option">
+                <nz-icon nzType="folder"></nz-icon>
+                {{ parent.name }}
+              </span>
+            </nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Nombre de la Categoría -->
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">Nombre de la Categoría</nz-form-label>
+        <nz-form-control 
+          [nzValidateStatus]="nameControl?.invalid && nameControl?.touched ? 'error' : ''"
+          [nzErrorTip]="getNameErrorMessage()"
+        >
+          <nz-input-group nzPrefixIcon="tags" nzSize="large">
+            <input 
+              type="text" 
+              nz-input 
+              formControlName="name"
+              placeholder="Ej: Herramientas Eléctricas"
+              autocomplete="off"
+            />
+          </nz-input-group>
+          <div class="input-hint">
+            <nz-icon nzType="info-circle"></nz-icon>
+            <span>Usa un nombre descriptivo y único para la categoría</span>
+          </div>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Descripción -->
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">Descripción</nz-form-label>
+        <nz-form-control 
+          [nzValidateStatus]="descriptionControl?.invalid && descriptionControl?.touched ? 'error' : ''"
+          [nzErrorTip]="getDescriptionErrorMessage()"
+        >
+          <textarea 
+            nz-input 
+            formControlName="description"
+            placeholder="Describe qué tipo de productos incluirá esta categoría..."
+            [nzAutosize]="{ minRows: 3, maxRows: 5 }"
+          ></textarea>
+          <div class="char-counter">
+            <span [class.warning]="getDescriptionLength() > 450">
+              {{ getDescriptionLength() }}/500 caracteres
+            </span>
+          </div>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+
+    <!-- Templates para el switch -->
+    <ng-template #activeTemplate>
+      <nz-icon nzType="check"></nz-icon>
+    </ng-template>
+    
+    <ng-template #inactiveTemplate>
+      <nz-icon nzType="close"></nz-icon>
+    </ng-template>
+
+  </div>
+
+  </ng-container>
+
+</nz-modal>

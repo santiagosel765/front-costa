@@ -1,0 +1,305 @@
+<!-- manage-stock.component.html -->
+<nz-modal
+  [(nzVisible)]="isVisible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="800"
+  [nzOkText]="'Actualizar Stock'"
+  [nzCancelText]="'Cancelar'"
+  [nzOkLoading]="isSubmitting"
+  [nzOkDisabled]="!stockForm.valid || !hasChanges"
+  (nzOnOk)="onSubmit()"
+  (nzOnCancel)="onCancel()"
+  nzCentered
+  class="manage-stock-modal"
+>
+
+  <ng-container *nzModalContent>
+    <div class="modal-content" *ngIf="inventoryItem">
+      
+      <!-- Header con información del producto -->
+      <div class="modal-header">
+        <div class="header-icon">
+          <nz-icon nzType="stock" class="icon-stock"></nz-icon>
+        </div>
+        <div class="header-text">
+          <h3>{{ modalTitle }}</h3>
+          <p>Gestiona el inventario de <strong>{{ inventoryItem.product.name }}</strong></p>
+          <div class="product-summary">
+            <nz-tag class="sku-tag">{{ inventoryItem.product.sku }}</nz-tag>
+            <nz-tag nzColor="purple">{{ inventoryItem.product.categoryName }}</nz-tag>
+            <nz-tag [nzColor]="getStockStatusColor(inventoryItem.stockStatus)">
+              {{ getStockStatusText(inventoryItem.stockStatus) }}
+            </nz-tag>
+          </div>
+        </div>
+      </div>
+
+      <!-- Información actual del stock -->
+      <div class="current-stock-section">
+        <h4>Estado Actual del Inventario</h4>
+        <div class="stock-cards">
+          <div class="stock-card current">
+            <div class="card-icon">
+              <nz-icon nzType="inbox"></nz-icon>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Stock Actual</span>
+              <span class="card-value current-stock">{{ inventoryItem.currentStock }}</span>
+              <span class="card-unit">{{ inventoryItem.product.unit }}</span>
+            </div>
+          </div>
+          
+          <div class="stock-card minimum">
+            <div class="card-icon">
+              <nz-icon nzType="warning"></nz-icon>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Stock Mínimo</span>
+              <span class="card-value">{{ inventoryItem.minimumStock }}</span>
+              <span class="card-unit">{{ inventoryItem.product.unit }}</span>
+            </div>
+          </div>
+          
+          <div class="stock-card maximum" *ngIf="inventoryItem.maximumStock">
+            <div class="card-icon">
+              <nz-icon nzType="check-circle"></nz-icon>
+            </div>
+            <div class="card-content">
+              <span class="card-label">Stock Máximo</span>
+              <span class="card-value">{{ inventoryItem.maximumStock }}</span>
+              <span class="card-unit">{{ inventoryItem.product.unit }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="last-update-info">
+          <nz-icon nzType="clock-circle"></nz-icon>
+          <span>Última actualización: {{ inventoryItem.lastUpdated | date:'medium' }}</span>
+          <span *ngIf="inventoryItem.updatedBy"> por {{ inventoryItem.updatedBy }}</span>
+        </div>
+      </div>
+
+      <!-- Formulario de gestión de stock -->
+      <form nz-form [formGroup]="stockForm" class="stock-form">
+        
+        <!-- Tipo de movimiento -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Tipo de Movimiento</nz-form-label>
+          <nz-form-control>
+            <nz-radio-group formControlName="movementType" class="movement-type-group">
+              <label nz-radio nzValue="in" class="movement-option">
+                <div class="option-content">
+                  <nz-icon nzType="plus-circle" class="option-icon in"></nz-icon>
+                  <div class="option-text">
+                    <span class="option-title">Entrada</span>
+                    <span class="option-description">Agregar productos al inventario</span>
+                  </div>
+                </div>
+              </label>
+              <label nz-radio nzValue="out" class="movement-option">
+                <div class="option-content">
+                  <nz-icon nzType="minus-circle" class="option-icon out"></nz-icon>
+                  <div class="option-text">
+                    <span class="option-title">Salida</span>
+                    <span class="option-description">Retirar productos del inventario</span>
+                  </div>
+                </div>
+              </label>
+              <label nz-radio nzValue="adjustment" class="movement-option">
+                <div class="option-content">
+                  <nz-icon nzType="edit" class="option-icon adjustment"></nz-icon>
+                  <div class="option-text">
+                    <span class="option-title">Ajuste</span>
+                    <span class="option-description">Corrección o ajuste de inventario</span>
+                  </div>
+                </div>
+              </label>
+            </nz-radio-group>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Cantidad del movimiento -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Cantidad</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="quantityControl?.invalid && quantityControl?.touched ? 'error' : ''"
+            [nzErrorTip]="getQuantityErrorMessage()"
+          >
+            <nz-input-group [nzSuffix]="unitTemplate" class="quantity-input">
+              <input 
+                type="number" 
+                nz-input 
+                formControlName="quantity"
+                placeholder="Ingresa la cantidad"
+                min="0"
+                [max]="getMaxQuantity()"
+              />
+            </nz-input-group>
+            
+            <ng-template #unitTemplate>
+              <span class="input-unit">{{ inventoryItem.product.unit }}</span>
+            </ng-template>
+            
+            <!-- Indicadores de cantidad -->
+            <div class="quantity-indicators" *ngIf="quantityControl?.value">
+              <div class="indicator-row">
+                <span class="indicator-label">Stock resultante:</span>
+                <span 
+                  class="indicator-value"
+                  [class.critical]="getResultingStock() <= inventoryItem.minimumStock * 0.5"
+                  [class.low]="getResultingStock() <= inventoryItem.minimumStock"
+                  [class.negative]="getResultingStock() < 0"
+                >
+                  {{ getResultingStock() }} {{ inventoryItem.product.unit }}
+                </span>
+              </div>
+              <div class="indicator-row" *ngIf="getResultingStock() < 0">
+                <nz-icon nzType="exclamation-circle" class="warning-icon"></nz-icon>
+                <span class="warning-text">El stock no puede ser negativo</span>
+              </div>
+              <div class="indicator-row" *ngIf="getResultingStock() <= inventoryItem.minimumStock && getResultingStock() >= 0">
+                <nz-icon nzType="warning" class="warning-icon"></nz-icon>
+                <span class="warning-text">Stock por debajo del mínimo recomendado</span>
+              </div>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Razón del movimiento -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Razón del Movimiento</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="reasonControl?.invalid && reasonControl?.touched ? 'error' : ''"
+            [nzErrorTip]="getReasonErrorMessage()"
+          >
+            <nz-select 
+              formControlName="reason"
+              nzPlaceHolder="Selecciona una razón"
+              nzAllowClear
+              nzShowSearch
+              class="reason-select"
+            >
+              <nz-option-group [nzLabel]="'Entradas'" *ngIf="stockForm.get('movementType')?.value === 'in'">
+                <nz-option nzValue="purchase" nzLabel="Compra/Reposición"></nz-option>
+                <nz-option nzValue="return" nzLabel="Devolución de cliente"></nz-option>
+                <nz-option nzValue="transfer_in" nzLabel="Transferencia desde otra empresa"></nz-option>
+                <nz-option nzValue="production" nzLabel="Producción interna"></nz-option>
+                <nz-option nzValue="initial_stock" nzLabel="Inventario inicial"></nz-option>
+                <nz-option nzValue="other_in" nzLabel="Otros (especificar en notas)"></nz-option>
+              </nz-option-group>
+              
+              <nz-option-group [nzLabel]="'Salidas'" *ngIf="stockForm.get('movementType')?.value === 'out'">
+                <nz-option nzValue="sale" nzLabel="Venta"></nz-option>
+                <nz-option nzValue="damaged" nzLabel="Producto dañado"></nz-option>
+                <nz-option nzValue="expired" nzLabel="Producto vencido"></nz-option>
+                <nz-option nzValue="transfer_out" nzLabel="Transferencia a otra empresa"></nz-option>
+                <nz-option nzValue="theft" nzLabel="Robo/Pérdida"></nz-option>
+                <nz-option nzValue="sample" nzLabel="Muestra/Demostración"></nz-option>
+                <nz-option nzValue="other_out" nzLabel="Otros (especificar en notas)"></nz-option>
+              </nz-option-group>
+              
+              <nz-option-group [nzLabel]="'Ajustes'" *ngIf="stockForm.get('movementType')?.value === 'adjustment'">
+                <nz-option nzValue="recount" nzLabel="Reconteo físico"></nz-option>
+                <nz-option nzValue="system_error" nzLabel="Error del sistema"></nz-option>
+                <nz-option nzValue="audit" nzLabel="Auditoría"></nz-option>
+                <nz-option nzValue="correction" nzLabel="Corrección contable"></nz-option>
+                <nz-option nzValue="other_adjustment" nzLabel="Otros (especificar en notas)"></nz-option>
+              </nz-option-group>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Actualizar límites de stock -->
+        <nz-form-item>
+          <nz-form-label>Actualizar Límites de Stock</nz-form-label>
+          <nz-form-control>
+            <div class="stock-limits">
+              <div class="limit-input">
+                <label>Stock Mínimo:</label>
+                <nz-input-group nzPrefixIcon="warning">
+                  <input 
+                    type="number" 
+                    nz-input 
+                    formControlName="newMinimumStock"
+                    placeholder="Stock mínimo"
+                    min="0"
+                  />
+                </nz-input-group>
+              </div>
+              
+              <div class="limit-input">
+                <label>Stock Máximo:</label>
+                <nz-input-group nzPrefixIcon="check-circle">
+                  <input 
+                    type="number" 
+                    nz-input 
+                    formControlName="newMaximumStock"
+                    placeholder="Stock máximo (opcional)"
+                    min="0"
+                  />
+                </nz-input-group>
+              </div>
+            </div>
+            <div class="limits-hint">
+              <nz-icon nzType="info-circle"></nz-icon>
+              <span>Los límites de stock ayudan a controlar el inventario óptimo</span>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Notas adicionales -->
+        <nz-form-item>
+          <nz-form-label>Notas Adicionales</nz-form-label>
+          <nz-form-control>
+            <textarea 
+              nz-input 
+              formControlName="notes"
+              placeholder="Información adicional sobre este movimiento de stock..."
+              [nzAutosize]="{ minRows: 3, maxRows: 5 }"
+            ></textarea>
+            <div class="char-counter">
+              <span [class.warning]="getNotesLength() > 450">
+                {{ getNotesLength() }}/500 caracteres
+              </span>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+      </form>
+
+      <!-- Resumen del cambio -->
+      <div class="change-summary" *ngIf="hasChanges">
+        <h4>Resumen del Cambio</h4>
+        <div class="summary-content">
+          <div class="summary-row">
+            <span class="summary-label">Movimiento:</span>
+            <span class="summary-value">
+              {{ getMovementTypeText(stockForm.get('movementType')?.value) }}
+              <strong>{{ stockForm.get('quantity')?.value }}</strong>
+              {{ inventoryItem.product.unit }}
+            </span>
+          </div>
+          <div class="summary-row">
+            <span class="summary-label">Stock actual → Stock final:</span>
+            <span class="summary-value">
+              {{ inventoryItem.currentStock }} → 
+              <strong 
+                [class.critical]="getResultingStock() <= inventoryItem.minimumStock * 0.5"
+                [class.low]="getResultingStock() <= inventoryItem.minimumStock"
+              >
+                {{ getResultingStock() }}
+              </strong>
+              {{ inventoryItem.product.unit }}
+            </span>
+          </div>
+          <div class="summary-row" *ngIf="stockForm.get('reason')?.value">
+            <span class="summary-label">Razón:</span>
+            <span class="summary-value">{{ getReasonText(stockForm.get('reason')?.value) }}</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </ng-container>
+
+</nz-modal>

@@ -1,0 +1,357 @@
+/* ===================================
+   UPDATE CATEGORY - REFACTORIZADO
+   Usando sistema de variables y componentes
+   ================================== */
+
+/* ========== CLASES BASE (Ya definidas en components.css) ========== */
+/* 
+   ✅ .modal-content
+   ✅ .modal-header (con .modal-header-edit)
+   ✅ .header-icon y .header-text
+   ✅ .icon-edit
+   ✅ .category-info, .info-row, .info-label, .info-value
+   ✅ .search-section
+   ✅ .parent-search
+   ✅ .category-form
+   ✅ .input-hint
+   ✅ .char-counter
+   ✅ .parent-select y .parent-option
+   ✅ .status-control, .status-text, .status-hint
+   ✅ .loading-container, .loading-text
+   ✅ Responsive design
+   ✅ Animaciones
+*/
+
+/* ========== PERSONALIZACIÓN DEL MODAL NG-ZORRO ========== */
+
+::ng-deep .update-category-modal .ant-modal-content {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+}
+
+::ng-deep .update-category-modal .ant-modal-header {
+  background: var(--gradient-modal-edit);
+  border-bottom: none;
+  padding: var(--modal-header-padding);
+}
+
+::ng-deep .update-category-modal .ant-modal-title {
+  color: var(--color-white);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+::ng-deep .update-category-modal .ant-modal-close {
+  color: rgba(255, 255, 255, 0.8);
+  top: var(--space-4);
+  right: var(--space-4);
+  transition: color var(--transition-base);
+}
+
+::ng-deep .update-category-modal .ant-modal-close:hover {
+  color: var(--color-white);
+}
+
+::ng-deep .update-category-modal .ant-modal-body {
+  padding: 0;
+  background: var(--bg-modal-body);
+}
+
+/* ========== LOADING CONTAINER ========== */
+
+.loading-container {
+  /* Ya definido en components.css */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px var(--space-5);
+  text-align: center;
+}
+
+.loading-text {
+  /* Ya definido en components.css */
+  margin-top: var(--space-4);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+/* ========== HEADER DEL MODAL ========== */
+
+.modal-header {
+  /* Extiende las clases base de components.css */
+  background: var(--gradient-modal-edit);
+}
+
+.header-icon {
+  /* Ya definido en components.css */
+  width: var(--modal-icon-size);
+  height: var(--modal-icon-size);
+  background: var(--modal-icon-bg);
+  border-radius: var(--radius-lg);
+}
+
+.icon-edit {
+  font-size: var(--font-size-2xl);
+  color: var(--color-white);
+}
+
+.header-text h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+}
+
+.header-text p {
+  margin: var(--space-1) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: var(--line-height-normal);
+}
+
+/* ========== INFORMACIÓN DE CATEGORÍA ========== */
+
+.category-info {
+  /* Ya definido en components.css */
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-modal-body);
+  border-bottom: var(--border-width-1) solid var(--color-gray-300);
+  display: flex;
+  gap: var(--space-6);
+  flex-wrap: wrap;
+}
+
+.info-row {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.info-label {
+  /* Ya definido en components.css */
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  /* Ya definido en components.css */
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-800);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-orange-outline);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+/* ========== FORMULARIO ========== */
+
+.category-form {
+  padding: var(--modal-body-padding);
+  background: var(--bg-card);
+}
+
+/* ========== PERSONALIZACIÓN DE INPUTS ========== */
+
+.category-form .ant-input,
+.category-form .ant-select-selector,
+.category-form textarea {
+  border-radius: var(--radius-md);
+  border: var(--border-width-2) solid var(--color-gray-300);
+  transition: all var(--transition-base);
+  font-size: var(--font-size-sm);
+}
+
+.category-form .ant-input:hover,
+.category-form .ant-select-selector:hover,
+.category-form textarea:hover {
+  border-color: var(--color-gray-400);
+}
+
+.category-form .ant-input:focus,
+.category-form .ant-select-focused .ant-select-selector,
+.category-form textarea:focus {
+  border-color: var(--color-orange) !important;
+  box-shadow: 0 0 0 3px var(--color-orange-outline) !important;
+}
+
+/* ========== ESTADOS DE ERROR ========== */
+
+::ng-deep .ant-form-item-has-error .ant-input,
+::ng-deep .ant-form-item-has-error .ant-select-selector {
+  border-color: var(--color-error) !important;
+}
+
+/* ========== FORM ITEMS ========== */
+
+::ng-deep .category-form .ant-form-item {
+  margin-bottom: var(--space-6);
+  display: block;
+}
+
+::ng-deep .category-form .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* ========== LABELS ========== */
+
+::ng-deep .category-form .ant-form-item-label > label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+  font-size: var(--font-size-sm);
+}
+
+::ng-deep .category-form .ant-form-item-label > label.ant-form-item-required::before {
+  color: var(--color-error);
+}
+
+/* ========== HINTS Y CONTADORES ========== */
+
+.input-hint {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.input-hint nz-icon {
+  color: var(--color-gray-500);
+}
+
+.char-counter {
+  /* Ya definido en components.css */
+  text-align: right;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.char-counter .warning {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ========== SELECT DE CATEGORÍA PADRE ========== */
+
+.parent-select {
+  width: 100%;
+}
+
+.parent-option {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.parent-option nz-icon {
+  color: var(--color-orange);
+}
+
+/* ========== CONTROL DE ESTADO ========== */
+
+.status-control {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.status-text {
+  /* Ya definido en components.css */
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-800);
+}
+
+.status-hint {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.status-hint nz-icon {
+  color: var(--color-warning);
+}
+
+/* ========== SECCIÓN DE BÚSQUEDA ========== */
+
+.search-section {
+  /* Ya definido en components.css */
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-modal-body);
+  border-bottom: var(--border-width-1) solid var(--color-gray-300);
+}
+
+.search-section h4 {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+}
+
+.parent-search {
+  width: 100%;
+}
+
+/* ========== SWITCH PERSONALIZADO ========== */
+
+::ng-deep .category-form .ant-switch-checked {
+  background-color: var(--color-success);
+}
+
+::ng-deep .category-form .ant-switch {
+  background-color: var(--color-gray-400);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+@media (max-width: 768px) {
+  ::ng-deep .update-category-modal {
+    margin: var(--space-4) !important;
+    max-width: calc(100vw - var(--space-8)) !important;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-3);
+  }
+
+  .category-form {
+    padding: var(--space-6) var(--space-4) var(--space-4);
+  }
+
+  .search-section {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .category-info {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .info-row {
+    justify-content: space-between;
+  }
+}
+
+/* ========== ANIMACIONES ========== */
+
+.modal-content {
+  /* Ya definido en components.css */
+  animation: modalSlideIn 0.3s ease-out;
+}

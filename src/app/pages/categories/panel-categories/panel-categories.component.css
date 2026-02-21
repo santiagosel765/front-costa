@@ -1,0 +1,115 @@
+/* ===================================
+   PANEL CATEGORIES - REFACTORIZADO
+   Usando sistema de variables y componentes
+   ================================== */
+
+/* ========== CLASES BASE (Ya definidas en components.css) ========== */
+/* 
+   .panel-container ✓
+   .panel-card ✓  
+   .panel-header ✓
+   .header-left ✓
+   .header-right ✓
+   .create-btn ✓
+   .filters-section ✓
+   .filters-row ✓
+   .search-input ✓
+   .action-buttons ✓
+   .data-table ✓ (como .categories-table)
+   ... y todos los componentes de jerarquía
+*/
+
+/* ========== ESPECÍFICO PARA CATEGORÍAS ========== */
+
+/* Extender la tabla base para categorías */
+.categories-table {
+  /* Hereda de .data-table en components.css */
+}
+
+/* Aplicar estilos de jerarquía a filas específicas */
+.categories-table .ant-table-tbody > tr {
+  cursor: pointer;
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+/* Las filas de categorías padre usarán la clase .parent-category */
+.categories-table .parent-category {
+  /* Ya definida en components.css */
+}
+
+/* Las filas de subcategorías usarán la clase .child-category */  
+.categories-table .child-category {
+  /* Ya definida en components.css */
+}
+
+/* ========== ESTILOS ESPECÍFICOS ADICIONALES ========== */
+
+/* Solo agregamos lo que NO está en components.css */
+
+/* Mejora específica para el hover de las filas de categorías */
+.categories-table .ant-table-tbody > tr:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Personalización específica para tags de categorías */
+.categories-table .ant-tag {
+  border-radius: var(--radius-full);
+  padding: var(--tag-padding);
+  font-size: var(--tag-font-size);
+  font-weight: var(--tag-font-weight);
+  border: none;
+}
+
+/* Estilos específicos para counters de productos y subcategorías */
+.categories-table .ant-tag[nzColor="blue"] {
+  background: var(--tag-available-bg);
+  color: var(--tag-available-color);
+}
+
+.categories-table .ant-tag[nzColor="purple"] {
+  background: var(--tag-category-bg);
+  color: var(--tag-category-color);
+}
+
+/* ========== RESPONSIVE ESPECÍFICO ========== */
+/* Solo lo que no está cubierto en components.css */
+
+@media (max-width: 768px) {
+  /* Ajustes específicos para categorías en móvil */
+  .categories-table .category-name-cell {
+    gap: var(--space-2);
+  }
+  
+  .categories-table .hierarchy-indicator {
+    width: var(--size-hierarchy-icon-sm);
+    height: var(--size-hierarchy-icon-sm);
+  }
+}
+
+@media (max-width: 480px) {
+  /* Ajustes específicos para categorías en móvil pequeño */
+  .categories-table .category-name-cell {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-2);
+  }
+}
+
+/* ========== ESTADOS DE LOADING ESPECÍFICOS ========== */
+/* Si necesitas algo específico para categorías */
+
+.categories-table.ant-table-loading .hierarchy-indicator {
+  opacity: 0.5;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}

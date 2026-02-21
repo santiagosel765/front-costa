@@ -1,0 +1,232 @@
+<!-- panel-categories.component.html (Con sistema de diseño) -->
+<div class="panel-container">
+  <nz-card nzTitle="Gestión de Categorías" class="panel-card">
+    
+    <!-- Header con botón crear -->
+    <div class="panel-header">
+      <div class="header-left">
+        <h2>Lista de Categorías</h2>
+        <p>Administra las categorías y subcategorías de tu ferretería</p>
+      </div>
+      <div class="header-right">
+        <button 
+          nz-button 
+          nzType="primary" 
+          nzSize="large"
+          (click)="createCategory()"
+          class="create-btn"
+        >
+          <nz-icon nzType="plus" nzTheme="outline" />
+          Nueva Categoría
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros mejorados -->
+    <div class="filters-section">
+      <div class="filters-row">
+        <!-- Búsqueda -->
+        <nz-input-group nzPrefixIcon="search" class="search-input">
+          <input 
+            type="text" 
+            nz-input 
+            placeholder="Buscar categorías..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="onSearch()"
+          />
+        </nz-input-group>
+
+        <!-- Filtro por nivel jerárquico -->
+        <nz-select 
+          [(ngModel)]="selectedLevel" 
+          (ngModelChange)="onLevelFilter()"
+          nzPlaceHolder="Filtrar por nivel"
+          class="level-filter"
+          nzAllowClear
+        >
+          <nz-option nzValue="all" nzLabel="Todos los niveles"></nz-option>
+          <nz-option nzValue="0" nzLabel="Solo categorías principales"></nz-option>
+          <nz-option nzValue="1" nzLabel="Solo subcategorías"></nz-option>
+        </nz-select>
+
+        <!-- Filtro por estado -->
+        <nz-select 
+          [(ngModel)]="selectedStatus" 
+          (ngModelChange)="onStatusFilter()"
+          nzPlaceHolder="Filtrar por estado"
+          class="status-filter"
+          nzAllowClear
+        >
+          <nz-option nzValue="all" nzLabel="Todos los estados"></nz-option>
+          <nz-option nzValue="active" nzLabel="Activas"></nz-option>
+          <nz-option nzValue="inactive" nzLabel="Inactivas"></nz-option>
+        </nz-select>
+
+        <!-- Botón refrescar -->
+        <button 
+          nz-button 
+          nzType="default"
+          (click)="refreshData()"
+          [nzLoading]="isLoading"
+          nz-tooltip="Refrescar datos"
+        >
+          <nz-icon nzType="reload"></nz-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla con jerarquía -->
+    <nz-table 
+      #basicTable 
+      [nzData]="filteredCategories" 
+      [nzPageSize]="pageSize"
+      [nzShowSizeChanger]="true"
+      [nzShowQuickJumper]="true"
+      [nzLoading]="isLoading"
+      nzShowPagination
+      class="categories-table"
+    >
+      <thead>
+        <tr>
+          <th nzWidth="80px">ID</th>
+          <th>Nombre / Jerarquía</th>
+          <th>Descripción</th>
+          <th nzWidth="100px">Estado</th>
+          <th nzWidth="120px">Productos</th>
+          <th nzWidth="130px">Subcategorías</th>
+          <th nzWidth="150px">Fecha Creación</th>
+          <th nzWidth="200px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 🔥 AQUÍ ES DONDE AGREGASTE LAS CLASES DINÁMICAS -->
+        <tr *ngFor="let category of basicTable.data" 
+            [class.parent-category]="category.level === 0"
+            [class.child-category]="category.level === 1">
+          
+          <!-- ID -->
+          <td>{{ category.id }}</td>
+          
+          <!-- Nombre con jerarquía -->
+          <td>
+            <div class="category-name-cell">
+              <!-- Indicador de nivel -->
+              <div class="hierarchy-indicator" [ngClass]="'level-' + (category.level || 0)">
+                <nz-icon 
+                  *ngIf="category.level === 0" 
+                  nzType="folder" 
+                  class="parent-icon"
+                ></nz-icon>
+                <nz-icon 
+                  *ngIf="category.level === 1" 
+                  nzType="file" 
+                  class="child-icon"
+                ></nz-icon>
+              </div>
+              
+              <!-- Nombre de la categoría -->
+              <div class="category-name-content">
+                <strong 
+                  [class.parent-name]="category.level === 0"
+                  [class.child-name]="category.level === 1"
+                >
+                  {{ category.name }}
+                </strong>
+                
+                <!-- Ruta completa para subcategorías -->
+                <div *ngIf="category.parentName" class="parent-path">
+                  <nz-icon nzType="right"></nz-icon>
+                  <span class="parent-reference">{{ category.parentName }}</span>
+                </div>
+              </div>
+            </div>
+          </td>
+          
+          <!-- Descripción -->
+          <td>
+            <span [title]="category.description">
+              {{ category.description | slice:0:50 }}
+              <span *ngIf="category.description.length > 50">...</span>
+            </span>
+          </td>
+          
+          <!-- Estado -->
+          <td>
+            <nz-tag 
+              [nzColor]="getStatusColor(category.status)"
+            >
+              {{ getStatusText(category.status) }}
+            </nz-tag>
+          </td>
+          
+          <!-- Productos -->
+          <td>
+            <nz-tag nzColor="blue">
+              {{ category.productsCount }} productos
+            </nz-tag>
+          </td>
+          
+          <!-- Subcategorías (solo para categorías padre) -->
+          <td>
+            <nz-tag 
+              *ngIf="category.level === 0 && category.hasChildren" 
+              nzColor="purple"
+            >
+              {{ category.childrenCount || 0 }} subcategorías
+            </nz-tag>
+            <span *ngIf="category.level === 1" class="text-muted">-</span>
+            <span *ngIf="category.level === 0 && !category.hasChildren" class="text-muted">Sin subcategorías</span>
+          </td>
+          
+          <!-- Fecha -->
+          <td>{{ category.createdAt | date:'short' }}</td>
+          
+          <!-- Acciones -->
+          <td>
+            <div class="action-buttons">
+              <!-- Editar -->
+              <button 
+                nz-button 
+                nzType="primary" 
+                nzSize="small"
+                (click)="editCategory(category.id)"
+                nz-tooltip="Editar"
+              >
+                <nz-icon nzType="edit"></nz-icon>
+              </button>
+              
+              <!-- Eliminar -->
+              <button 
+                nz-button 
+                nzDanger 
+                nzSize="small"
+                nz-popconfirm="¿Estás seguro de eliminar esta categoría?"
+                [nzPopconfirmTitle]="getDeleteConfirmMessage(category)"
+                nzPopconfirmPlacement="top"
+                (nzOnConfirm)="deleteCategory(category.id)"
+                nz-tooltip="Eliminar"
+              >
+                <nz-icon nzType="delete"></nz-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+  </nz-card>
+
+  <!-- Modales -->
+  <app-create-category
+    [isVisible]="isCreateModalVisible"
+    (visibleChange)="onCreateModalVisibleChange($event)"
+    (categoryCreated)="onCategoryCreated($event)"
+  ></app-create-category>
+
+  <app-update-category
+    [isVisible]="isUpdateModalVisible"
+    [categoryData]="selectedCategoryForEdit"
+    (visibleChange)="onUpdateModalVisibleChange($event)"
+    (categoryUpdated)="onCategoryUpdated($event)"
+  ></app-update-category>
+</div>

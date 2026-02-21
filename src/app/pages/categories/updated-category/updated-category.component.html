@@ -1,0 +1,182 @@
+<!-- update-category.component.html -->
+<nz-modal
+  [(nzVisible)]="isVisible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="modalWidth"
+  [nzOkText]="'Actualizar Categoría'"
+  [nzCancelText]="'Cancelar'"
+  [nzOkLoading]="isSubmitting"
+  [nzOkDisabled]="!categoryForm.valid"
+  (nzOnOk)="onSubmit()"
+  (nzOnCancel)="onCancel()"
+  nzCentered
+  class="update-category-modal"
+>
+  
+  <!-- 🔧 CRÍTICO: Envolver todo en ng-container *nzModalContent -->
+  <ng-container *nzModalContent>
+  
+    <!-- Loading Spinner mientras cargan los datos -->
+    <div *ngIf="isLoading" class="loading-container">
+      <nz-spin nzSize="large">
+        <div class="loading-text">Cargando datos de la categoría...</div>
+      </nz-spin>
+    </div>
+
+    <!-- Contenido del modal cuando no está cargando -->
+    <div class="modal-content" *ngIf="!isLoading">
+      
+      <!-- Header con ícono -->
+      <div class="modal-header">
+        <div class="header-icon">
+          <nz-icon nzType="edit" class="icon-edit"></nz-icon>
+        </div>
+        <div class="header-text">
+          <h3>{{ modalTitle }}</h3>
+          <p>Modifica la información de la categoría seleccionada</p>
+        </div>
+      </div>
+
+      <!-- Información de la categoría original -->
+      <div class="category-info" *ngIf="categoryData">
+        <div class="info-row">
+          <span class="info-label">ID:</span>
+          <span class="info-value">{{ categoryData.id }}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Creada:</span>
+          <span class="info-value">{{ categoryData.createdAt | date:'short' }}</span>
+        </div>
+        <div class="info-row" *ngIf="categoryData.updatedAt">
+          <span class="info-label">Última actualización:</span>
+          <span class="info-value">{{ categoryData.updatedAt | date:'short' }}</span>
+        </div>
+      </div>
+
+      <!-- Buscador de categorías padre -->
+      <div class="search-section" *ngIf="parentCategories.length > 0">
+        <h4>Buscar Categoría Padre</h4>
+        <nz-input-group nzPrefixIcon="search" class="parent-search">
+          <input 
+            type="text" 
+            nz-input 
+            [(ngModel)]="parentSearchText"
+            (ngModelChange)="filterParentCategories()"
+            placeholder="Buscar categoría padre..."
+            autocomplete="off"
+          />
+        </nz-input-group>
+      </div>
+
+      <!-- Formulario -->
+      <form nz-form [formGroup]="categoryForm" class="category-form">
+        
+        <!-- Categoría Padre -->
+        <nz-form-item *ngIf="parentCategories.length > 0">
+          <nz-form-label [nzRequired]="false">Categoría Padre</nz-form-label>
+          <nz-form-control 
+            nzExtra="Selecciona una categoría padre para crear una subcategoría (opcional)"
+          >
+            <nz-select 
+              formControlName="parentId"
+              nzPlaceHolder="Seleccionar categoría padre (opcional)"
+              nzAllowClear
+              nzSize="large"
+              class="parent-select"
+              nzNotFoundContent="No se encontraron categorías"
+            >
+              <nz-option 
+                *ngFor="let parent of filteredParentCategories" 
+                [nzValue]="parent.id" 
+                [nzLabel]="parent.name"
+              >
+                <span class="parent-option">
+                  <nz-icon nzType="folder"></nz-icon>
+                  {{ parent.name }}
+                </span>
+              </nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Nombre de la Categoría -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Nombre de la Categoría</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="nameControl?.invalid && nameControl?.touched ? 'error' : ''"
+            [nzErrorTip]="getNameErrorMessage()"
+          >
+            <nz-input-group nzPrefixIcon="tags" nzSize="large">
+              <input 
+                type="text" 
+                nz-input 
+                formControlName="name"
+                placeholder="Ej: Herramientas Eléctricas"
+                autocomplete="off"
+              />
+            </nz-input-group>
+            <div class="input-hint">
+              <nz-icon nzType="info-circle"></nz-icon>
+              <span>Usa un nombre descriptivo y único para la categoría</span>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Descripción -->
+        <nz-form-item>
+          <nz-form-label [nzRequired]="true">Descripción</nz-form-label>
+          <nz-form-control 
+            [nzValidateStatus]="descriptionControl?.invalid && descriptionControl?.touched ? 'error' : ''"
+            [nzErrorTip]="getDescriptionErrorMessage()"
+          >
+            <textarea 
+              nz-input 
+              formControlName="description"
+              placeholder="Describe qué tipo de productos incluirá esta categoría..."
+              [nzAutosize]="{ minRows: 3, maxRows: 5 }"
+            ></textarea>
+            <div class="char-counter">
+              <span [class.warning]="getDescriptionLength() > 450">
+                {{ getDescriptionLength() }}/500 caracteres
+              </span>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Estado (Activo/Inactivo) -->
+        <nz-form-item>
+          <nz-form-label>Estado</nz-form-label>
+          <nz-form-control>
+            <div class="status-control">
+              <nz-switch 
+                formControlName="status"
+                [nzCheckedChildren]="activeTemplate"
+                [nzUnCheckedChildren]="inactiveTemplate"
+              ></nz-switch>
+              <span class="status-text">
+                {{ categoryForm.get('status')?.value ? 'Categoría activa' : 'Categoría inactiva' }}
+              </span>
+            </div>
+            <div class="status-hint">
+              <nz-icon nzType="bulb"></nz-icon>
+              <span>Las categorías inactivas no aparecerán en la selección de productos</span>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+      </form>
+
+      <!-- Templates para el switch -->
+      <ng-template #activeTemplate>
+        <nz-icon nzType="check"></nz-icon>
+      </ng-template>
+      
+      <ng-template #inactiveTemplate>
+        <nz-icon nzType="close"></nz-icon>
+      </ng-template>
+
+    </div>
+    
+  </ng-container>
+
+</nz-modal>

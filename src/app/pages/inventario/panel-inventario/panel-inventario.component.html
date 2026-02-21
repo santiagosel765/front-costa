@@ -1,0 +1,315 @@
+<!-- panel-inventario.component.html -->
+<div class="panel-container">
+  <nz-card nzTitle="Gestión de Inventario Multi-Empresa" class="panel-card">
+    
+    <!-- Selector de Empresas -->
+    <div class="companies-tabs-section">
+      <h2>Seleccionar Empresa</h2>
+      <nz-tabset 
+        [(nzSelectedIndex)]="selectedCompanyIndex" 
+        (nzSelectedIndexChange)="onCompanyChange()"
+        nzType="card"
+        class="companies-tabs"
+      >
+        <nz-tab 
+          *ngFor="let company of companies; let i = index" 
+          [nzTitle]="company.name"
+          [nzDisabled]="company.status === 'inactive'"
+        >
+          <div class="company-info">
+            <nz-tag [nzColor]="getCompanyStatusColor(company.status)">
+              {{ getCompanyStatusText(company.status) }}
+            </nz-tag>
+            <span class="products-count">{{ company.assignedProductsCount }} productos asignados</span>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </div>
+
+    <!-- Header con información de empresa activa -->
+    <div class="panel-header">
+      <div class="header-left">
+        <h2>Inventario de {{ getActiveCompany()?.name }}</h2>
+        <p>Gestiona el stock y productos asignados a esta empresa</p>
+        <div class="company-stats">
+          <nz-statistic 
+            nzTitle="Total Productos" 
+            [nzValue]="getActiveCompany()?.assignedProductsCount || 0"
+            [nzValueStyle]="{ color: '#3f8600' }"
+          ></nz-statistic>
+          <nz-statistic 
+            nzTitle="Stock Total" 
+            [nzValue]="getTotalStock()"
+            [nzValueStyle]="{ color: '#1890ff' }"
+          ></nz-statistic>
+          <nz-statistic 
+            nzTitle="Productos Críticos" 
+            [nzValue]="getCriticalStockCount()"
+            [nzValueStyle]="{ color: '#cf1322' }"
+          ></nz-statistic>
+        </div>
+      </div>
+      <div class="header-right">
+        <button 
+          nz-button 
+          nzType="primary" 
+          nzSize="large"
+          (click)="openAssignProductModal()"
+          class="assign-btn"
+          [disabled]="!getActiveCompany()"
+        >
+          <nz-icon nzType="plus" nzTheme="outline" />
+          Asignar Producto
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+      <div class="filters-row">
+        <!-- Búsqueda -->
+        <nz-input-group nzPrefixIcon="search" class="search-input">
+          <input 
+            type="text" 
+            nz-input 
+            placeholder="Buscar productos por nombre, SKU o categoría..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="onSearch()"
+          />
+        </nz-input-group>
+
+        <!-- Filtro por categoría -->
+        <nz-select 
+          [(ngModel)]="selectedCategory" 
+          (ngModelChange)="onCategoryFilter()"
+          nzPlaceHolder="Filtrar por categoría"
+          class="category-filter"
+          nzAllowClear
+          nzShowSearch
+        >
+          <nz-option nzValue="all" nzLabel="Todas las categorías"></nz-option>
+          <nz-option 
+            *ngFor="let category of availableCategories" 
+            [nzValue]="category.id" 
+            [nzLabel]="category.name"
+          ></nz-option>
+        </nz-select>
+
+        <!-- Filtro por estado de stock -->
+        <nz-select 
+          [(ngModel)]="selectedStockStatus" 
+          (ngModelChange)="onStockStatusFilter()"
+          nzPlaceHolder="Estado de stock"
+          class="stock-filter"
+          nzAllowClear
+        >
+          <nz-option nzValue="all" nzLabel="Todos los estados"></nz-option>
+          <nz-option nzValue="available" nzLabel="Stock disponible"></nz-option>
+          <nz-option nzValue="low" nzLabel="Stock bajo"></nz-option>
+          <nz-option nzValue="critical" nzLabel="Stock crítico"></nz-option>
+          <nz-option nzValue="out" nzLabel="Sin stock"></nz-option>
+        </nz-select>
+
+        <!-- Botón refrescar -->
+        <button 
+          nz-button 
+          nzType="default"
+          (click)="refreshData()"
+          [nzLoading]="isLoading"
+          nz-tooltip="Refrescar inventario"
+        >
+          <nz-icon nzType="reload"></nz-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de inventario -->
+    <nz-table 
+      #inventoryTable 
+      [nzData]="filteredInventory" 
+      [nzPageSize]="pageSize"
+      [nzShowSizeChanger]="true"
+      [nzShowQuickJumper]="true"
+      [nzLoading]="isLoading"
+      nzShowPagination
+      class="inventory-table"
+      [nzScroll]="{ x: '1200px' }"
+    >
+      <thead>
+        <tr>
+          <th nzWidth="80px">SKU</th>
+          <th nzWidth="200px">Producto</th>
+          <th nzWidth="150px">Categoría</th>
+          <th nzWidth="120px">Stock Actual</th>
+          <th nzWidth="100px">Stock Mín.</th>
+          <th nzWidth="100px">Estado Stock</th>
+          <th nzWidth="100px">Estado</th>
+          <th nzWidth="140px">Última Actualización</th>
+          <th nzWidth="180px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let item of inventoryTable.data" 
+            [class.critical-stock]="item.stockStatus === 'critical'"
+            [class.low-stock]="item.stockStatus === 'low'"
+            [class.out-of-stock]="item.stockStatus === 'out'">
+          
+          <!-- SKU -->
+          <td>
+            <span class="sku-code">{{ item.product.sku }}</span>
+          </td>
+          
+          <!-- Información del producto -->
+          <td>
+            <div class="product-info">
+              <div class="product-main">
+                <strong class="product-name">{{ item.product.name }}</strong>
+                <div class="product-details">
+                  <span class="product-brand" *ngIf="item.product.brand">
+                    {{ item.product.brand }}
+                  </span>
+                  <span class="product-model" *ngIf="item.product.model">
+                    Modelo: {{ item.product.model }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </td>
+          
+          <!-- Categoría -->
+          <td>
+            <nz-tag nzColor="purple">
+              {{ item.product.categoryName }}
+            </nz-tag>
+          </td>
+          
+          <!-- Stock actual -->
+          <td>
+            <div class="stock-display">
+              <span 
+                class="stock-number"
+                [class.stock-critical]="item.stockStatus === 'critical'"
+                [class.stock-low]="item.stockStatus === 'low'"
+                [class.stock-out]="item.stockStatus === 'out'"
+              >
+                {{ item.currentStock }}
+              </span>
+              <span class="stock-unit">{{ item.product.unit || 'unidades' }}</span>
+            </div>
+          </td>
+          
+          <!-- Stock mínimo -->
+          <td>
+            <span class="stock-min">{{ item.minimumStock }}</span>
+          </td>
+          
+          <!-- Estado del stock -->
+          <td>
+            <nz-tag [nzColor]="getStockStatusColor(item.stockStatus)">
+              {{ getStockStatusText(item.stockStatus) }}
+            </nz-tag>
+          </td>
+          
+          <!-- Estado del producto -->
+          <td>
+            <nz-tag [nzColor]="getProductStatusColor(item.product.status)">
+              {{ getProductStatusText(item.product.status) }}
+            </nz-tag>
+          </td>
+          
+          <!-- Fecha de actualización -->
+          <td>
+            <div class="update-info">
+              <span class="update-date">{{ item.lastUpdated | date:'short' }}</span>
+              <small class="updated-by" *ngIf="item.updatedBy">
+                por {{ item.updatedBy }}
+              </small>
+            </div>
+          </td>
+          
+          <!-- Acciones -->
+          <td>
+            <div class="action-buttons">
+              <!-- Gestionar stock -->
+              <button 
+                nz-button 
+                nzType="primary" 
+                nzSize="small"
+                (click)="openStockModal(item)"
+                nz-tooltip="Gestionar stock"
+              >
+                <nz-icon nzType="stock"></nz-icon>
+              </button>
+              
+              <!-- Historial de movimientos -->
+              <button 
+                nz-button 
+                nzType="default" 
+                nzSize="small"
+                (click)="viewStockHistory(item.id)"
+                nz-tooltip="Ver historial"
+              >
+                <nz-icon nzType="history"></nz-icon>
+              </button>
+              
+              <!-- Remover de empresa -->
+              <button 
+                nz-button 
+                nzDanger 
+                nzSize="small"
+                nz-popconfirm="¿Remover este producto de la empresa?"
+                nzPopconfirmTitle="Esta acción no eliminará el producto, solo lo desasignará de esta empresa"
+                nzPopconfirmPlacement="top"
+                (nzOnConfirm)="removeFromCompany(item.id)"
+                nz-tooltip="Remover de empresa"
+              >
+                <nz-icon nzType="disconnect"></nz-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <!-- Estado vacío cuando no hay productos -->
+    <div class="empty-state" *ngIf="filteredInventory.length === 0 && !isLoading">
+      <nz-empty 
+        nzNotFoundImage="simple" 
+        [nzNotFoundContent]="emptyStateTemplate"
+      ></nz-empty>
+      
+      <ng-template #emptyStateTemplate>
+        <div class="empty-content">
+          <h3>No hay productos asignados</h3>
+          <p>Esta empresa aún no tiene productos en su inventario.</p>
+          <button 
+            nz-button 
+            nzType="primary" 
+            (click)="openAssignProductModal()"
+            *ngIf="getActiveCompany()"
+          >
+            <nz-icon nzType="plus"></nz-icon>
+            Asignar primer producto
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+  </nz-card>
+
+  <!-- Modales -->
+  <app-assign-product
+    [isVisible]="isAssignModalVisible"
+    [companyId]="getActiveCompany()?.id"
+    [companyName]="getActiveCompany()?.name"
+    (visibleChange)="onAssignModalVisibleChange($event)"
+    (productsAssigned)="onProductsAssigned($event)"
+  ></app-assign-product>
+
+  <app-manage-stock
+    [isVisible]="isStockModalVisible"
+    [inventoryItem]="selectedInventoryItem"
+    (visibleChange)="onStockModalVisibleChange($event)"
+    (stockUpdated)="onStockUpdated($event)"
+  ></app-manage-stock>
+</div>

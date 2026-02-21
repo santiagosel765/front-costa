@@ -1,0 +1,269 @@
+/* ===================================
+   CREATE CATEGORY - REFACTORIZADO
+   Usando sistema de variables y componentes
+   ================================== */
+
+/* ========== CLASES BASE (Ya definidas en components.css) ========== */
+/* 
+   ✅ .modal-content
+   ✅ .modal-header (con .modal-header-create)
+   ✅ .header-icon y .header-text
+   ✅ .icon-create
+   ✅ .search-section
+   ✅ .parent-search
+   ✅ .category-form
+   ✅ .input-hint
+   ✅ .char-counter
+   ✅ .parent-select y .parent-option
+   ✅ .status-control, .status-text, .status-hint
+   ✅ Responsive design
+   ✅ Animaciones
+*/
+
+/* ========== PERSONALIZACIÓN DEL MODAL NG-ZORRO ========== */
+
+::ng-deep .create-category-modal .ant-modal-content {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+}
+
+::ng-deep .create-category-modal .ant-modal-header {
+  background: var(--gradient-modal-create);
+  border-bottom: none;
+  padding: var(--modal-header-padding);
+}
+
+::ng-deep .create-category-modal .ant-modal-title {
+  color: var(--color-white);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+::ng-deep .create-category-modal .ant-modal-close {
+  color: rgba(255, 255, 255, 0.8);
+  top: var(--space-4);
+  right: var(--space-4);
+  transition: color var(--transition-base);
+}
+
+::ng-deep .create-category-modal .ant-modal-close:hover {
+  color: var(--color-white);
+}
+
+::ng-deep .create-category-modal .ant-modal-body {
+  padding: 0;
+  background: var(--bg-modal-body);
+}
+
+/* ========== HEADER DEL MODAL ========== */
+
+.modal-header {
+  /* Extiende las clases base de components.css */
+  /* Ya definido: display, align-items, gap, padding, color */
+  background: var(--gradient-modal-create);
+}
+
+.header-icon {
+  /* Ya definido en components.css */
+  width: var(--modal-icon-size);
+  height: var(--modal-icon-size);
+  background: var(--modal-icon-bg);
+  border-radius: var(--radius-lg);
+}
+
+.icon-create {
+  font-size: var(--font-size-2xl);
+  color: var(--color-white);
+}
+
+.header-text h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+}
+
+.header-text p {
+  margin: var(--space-1) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: var(--line-height-normal);
+}
+
+/* ========== FORMULARIO ========== */
+
+.category-form {
+  padding: var(--modal-body-padding);
+  background: var(--bg-card);
+}
+
+/* ========== PERSONALIZACIÓN DE INPUTS ========== */
+
+.category-form .ant-input,
+.category-form .ant-select-selector,
+.category-form textarea {
+  border-radius: var(--radius-md);
+  border: var(--border-width-2) solid var(--color-gray-300);
+  transition: all var(--transition-base);
+  font-size: var(--font-size-sm);
+}
+
+.category-form .ant-input:hover,
+.category-form .ant-select-selector:hover,
+.category-form textarea:hover {
+  border-color: var(--color-gray-400);
+}
+
+.category-form .ant-input:focus,
+.category-form .ant-select-focused .ant-select-selector,
+.category-form textarea:focus {
+  border-color: var(--color-primary-600) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-outline) !important;
+}
+
+/* ========== ESTADOS DE ERROR ========== */
+
+::ng-deep .ant-form-item-has-error .ant-input,
+::ng-deep .ant-form-item-has-error .ant-select-selector {
+  border-color: var(--color-error) !important;
+}
+
+/* ========== FORM ITEMS ========== */
+
+::ng-deep .category-form .ant-form-item {
+  margin-bottom: var(--space-6);
+  display: block;
+}
+
+::ng-deep .category-form .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* ========== LABELS ========== */
+
+::ng-deep .category-form .ant-form-item-label > label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+  font-size: var(--font-size-sm);
+}
+
+::ng-deep .category-form .ant-form-item-label > label.ant-form-item-required::before {
+  color: var(--color-error);
+}
+
+/* ========== HINTS Y CONTADORES ========== */
+
+.input-hint {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.input-hint nz-icon {
+  color: var(--color-gray-500);
+}
+
+.char-counter {
+  /* Ya definido en components.css */
+  text-align: right;
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.char-counter .warning {
+  color: var(--color-warning);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ========== SELECT DE CATEGORÍA PADRE ========== */
+
+.parent-select {
+  width: 100%;
+}
+
+.parent-option {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.parent-option nz-icon {
+  color: var(--color-primary-600);
+}
+
+/* ========== SECCIÓN DE BÚSQUEDA ========== */
+
+.search-section {
+  /* Ya definido en components.css */
+  padding: var(--space-4) var(--space-6);
+  background: var(--bg-modal-body);
+  border-bottom: var(--border-width-1) solid var(--color-gray-300);
+}
+
+.search-section h4 {
+  margin: 0 0 var(--space-3) 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+}
+
+.parent-search {
+  width: 100%;
+}
+
+/* ========== SWITCH PERSONALIZADO ========== */
+
+::ng-deep .category-form .ant-switch-checked {
+  background-color: var(--color-success);
+}
+
+::ng-deep .category-form .ant-switch {
+  background-color: var(--color-gray-400);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+@media (max-width: 768px) {
+  ::ng-deep .create-category-modal {
+    margin: var(--space-4) !important;
+    max-width: calc(100vw - var(--space-8)) !important;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-3);
+  }
+
+  .category-form {
+    padding: var(--space-6) var(--space-4) var(--space-4);
+  }
+
+  .search-section {
+    padding: var(--space-3) var(--space-4);
+  }
+}
+
+/* ========== ANIMACIONES ========== */
+
+.modal-content {
+  /* Ya definido en components.css */
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+/* ========== FOCUS STYLES MEJORADOS ========== */
+
+::ng-deep .category-form .ant-input:focus,
+::ng-deep .category-form .ant-select:focus .ant-select-selector,
+::ng-deep .category-form textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-primary-outline) !important;
+}

@@ -1,0 +1,150 @@
+<!-- create-product.component.html -->
+<nz-modal
+  [(nzVisible)]="isVisible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="modalWidth"
+  [nzOkText]="'Crear Producto'"
+  [nzCancelText]="'Cancelar'"
+  [nzOkLoading]="isSubmitting"
+  [nzOkDisabled]="!productForm.valid"
+  (nzOnOk)="onSubmit()"
+  (nzOnCancel)="onCancel()"
+  nzCentered
+  class="create-product-modal"
+>
+  <ng-container *nzModalContent>
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-icon">
+          <nz-icon nzType="appstore-add" class="icon-create"></nz-icon>
+        </div>
+        <div class="header-text">
+          <h3>{{ modalTitle }}</h3>
+          <p>Completa la información para registrar un nuevo producto en el inventario.</p>
+        </div>
+      </div>
+
+      <!-- Formulario -->
+      <form nz-form [formGroup]="productForm" class="product-form">
+        
+        <!-- Fila: Nombre y SKU -->
+        <div nz-row [nzGutter]="24">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Nombre del Producto</nz-form-label>
+              <nz-form-control nzErrorTip="El nombre es requerido y debe tener entre 3 y 100 caracteres.">
+                <nz-input-group nzPrefixIcon="shopping">
+                  <input type="text" nz-input formControlName="name" placeholder="Ej: Martillo de Goma">
+                </nz-input-group>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>SKU (Código)</nz-form-label>
+              <nz-form-control nzErrorTip="El SKU es requerido y solo puede contener letras, números y guiones.">
+                <nz-input-group nzPrefixIcon="barcode">
+                  <input type="text" nz-input formControlName="sku" placeholder="Ej: HMT-GOM-01">
+                </nz-input-group>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <!-- Categoría -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Categoría</nz-form-label>
+          <nz-form-control nzErrorTip="Debes seleccionar una categoría.">
+            <nz-select formControlName="categoryId" nzPlaceHolder="Selecciona la categoría del producto" nzShowSearch nzAllowClear>
+              <nz-option *ngFor="let cat of availableCategories" [nzValue]="cat.id" [nzLabel]="cat.name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Fila: Precio y Stock -->
+        <div nz-row [nzGutter]="24">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Precio de Venta</nz-form-label>
+              <nz-form-control nzErrorTip="El precio debe ser mayor a 0.">
+                <nz-input-number
+                  formControlName="price"
+                  [nzMin]="0"
+                  [nzStep]="0.50"
+                  [nzPlaceHolder]="'0.00'"
+                  [nzFormatter]="formatterPeso"
+                  [nzParser]="parserPeso"
+                  class="full-width"
+                ></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Stock (Unidades)</nz-form-label>
+              <nz-form-control nzErrorTip="El stock no puede ser negativo y debe ser un número entero.">
+                <nz-input-number
+                  formControlName="stock"
+                  [nzMin]="0"
+                  [nzStep]="1"
+                  [nzPlaceHolder]="'0'"
+                  class="full-width"
+                ></nz-input-number>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+        
+        <!-- Descripción -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Descripción</nz-form-label>
+          <nz-form-control nzErrorTip="La descripción es requerida (mín. 10 caracteres).">
+            <textarea nz-input formControlName="description" placeholder="Detalla las características y usos del producto..." [nzAutosize]="{ minRows: 3, maxRows: 6 }"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label nzRequired>Imagen Destacada</nz-form-label>
+          <nz-form-control nzErrorTip="Debes subir una imagen destacada.">
+            <nz-upload
+              nzListType="picture-card"
+            [nzFileList]="featuredImageFile"
+            [nzBeforeUpload]="beforeUploadFeatured"
+            [nzShowUploadList]="{ showPreviewIcon: true, showRemoveIcon: true }"
+            [nzRemove]="handleFeaturedRemove"
+            >
+              <div *ngIf="featuredImageFile.length < 1">
+                <nz-icon nzType="plus"></nz-icon>
+                <div class="ant-upload-text">Subir</div>
+              </div>
+            </nz-upload>
+            <div class="input-hint">
+              <nz-icon nzType="info-circle"></nz-icon>
+              <span>Sube la imagen principal del producto (JPG/PNG).</span>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item>
+          <nz-form-label>Galería de Imágenes (Opcional)</nz-form-label>
+          <nz-form-control>
+            <nz-upload
+                nzListType="picture-card"
+                [nzMultiple]="true"
+                [nzFileList]="galleryImageFiles"
+                [nzBeforeUpload]="beforeUploadGallery"
+                [nzRemove]="handleGalleryRemove"
+                >
+              <div>
+                <nz-icon nzType="plus"></nz-icon>
+                <div class="ant-upload-text">Añadir</div>
+              </div>
+            </nz-upload>
+          </nz-form-control>
+        </nz-form-item>
+
+      </form>
+    </div>
+  </ng-container>
+</nz-modal>
