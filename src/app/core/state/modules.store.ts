@@ -56,16 +56,20 @@ export class ModulesStore {
     return this.inFlight$;
   }
 
+  getEnabledModules(): ModuleDTO[] {
+    return this.modulesSubject.value.filter((module) => module.status === 1);
+  }
+
   hasEnabledModule(moduleName: string | undefined): boolean {
     if (!moduleName) {
       return false;
     }
 
     const normalized = moduleName.toUpperCase();
-    return this.modulesSubject.value.some((module) => {
+    return this.getEnabledModules().some((module) => {
       const moduleKey = module.name?.toUpperCase() ?? '';
       const alias = MODULE_ALIAS[moduleKey] ?? moduleKey;
-      return module.status === 1 && alias === normalized;
+      return alias === normalized;
     });
   }
 
