@@ -1,0 +1,28 @@
+<nz-card class="auth-admin-card" nzBordered>
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Panel central</p>
+      <h2 class="page-title">Core de Autenticación</h2>
+      <p class="page-subtitle">Administra usuarios, roles, módulos y permisos de tu ferretería.</p>
+    </div>
+  </div>
+
+  <nz-tabset
+    class="auth-admin-tabs"
+    [(nzSelectedIndex)]="activeTabIndex"
+    (nzSelectedIndexChange)="onTabChange($event)"
+  >
+    <nz-tab nzTitle="Usuarios" nzIcon="user">
+      <app-users-list></app-users-list>
+    </nz-tab>
+    <nz-tab nzTitle="Roles" nzIcon="team">
+      <app-roles-list></app-roles-list>
+    </nz-tab>
+    <nz-tab nzTitle="Módulos" nzIcon="appstore">
+      <app-modules-list></app-modules-list>
+    </nz-tab>
+    <nz-tab nzTitle="Permisos" nzIcon="safety">
+      <app-permissions-matrix></app-permissions-matrix>
+    </nz-tab>
+  </nz-tabset>
+</nz-card>

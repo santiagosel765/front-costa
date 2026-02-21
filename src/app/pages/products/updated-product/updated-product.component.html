@@ -1,0 +1,126 @@
+<!-- updated-product.component.html -->
+<nz-modal
+  [(nzVisible)]="isVisible"
+  [nzTitle]="modalTitle"
+  [nzWidth]="modalWidth"
+  [nzOkText]="'Actualizar Producto'"
+  [nzCancelText]="'Cancelar'"
+  [nzOkLoading]="isSubmitting"
+  [nzOkDisabled]="!productForm.valid || isLoading"
+  (nzOnOk)="onSubmit()"
+  (nzOnCancel)="onCancel()"
+  nzCentered
+  class="update-product-modal"
+>
+  <ng-container *nzModalContent>
+    <!-- Spinner de Carga -->
+    <div *ngIf="isLoading" class="loading-container">
+      <nz-spin nzSize="large"></nz-spin>
+      <div class="loading-text">Cargando datos del producto...</div>
+    </div>
+
+    <!-- Contenido del Modal -->
+    <div *ngIf="!isLoading && productData" class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="header-icon">
+          <nz-icon nzType="edit" class="icon-edit"></nz-icon>
+        </div>
+        <div class="header-text">
+          <h3>{{ modalTitle }}</h3>
+          <p>Modifica la información del producto seleccionado.</p>
+        </div>
+      </div>
+
+      <!-- Información del Producto -->
+      <div class="product-info">
+        <div class="info-row"><span class="info-label">ID:</span> <nz-tag>#{{ productData.id }}</nz-tag></div>
+        <div class="info-row"><span class="info-label">SKU:</span> <nz-tag nzColor="blue">{{ productData.sku }}</nz-tag></div>
+        <div class="info-row"><span class="info-label">Creado:</span> <nz-tag nzColor="geekblue">{{ productData.createdAt | date:'short' }}</nz-tag></div>
+      </div>
+      
+      <!-- Formulario -->
+      <form nz-form [formGroup]="productForm" class="product-form">
+        <!-- Nombre y Categoría (adaptado de create) -->
+        <div nz-row [nzGutter]="24">
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Nombre del Producto</nz-form-label>
+              <nz-form-control nzErrorTip="El nombre es requerido.">
+                <input type="text" nz-input formControlName="name">
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+          <div nz-col [nzSpan]="12">
+            <nz-form-item>
+              <nz-form-label nzRequired>Categoría</nz-form-label>
+              <nz-form-control nzErrorTip="Debes seleccionar una categoría.">
+                <nz-select formControlName="categoryId" nzShowSearch nzAllowClear>
+                  <nz-option *ngFor="let cat of availableCategories" [nzValue]="cat.id" [nzLabel]="cat.name"></nz-option>
+                </nz-select>
+              </nz-form-control>
+            </nz-form-item>
+          </div>
+        </div>
+
+        <!-- Precio y Stock (adaptado de create) -->
+        <div nz-row [nzGutter]="24">
+            <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Precio</nz-form-label>
+                    <nz-form-control nzErrorTip="El precio debe ser mayor a 0.">
+                        <nz-input-number formControlName="price" [nzFormatter]="formatterPeso" [nzParser]="parserPeso" class="full-width"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+            <div nz-col [nzSpan]="12">
+                <nz-form-item>
+                    <nz-form-label nzRequired>Stock</nz-form-label>
+                    <nz-form-control nzErrorTip="El stock debe ser un número entero positivo.">
+                        <nz-input-number formControlName="stock" [nzMin]="0" class="full-width"></nz-input-number>
+                    </nz-form-control>
+                </nz-form-item>
+            </div>
+        </div>
+        
+        <!-- Descripción -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Descripción</nz-form-label>
+          <nz-form-control nzErrorTip="La descripción es requerida.">
+            <textarea nz-input formControlName="description" [nzAutosize]="{ minRows: 3, maxRows: 6 }"></textarea>
+          </nz-form-control>
+        </nz-form-item>
+        
+        <!-- Imagen Destacada -->
+        <nz-form-item>
+          <nz-form-label nzRequired>Imagen Destacada</nz-form-label>
+          <nz-form-control nzErrorTip="Debes tener una imagen destacada.">
+            <nz-upload 
+            nzListType="picture-card" 
+            [nzFileList]="featuredImageFile" 
+            [nzBeforeUpload]="beforeUploadFeatured" 
+            [nzRemove]="handleFeaturedRemove">
+              <div *ngIf="featuredImageFile.length < 1"><nz-icon nzType="plus"></nz-icon></div>
+            </nz-upload>
+          </nz-form-control>
+        </nz-form-item>
+
+        <!-- Galería de Imágenes -->
+        <nz-form-item>
+          <nz-form-label>Galería</nz-form-label>
+          <nz-form-control>
+            <nz-upload  
+            nzListType="picture-card" 
+            [nzMultiple]="true" 
+            [nzFileList]="galleryImageFiles" 
+            [nzBeforeUpload]="beforeUploadGallery" 
+            [nzRemove]="handleGalleryRemove">
+              <div><nz-icon nzType="plus"></nz-icon></div>
+            </nz-upload>
+          </nz-form-control>
+        </nz-form-item>
+
+      </form>
+    </div>
+  </ng-container>
+</nz-modal>

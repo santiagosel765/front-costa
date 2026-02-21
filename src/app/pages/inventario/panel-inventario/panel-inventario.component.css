@@ -1,0 +1,459 @@
+/* ===================================
+   PANEL INVENTARIO - ESTILOS
+   Basado en el sistema de diseño de categorías
+   ================================== */
+
+/* ========== HEREDA ESTILOS BASE DE COMPONENTS.CSS ========== */
+/* 
+   .panel-container ✓
+   .panel-card ✓
+   .panel-header ✓
+   .header-left ✓
+   .header-right ✓
+   .filters-section ✓
+   .filters-row ✓
+   .search-input ✓
+   .action-buttons ✓
+*/
+
+/* ========== TABS DE EMPRESAS ========== */
+
+.companies-tabs-section {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--bg-gradient-subtle);
+  border-radius: var(--radius-lg);
+  border: var(--border-width-1) solid var(--color-gray-200);
+}
+
+.companies-tabs-section h2 {
+  margin: 0 0 var(--space-4) 0;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+}
+
+.companies-tabs {
+  width: 100%;
+}
+
+/* Personalización de las tabs */
+::ng-deep .companies-tabs .ant-tabs-tab {
+  position: relative;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  transition: all var(--transition-base);
+  background: var(--color-gray-100);
+  border: var(--border-width-1) solid var(--color-gray-300);
+}
+
+::ng-deep .companies-tabs .ant-tabs-tab-active {
+  background: var(--color-white);
+  border-color: var(--color-primary-600);
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
+}
+
+::ng-deep .companies-tabs .ant-tabs-tab:hover {
+  background: var(--color-gray-50);
+  transform: translateY(-2px);
+}
+
+::ng-deep .companies-tabs .ant-tabs-tab-disabled {
+  background: var(--color-gray-200);
+  color: var(--color-gray-400);
+  cursor: not-allowed;
+}
+
+.company-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+.products-count {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ========== ESTADÍSTICAS DE EMPRESA ========== */
+
+.company-stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  border: var(--border-width-1) solid var(--color-gray-200);
+}
+
+::ng-deep .company-stats .ant-statistic {
+  text-align: center;
+}
+
+::ng-deep .company-stats .ant-statistic-title {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  margin-bottom: var(--space-2);
+}
+
+::ng-deep .company-stats .ant-statistic-content {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* ========== TABLA DE INVENTARIO ========== */
+
+.inventory-table {
+  /* Hereda de .data-table en components.css */
+  margin-top: var(--space-4);
+}
+
+/* Filas con estados de stock */
+.inventory-table .ant-table-tbody > tr {
+  transition: all var(--transition-base);
+}
+
+.inventory-table .critical-stock {
+  background-color: var(--color-error-light) !important;
+  border-left: 4px solid var(--color-error);
+}
+
+.inventory-table .low-stock {
+  background-color: var(--color-warning-light) !important;
+  border-left: 4px solid var(--color-warning);
+}
+
+.inventory-table .out-of-stock {
+  background-color: var(--color-gray-100) !important;
+  border-left: 4px solid var(--color-gray-500);
+  opacity: 0.7;
+}
+
+.inventory-table .ant-table-tbody > tr:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ========== CONTENIDO DE CELDAS ========== */
+
+/* SKU */
+.sku-code {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-700);
+  background: var(--color-gray-100);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+}
+
+/* Información del producto */
+.product-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.product-main {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.product-name {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-tight);
+}
+
+.product-details {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.product-brand,
+.product-model {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.product-brand {
+  font-weight: var(--font-weight-medium);
+}
+
+/* Display de stock */
+.stock-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.stock-number {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-success);
+}
+
+.stock-number.stock-critical {
+  color: var(--color-error);
+  animation: pulse 2s infinite;
+}
+
+.stock-number.stock-low {
+  color: var(--color-warning);
+}
+
+.stock-number.stock-out {
+  color: var(--color-gray-500);
+}
+
+.stock-unit {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+  text-transform: lowercase;
+}
+
+.stock-min {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+  font-weight: var(--font-weight-medium);
+}
+
+/* Información de actualización */
+.update-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.update-date {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+}
+
+.updated-by {
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+/* ========== FILTROS ESPECÍFICOS ========== */
+
+.category-filter,
+.stock-filter {
+  min-width: 180px;
+}
+
+::ng-deep .category-filter .ant-select-selector,
+::ng-deep .stock-filter .ant-select-selector {
+  border-radius: var(--radius-md);
+  border: var(--border-width-2) solid var(--color-gray-300);
+  transition: all var(--transition-base);
+}
+
+/* ========== BOTÓN DE ASIGNACIÓN ========== */
+
+.assign-btn {
+  background: var(--gradient-primary);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-6);
+  font-weight: var(--font-weight-semibold);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
+}
+
+.assign-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.assign-btn:disabled {
+  background: var(--color-gray-300);
+  color: var(--color-gray-500);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ========== ESTADO VACÍO ========== */
+
+.empty-state {
+  margin: var(--space-8) 0;
+  text-align: center;
+}
+
+.empty-content h3 {
+  margin: var(--space-4) 0 var(--space-2) 0;
+  font-size: var(--font-size-lg);
+  color: var(--color-gray-700);
+}
+
+.empty-content p {
+  margin-bottom: var(--space-6);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-sm);
+}
+
+/* ========== TAGS PERSONALIZADOS ========== */
+
+.inventory-table .ant-tag {
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  border: none;
+  padding: var(--space-1) var(--space-3);
+}
+
+/* Tags de estado de stock */
+.inventory-table .ant-tag[nzColor="green"] {
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.inventory-table .ant-tag[nzColor="orange"] {
+  background: var(--color-warning-light);
+  color: var(--color-warning-dark);
+}
+
+.inventory-table .ant-tag[nzColor="red"] {
+  background: var(--color-error-light);
+  color: var(--color-error-dark);
+}
+
+.inventory-table .ant-tag[nzColor="purple"] {
+  background: var(--color-purple-100);
+  color: var(--color-purple-700);
+}
+
+/* ========== RESPONSIVE DESIGN ========== */
+
+@media (max-width: 1024px) {
+  .company-stats {
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  .category-filter,
+  .stock-filter,
+  .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .panel-header {
+    flex-direction: column;
+    gap: var(--space-4);
+    text-align: center;
+  }
+  
+  .companies-tabs-section {
+    padding: var(--space-3);
+  }
+  
+  ::ng-deep .companies-tabs .ant-tabs-tab {
+    padding: var(--space-2) var(--space-3);
+  }
+  
+  .company-stats {
+    flex-direction: row;
+    justify-content: space-around;
+  }
+  
+  .product-info {
+    gap: var(--space-2);
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 480px) {
+  .companies-tabs-section h2 {
+    font-size: var(--font-size-base);
+  }
+  
+  .company-stats {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  
+  ::ng-deep .company-stats .ant-statistic-content {
+    font-size: var(--font-size-lg);
+  }
+  
+  .inventory-table {
+    font-size: var(--font-size-sm);
+  }
+  
+  .stock-number {
+    font-size: var(--font-size-base);
+  }
+}
+
+/* ========== ANIMACIONES ========== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.inventory-table .critical-stock .stock-number {
+  animation: pulse 2s infinite;
+}
+
+/* Animación para carga de datos */
+.inventory-table.ant-table-loading .ant-table-tbody tr {
+  opacity: 0.6;
+}
+
+/* ========== MEJORAS DE ACCESIBILIDAD ========== */
+
+.assign-btn:focus,
+.action-buttons button:focus {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+}
+
+.companies-tabs-section:focus-within {
+  box-shadow: 0 0 0 3px var(--color-primary-outline);
+  border-radius: var(--radius-lg);
+}
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+  .companies-tabs-section,
+  .filters-section,
+  .action-buttons,
+  .assign-btn {
+    display: none !important;
+  }
+  
+  .inventory-table {
+    font-size: 12px;
+  }
+  
+  .panel-header h2::after {
+    content: " - " attr(data-company);
+  }
+}

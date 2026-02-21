@@ -1,0 +1,246 @@
+/* ===================================
+   VARIABLES CSS - BASADAS EN TU CÓDIGO ACTUAL
+   ================================== */
+
+:root {
+  /* ========== COLORES PRINCIPALES (de tu login) ========== */
+  --color-primary-50: #e0f6ff;
+  --color-primary-100: #b0e0e6;
+  --color-primary-200: #87ceeb;
+  --color-primary-300: #5e8ab3;
+  --color-primary-400: #4682b4;
+  --color-primary-500: #2c6ba5;
+  --color-primary-600: #145ca0;  /* Tu color principal */
+  --color-primary-700: #0f3460;  /* Tu color más oscuro */
+  --color-primary-800: #0a2647;
+  --color-primary-900: #05182e;
+
+  /* Colores adicionales detectados en tu código */
+  --color-blue: #1890ff;        /* Usado en categorías padre */
+  --color-blue-hover: #40a9ff;
+  --color-blue-light: rgba(24, 144, 255, 0.02);
+  --color-blue-lighter: rgba(24, 144, 255, 0.05);
+  --color-blue-outline: rgba(24, 144, 255, 0.2);
+
+  --color-green: #52c41a;       /* Usado en subcategorías */
+  --color-green-light: rgba(82, 196, 26, 0.02);
+  --color-green-lighter: rgba(82, 196, 26, 0.05);
+  --color-green-outline: rgba(82, 196, 26, 0.1);
+
+  /* Colores de edición (update modal) */
+  --color-orange: #d2691e;      /* Color del modal de editar */
+  --color-orange-medium: #cd853f;
+  --color-orange-light: #daa520;
+  --color-orange-outline: rgba(210, 105, 30, 0.1);
+
+  /* Colores de superficie y texto */
+  --color-white: #ffffff;
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #f0f0f0;
+  --color-gray-300: #e2e8f0;
+  --color-gray-400: #d9d9d9;
+  --color-gray-500: #8c8c8c;
+  --color-gray-600: #64748b;
+  --color-gray-700: #262626;
+  --color-gray-800: #2c3e50;
+  --color-gray-900: #1e293b;
+
+  /* Colores de estado */
+  --color-success: #52c41a;
+  --color-warning: #f59e0b;
+  --color-error: #ff7875;
+  --color-danger: #ff4d4f;
+
+  /* ========== ESPACIADO (basado en tus paddings/margins) ========== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;    /* Muy usado en tu código */
+  --space-8: 32px;    /* Para padding de formas */
+  --space-10: 40px;   /* Altura de botones */
+  --space-12: 48px;   /* Para cards */
+  --space-16: 64px;
+
+  /* ========== TIPOGRAFÍA ========== */
+  --font-size-xs: 12px;    /* Para tags y hints */
+  --font-size-sm: 14px;    /* Para descripciones */
+  --font-size-base: 16px;  /* Tamaño base */
+  --font-size-lg: 18px;    /* Para títulos de modal */
+  --font-size-xl: 20px;    /* Para títulos principales */
+  --font-size-2xl: 24px;   /* Para h2 */
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;  /* Muy usado en tus botones */
+  --font-weight-semibold: 600; /* Para títulos */
+  --font-weight-bold: 700;
+
+  --line-height-normal: 1.4;  /* Como usas en tus descripciones */
+
+  /* ========== BORDES Y RADIOS ========== */
+  --radius-sm: 4px;      /* Para tags pequeños */
+  --radius-base: 6px;    /* Tu radio más común */
+  --radius-md: 8px;      /* Para inputs */
+  --radius-lg: 12px;     /* Para modales y cards principales */
+  --radius-xl: 24px;     /* Para el login card */
+  --radius-full: 9999px; /* Para tags redondeados */
+
+  --border-width-1: 1px;
+  --border-width-2: 2px;  /* Usado en tus inputs */
+  --border-width-3: 3px;  /* Para indicadores de jerarquía */
+
+  /* ========== SOMBRAS (de tu código) ========== */
+  --shadow-sm: 0 2px 8px rgba(24, 144, 255, 0.2);          /* Para botones */
+  --shadow-md: 0 4px 12px rgba(24, 144, 255, 0.3);         /* Para hover de botones */
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);              /* Para cards */
+  --shadow-xl: 0 6px 16px rgba(0, 0, 0, 0.12);             /* Para hover de cards */
+  --shadow-2xl: 0 10px 40px rgba(0, 0, 0, 0.15);           /* Para modales */
+
+  /* Sombras específicas por color */
+  --shadow-primary: 0 2px 4px rgba(20, 92, 160, 0.2);
+  --shadow-blue: 0 2px 4px rgba(24, 144, 255, 0.2);
+  --shadow-green: 0 2px 4px rgba(82, 196, 26, 0.2);
+  --shadow-orange: 0 2px 4px rgba(210, 105, 30, 0.2);
+
+  /* ========== TRANSICIONES ========== */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.3s ease;  /* Tu transición más común */
+  --transition-slow: 0.4s ease;
+
+  /* ========== GRADIENTES (de tu login) ========== */
+  --gradient-primary: linear-gradient(135deg, 
+    var(--color-primary-700) 0%, 
+    var(--color-primary-600) 25%, 
+    var(--color-primary-500) 50%, 
+    var(--color-primary-400) 100%);
+
+  --gradient-background: linear-gradient(45deg,
+    var(--color-primary-800) 0%,
+    var(--color-primary-700) 15%,
+    var(--color-primary-600) 30%,
+    var(--color-primary-500) 45%,
+    var(--color-primary-400) 60%,
+    var(--color-primary-300) 75%,
+    var(--color-primary-200) 90%,
+    var(--color-primary-100) 100%);
+
+  /* Gradientes para modales */
+  --gradient-modal-create: linear-gradient(135deg, 
+    var(--color-primary-700) 0%, 
+    var(--color-primary-600) 50%, 
+    var(--color-primary-500) 100%);
+
+  --gradient-modal-edit: linear-gradient(135deg, 
+    var(--color-orange) 0%, 
+    var(--color-orange-medium) 50%, 
+    var(--color-orange-light) 100%);
+
+  /* ========== DIMENSIONES ESPECÍFICAS ========== */
+  
+  /* Alturas de controles */
+  --height-button-sm: 28px;     /* Para botones pequeños en acciones */
+  --height-button-base: 32px;   /* Para botones de acción */
+  --height-button-lg: 40px;     /* Para botón principal */
+  --height-input-lg: 52px;      /* Para inputs grandes del login */
+
+  /* Tamaños de imágenes */
+  --size-product-image: 40px;   /* Para imágenes de productos en tabla */
+  --size-hierarchy-icon: 24px;  /* Para iconos de jerarquía */
+  --size-hierarchy-icon-sm: 20px; /* Para móvil */
+
+  /* Anchos específicos */
+  --width-action-column: 150px; /* Para columna de acciones */
+  --width-status-column: 130px; /* Para columna de estado */
+  --width-modal: 600px;         /* Ancho de modales */
+
+  /* ========== COLORES DE TAGS ========== */
+  
+  /* Para estados de productos */
+  --tag-available-bg: var(--color-blue);
+  --tag-available-color: var(--color-white);
+  
+  --tag-out-of-stock-bg: #faad14;  /* Gold */
+  --tag-out-of-stock-color: var(--color-white);
+  
+  --tag-discontinued-bg: var(--color-error);
+  --tag-discontinued-color: var(--color-white);
+
+  /* Para categorías */
+  --tag-category-bg: #722ed1;      /* Purple */
+  --tag-category-color: var(--color-white);
+
+  --tag-parent-bg: var(--color-blue);
+  --tag-parent-color: var(--color-white);
+
+  --tag-child-bg: var(--color-green);
+  --tag-child-color: var(--color-white);
+
+  /* ========== Z-INDEX ========== */
+  --z-dropdown: 1000;
+  --z-modal: 1050;
+  --z-tooltip: 1060;
+
+  /* ========== BREAKPOINTS ========== */
+  --breakpoint-sm: 480px;   /* Para tu responsive más pequeño */
+  --breakpoint-md: 768px;   /* Tu breakpoint principal */
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+
+  /* ========== BACKGROUND COLORS (de tu código) ========== */
+  --bg-page: #f5f5f5;               /* Fondo de páginas */
+  --bg-card: var(--color-white);    /* Fondo de cards */
+  --bg-modal-body: #f8fafc;         /* Fondo de cuerpo de modal */
+  --bg-table-header: var(--color-gray-50); /* Fondo de header de tabla */
+  --bg-input: var(--color-white);   /* Fondo de inputs */
+
+  /* Backgrounds de hover */
+  --bg-hover-blue: rgba(24, 144, 255, 0.05);
+  --bg-hover-green: rgba(82, 196, 26, 0.05);
+  --bg-hover-gray: #f0f0f0;
+
+  /* ========== ASPECTOS ESPECÍFICOS DE TU DISEÑO ========== */
+  
+  /* Panel container */
+  --panel-padding: var(--space-6);
+  --panel-min-height: calc(100vh - 64px);
+
+  /* Header de paneles */
+  --header-border-bottom: 1px solid var(--color-gray-200);
+  --header-padding-bottom: var(--space-4);
+  --header-margin-bottom: var(--space-6);
+
+  /* Filtros */
+  --filters-gap: var(--space-4);
+  --filters-margin-bottom: var(--space-5);
+  --search-input-min-width: 250px;
+  --search-input-max-width: 350px;
+  --filter-select-min-width: 150px;
+
+  /* Tabla */
+  --table-cell-padding: var(--space-4);
+  --table-border-color: var(--color-gray-200);
+
+  /* Action buttons */
+  --action-button-size: 32px;
+  --action-button-size-sm: 28px;  /* Para móvil */
+  --action-buttons-gap: var(--space-2);
+
+  /* Tags */
+  --tag-padding: 2px 8px;
+  --tag-font-size: var(--font-size-xs);
+  --tag-font-weight: var(--font-weight-medium);
+
+  /* Modal específico */
+  --modal-header-padding: var(--space-6);
+  --modal-body-padding: var(--space-8) var(--space-6) var(--space-6);
+  --modal-icon-size: 48px;
+  --modal-icon-bg: rgba(255, 255, 255, 0.2);
+
+  /* Jerarquía de categorías */
+  --hierarchy-indicator-size: var(--size-hierarchy-icon);
+  --hierarchy-border-width: var(--border-width-3);
+  --parent-category-color: var(--color-blue);
+  --child-category-color: var(--color-green);
+}

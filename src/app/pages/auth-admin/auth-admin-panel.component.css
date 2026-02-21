@@ -1,0 +1,44 @@
+.auth-admin-card {
+  max-width: 1320px;
+  margin: 0 auto;
+  margin-top: 24px;
+  padding: 12px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.eyebrow {
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 12px;
+  margin: 0;
+}
+
+.page-title {
+  margin: 2px 0;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.page-subtitle {
+  color: #6b7280;
+  margin: 0;
+}
+
+.auth-admin-tabs {
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+}

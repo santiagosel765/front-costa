@@ -1,0 +1,319 @@
+/* ===================================
+   CREATE PRODUCT - REFACTORIZADO
+   Usando sistema de variables y componentes
+   ================================== */
+
+/* ========== CLASES BASE (Ya definidas en components.css) ========== */
+/* 
+   ✅ .modal-content
+   ✅ .modal-header (con .modal-header-create)
+   ✅ .header-icon y .header-text
+   ✅ .icon-create
+   ✅ .input-hint
+   ✅ Form base styles
+   ✅ Responsive design
+   ✅ Animaciones
+*/
+
+/* ========== PERSONALIZACIÓN DEL MODAL NG-ZORRO ========== */
+
+::ng-deep .create-product-modal .ant-modal-content {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-2xl);
+}
+
+::ng-deep .create-product-modal .ant-modal-header {
+  background: var(--gradient-modal-create);
+  border-bottom: none;
+  padding: var(--modal-header-padding);
+}
+
+::ng-deep .create-product-modal .ant-modal-title {
+  color: var(--color-white);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin: 0;
+}
+
+::ng-deep .create-product-modal .ant-modal-close {
+  color: rgba(255, 255, 255, 0.8);
+  top: var(--space-4);
+  right: var(--space-4);
+  transition: color var(--transition-base);
+}
+
+::ng-deep .create-product-modal .ant-modal-close:hover {
+  color: var(--color-white);
+}
+
+::ng-deep .create-product-modal .ant-modal-body {
+  padding: 0;
+}
+
+/* ========== HEADER DEL MODAL ========== */
+
+.modal-header {
+  /* Extiende las clases base de components.css */
+  background: var(--gradient-modal-create);
+}
+
+.header-icon {
+  /* Ya definido en components.css */
+  width: var(--modal-icon-size);
+  height: var(--modal-icon-size);
+  background: var(--modal-icon-bg);
+  border-radius: var(--radius-lg);
+}
+
+.icon-create {
+  font-size: var(--font-size-2xl);
+  color: var(--color-white);
+}
+
+.header-text h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-white);
+}
+
+.header-text p {
+  margin: var(--space-1) 0 0 0;
+  font-size: var(--font-size-sm);
+  color: rgba(255, 255, 255, 0.8);
+  line-height: var(--line-height-normal);
+}
+
+/* ========== FORMULARIO DE PRODUCTO ========== */
+
+.product-form {
+  padding: var(--modal-body-padding);
+  background: var(--bg-card);
+}
+
+/* ========== FORM ITEMS ========== */
+
+.product-form .ant-form-item {
+  margin-bottom: var(--space-6);
+  display: block;
+}
+
+.product-form .ant-form-item:last-child {
+  margin-bottom: 0;
+}
+
+/* Resetear línea altura para uploaders */
+.product-form .ant-form-item-control {
+  line-height: initial;
+}
+
+/* ========== LABELS ========== */
+
+.product-form .ant-form-item-label > label {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-gray-800);
+  font-size: var(--font-size-sm);
+}
+
+.product-form .ant-form-item-label > label.ant-form-item-required::before {
+  color: var(--color-error);
+}
+
+/* ========== INPUTS Y CONTROLES ========== */
+
+.product-form .ant-input,
+.product-form .ant-select-selector,
+.product-form textarea,
+.product-form .ant-input-number {
+  border-radius: var(--radius-md);
+  border: var(--border-width-2) solid var(--color-gray-300);
+  transition: all var(--transition-base);
+  font-size: var(--font-size-sm);
+}
+
+.product-form .ant-input:hover,
+.product-form .ant-select-selector:hover,
+.product-form textarea:hover,
+.product-form .ant-input-number:hover {
+  border-color: var(--color-gray-400);
+}
+
+.product-form .ant-input:focus,
+.product-form .ant-select-focused .ant-select-selector,
+.product-form textarea:focus,
+.product-form .ant-input-number-focused {
+  border-color: var(--color-primary-600) !important;
+  box-shadow: 0 0 0 3px var(--color-primary-outline) !important;
+}
+
+/* ========== ESTADOS DE ERROR ========== */
+
+::ng-deep .ant-form-item-has-error .ant-input,
+::ng-deep .ant-form-item-has-error .ant-select-selector,
+::ng-deep .ant-form-item-has-error .ant-input-number {
+  border-color: var(--color-error) !important;
+}
+
+/* ========== INPUT HINTS ========== */
+
+.input-hint {
+  /* Ya definido en components.css */
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-gray-600);
+}
+
+.input-hint nz-icon {
+  color: var(--color-gray-500);
+}
+
+/* ========== UTILIDADES ESPECÍFICAS ========== */
+
+.full-width {
+  width: 100% !important;
+}
+
+/* ========== PERSONALIZACIÓN DE UPLOADS ========== */
+
+.product-form .ant-upload.ant-upload-select-picture-card {
+  width: var(--space-16);
+  height: var(--space-16);
+  margin-right: var(--space-2);
+  margin-bottom: var(--space-2);
+  border: var(--border-width-2) dashed var(--color-gray-300);
+  border-radius: var(--radius-md);
+  background: var(--color-gray-50);
+  transition: all var(--transition-base);
+}
+
+.product-form .ant-upload.ant-upload-select-picture-card:hover {
+  border-color: var(--color-primary-600);
+  background: var(--color-primary-50);
+}
+
+.product-form .ant-upload-list-picture-card .ant-upload-list-item {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+/* Texto de upload */
+.product-form .ant-upload-text {
+  margin-top: var(--space-2);
+  color: var(--color-gray-600);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+/* ========== PERSONALIZACIÓN DE INPUT NUMBERS ========== */
+
+.product-form .ant-input-number {
+  width: 100%;
+}
+
+.product-form .ant-input-number-input {
+  text-align: left;
+  font-weight: var(--font-weight-medium);
+}
+
+/* Input de precio con estilo especial */
+.product-form .ant-input-number[formcontrolname="price"] .ant-input-number-input {
+  color: var(--color-success);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* Input de stock con estilo especial */
+.product-form .ant-input-number[formcontrolname="stock"] .ant-input-number-input {
+  color: var(--color-primary-600);
+  font-weight: var(--font-weight-semibold);
+}
+
+/* ========== PERSONALIZACIÓN DE SELECTS ========== */
+
+.product-form .ant-select {
+  width: 100%;
+}
+
+.product-form .ant-select-selection-placeholder {
+  color: var(--color-gray-500);
+  font-style: italic;
+}
+
+/* ========== GRID Y LAYOUT ========== */
+
+/* Mejorar el espaciado de las filas */
+.product-form .ant-row {
+  margin-bottom: 0;
+}
+
+.product-form .ant-col {
+  padding-bottom: 0;
+}
+
+/* ========== RESPONSIVE ESPECÍFICO PARA PRODUCTOS ========== */
+
+@media (max-width: 768px) {
+  ::ng-deep .create-product-modal {
+    margin: var(--space-4) !important;
+    max-width: calc(100vw - var(--space-8)) !important;
+  }
+
+  .modal-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-3);
+  }
+
+  .product-form {
+    padding: var(--space-6) var(--space-4) var(--space-4);
+  }
+
+  /* En móvil, hacer las columnas full width */
+  .product-form .ant-col {
+    width: 100% !important;
+    margin-bottom: var(--space-4);
+  }
+
+  /* Reducir tamaño de uploads en móvil */
+  .product-form .ant-upload.ant-upload-select-picture-card {
+    width: calc(var(--space-16) - var(--space-4));
+    height: calc(var(--space-16) - var(--space-4));
+  }
+}
+
+@media (max-width: 480px) {
+  /* En móvil muy pequeño, hacer uploads aún más pequeños */
+  .product-form .ant-upload.ant-upload-select-picture-card {
+    width: calc(var(--space-16) - var(--space-8));
+    height: calc(var(--space-16) - var(--space-8));
+  }
+}
+
+/* ========== ANIMACIONES ESPECÍFICAS ========== */
+
+.modal-content {
+  /* Ya definido en components.css */
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+/* Animación para uploads */
+.product-form .ant-upload.ant-upload-select-picture-card {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ========== MEJORAS DE ACCESIBILIDAD ========== */
+
+.product-form .ant-input-number:focus-within {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}
+
+.product-form .ant-upload:focus-within {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-md);
+}

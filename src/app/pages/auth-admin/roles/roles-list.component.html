@@ -1,0 +1,79 @@
+<nz-card nzBordered class="section-card">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Organización</p>
+      <h3 class="section-title">Roles</h3>
+      <p class="section-subtitle">Agrupa permisos y módulos para los usuarios.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="goCreate()">
+      <span nz-icon nzType="plus"></span>
+      Nuevo Rol
+    </button>
+  </div>
+
+  <div class="filters">
+    <nz-input-group nzPrefixIcon="search" class="filter-input">
+      <input
+        nz-input
+        type="text"
+        placeholder="Buscar por nombre o descripción"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearch($event)"
+      />
+    </nz-input-group>
+  </div>
+
+  <nz-table
+    nzBordered
+    [nzData]="filteredRoles()"
+    [nzLoading]="loading()"
+    [nzPageSize]="10"
+    nzShowPagination
+    [nzNoResult]="noRoles"
+  >
+    <thead>
+      <tr>
+        <th>Rol</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th class="actions-col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let role of filteredRoles()">
+        <td class="text-strong">{{ role.name }}</td>
+        <td>{{ role.description || 'Sin descripción' }}</td>
+        <td>
+          <nz-tag [nzColor]="getStatusColor(role.status)">{{ role.status === 1 ? 'Activo' : 'Inactivo' }}</nz-tag>
+        </td>
+        <td class="actions">
+          <button nz-button nzType="link" (click)="edit(role.id)">
+            <span nz-icon nzType="edit"></span>
+            Editar
+          </button>
+          <button
+            nz-button
+            nzType="link"
+            nzDanger
+            nz-popconfirm
+            nzPopconfirmTitle="¿Eliminar rol?"
+            nzPopconfirmPlacement="left"
+            (nzOnConfirm)="remove(role.id)"
+          >
+            <span nz-icon nzType="delete"></span>
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+  <ng-template #noRoles>
+    <div class="empty-state">
+      <p>No hay roles registrados todavía.</p>
+      <button nz-button nzType="primary" (click)="goCreate()">
+        <span nz-icon nzType="plus"></span>
+        Crear primer rol
+      </button>
+    </div>
+  </ng-template>
+</nz-card>

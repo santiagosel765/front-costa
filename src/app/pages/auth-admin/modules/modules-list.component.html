@@ -1,0 +1,95 @@
+<nz-card nzBordered class="section-card">
+  <div class="section-header">
+    <div>
+      <p class="eyebrow">Catálogo</p>
+      <h3 class="section-title">Módulos</h3>
+      <p class="section-subtitle">Lista de módulos configurables y licencias.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="goCreate()">
+      <span nz-icon nzType="plus"></span>
+      Nuevo Módulo
+    </button>
+  </div>
+
+  <div class="filters">
+    <nz-input-group nzPrefixIcon="search" class="filter-input">
+      <input
+        nz-input
+        type="text"
+        placeholder="Buscar por nombre o descripción"
+        [ngModel]="searchTerm"
+        (ngModelChange)="onSearch($event)"
+      />
+    </nz-input-group>
+
+    <nz-select
+      class="filter-select"
+      [ngModel]="statusFilter"
+      (ngModelChange)="onStatusChange($event)"
+      nzAllowClear
+      nzPlaceHolder="Estado"
+    >
+      <nz-option nzValue="all" nzLabel="Todos" />
+      <nz-option nzValue="active" nzLabel="Activos" />
+      <nz-option nzValue="inactive" nzLabel="Inactivos" />
+    </nz-select>
+  </div>
+
+  <nz-table
+    nzBordered
+    [nzData]="filteredModules()"
+    [nzLoading]="loading()"
+    [nzPageSize]="10"
+    nzShowPagination
+    [nzNoResult]="noModules"
+  >
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th>Licencias</th>
+        <th class="actions-col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let module of filteredModules()">
+        <td class="text-strong">{{ module.name }}</td>
+        <td>{{ module.description || 'Sin descripción' }}</td>
+        <td>
+          <nz-tag [nzColor]="getStatusColor(module.status)">{{ getStatusText(module.status) }}</nz-tag>
+        </td>
+        <td>
+          <nz-tag nzColor="purple" nzMode="default">Información pendiente</nz-tag>
+        </td>
+        <td class="actions">
+          <button nz-button nzType="link" (click)="edit(module.id)">
+            <span nz-icon nzType="edit"></span>
+            Editar
+          </button>
+          <button
+            nz-button
+            nzType="link"
+            nzDanger
+            nz-popconfirm
+            nzPopconfirmTitle="¿Eliminar módulo?"
+            nzPopconfirmPlacement="left"
+            (nzOnConfirm)="remove(module.id)"
+          >
+            <span nz-icon nzType="delete"></span>
+            Eliminar
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+  <ng-template #noModules>
+    <div class="empty-state">
+      <p>No hay módulos registrados todavía.</p>
+      <button nz-button nzType="primary" (click)="goCreate()">
+        <span nz-icon nzType="plus"></span>
+        Crear primer módulo
+      </button>
+    </div>
+  </ng-template>
+</nz-card>

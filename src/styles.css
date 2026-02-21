@@ -1,0 +1,256 @@
+/* ===================================
+   ESTILOS GLOBALES - QBIT SASS PROJECT
+   ================================== */
+
+/* Importación de archivos del sistema de diseño */
+@import './styles/variables.css';
+@import './styles/ng-zorro-theme.css';
+@import './styles/utilities.css';
+@import './styles/components.css';
+
+/* ========== ESTILOS GLOBALES BASE ========== */
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  color: var(--color-secondary-700);
+  background-color: var(--color-background);
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========== PERSONALIZACIÓN DE MENU (TUS ESTILOS EXISTENTES REFACTORIZADOS) ========== */
+
+/* Menu oscuro personalizado usando variables del sistema */
+.ant-menu-dark.ant-menu-inline .ant-menu-item,
+.ant-menu-dark .ant-menu-item, 
+.ant-menu-dark .ant-menu-item-group-title, 
+.ant-menu-dark .ant-menu-item > a, 
+.ant-menu-dark .ant-menu-item > span > a {
+    color: var(--ant-text-color) !important;
+}
+
+.ant-menu-dark.ant-menu-dark:not(.ant-menu-horizontal) .ant-menu-item-selected {
+    margin: 0 !important;
+    padding-left: 70px !important;
+    
+    transition: all var(--transition-base) !important;
+}
+
+.ant-menu-title-content {
+    transition: color .0s;
+}
+
+/* Hover effects para menu items */
+.ant-menu-dark .ant-menu-item:hover {
+    background-color: var(--color-white) !important;
+    color: var(--color-white) !important;
+}
+
+/* ========== SCROLLBAR PERSONALIZADO ========== */
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-secondary-100);
+    border-radius: var(--radius-full);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-primary-300);
+    border-radius: var(--radius-full);
+    transition: background var(--transition-base);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-500);
+}
+
+/* Firefox */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-primary-300) var(--color-secondary-100);
+}
+
+/* ========== FOCUS STYLES GLOBALES ========== */
+
+/* Mejores estilos de focus para accesibilidad */
+*:focus {
+    outline: 2px solid var(--color-primary-600);
+    outline-offset: 2px;
+}
+
+*:focus:not(:focus-visible) {
+    outline: none;
+}
+
+*:focus-visible {
+    outline: 2px solid var(--color-primary-600);
+    outline-offset: 2px;
+}
+
+/* ========== SELECCIÓN DE TEXTO ========== */
+
+::selection {
+    background-color: var(--color-primary-200);
+    color: var(--color-primary-800);
+}
+
+::-moz-selection {
+    background-color: var(--color-primary-200);
+    color: var(--color-primary-800);
+}
+
+/* ========== ESTILOS DE LOADING GLOBAL ========== */
+
+.global-loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: var(--z-modal);
+}
+
+.global-loading .spinner {
+    width: 40px;
+    height: 40px;
+    border-width: 3px;
+    border-color: var(--color-primary-200);
+    border-top-color: var(--color-primary-600);
+}
+
+/* ========== RESPONSIVE UTILITIES GLOBALES ========== */
+
+/* Ocultar elementos en móvil */
+@media (max-width: 767px) {
+    .hidden-mobile {
+        display: none !important;
+    }
+}
+
+/* Ocultar elementos en desktop */
+@media (min-width: 768px) {
+    .hidden-desktop {
+        display: none !important;
+    }
+}
+
+/* Container responsivo */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+}
+
+@media (min-width: 640px) {
+    .container {
+        padding: 0 var(--space-6);
+    }
+}
+
+@media (min-width: 1024px) {
+    .container {
+        padding: 0 var(--space-8);
+    }
+}
+
+/* ========== ANIMACIONES GLOBALES ========== */
+
+/* Animación suave para elementos que aparecen */
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.slide-up {
+    animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========== PRINT STYLES ========== */
+
+@media print {
+    * {
+        color: #000 !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+    
+    .no-print {
+        display: none !important;
+    }
+}
+
+/* ========== MODO OSCURO ========== */
+
+[data-theme="dark"] {
+    /* Override de variables para modo oscuro */
+    --color-background: var(--color-secondary-900);
+    --color-surface: var(--color-secondary-800);
+    --ant-body-background: var(--color-secondary-900);
+    --ant-component-background: var(--color-secondary-800);
+    --ant-text-color: var(--color-secondary-100);
+    --ant-text-color-secondary: var(--color-secondary-300);
+    --ant-border-color-base: var(--color-secondary-600);
+}
+
+[data-theme="dark"] body {
+    background-color: var(--color-secondary-900);
+    color: var(--color-secondary-100);
+}
+
+[data-theme="dark"] ::selection {
+    background-color: var(--color-primary-800);
+    color: var(--color-primary-100);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+    background: var(--color-secondary-800);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--color-secondary-600);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-primary-500);
+}

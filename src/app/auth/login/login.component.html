@@ -1,0 +1,66 @@
+<!-- login.component.html -->
+<div class="login-container">
+  <div class="login-card">
+    <!-- Sección del logo -->
+    <div class="logo-section">
+      <img src="assets/images/logoferre.png" alt="Logo" class="logo">
+      <h1 class="app-title">Qbit-SasS</h1>
+      <p class="welcome-text">Bienvenido de nuevo</p>
+    </div>
+
+    <!-- Formulario de login -->
+    <form nz-form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      
+      <!-- Campo de usuario -->
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Por favor ingresa tu usuario">
+          <nz-input-group nzPrefixIcon="user" nzSize="large">
+            <input 
+              type="text" 
+              nz-input 
+              formControlName="username" 
+              placeholder="Usuario"
+            />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Campo de contraseña -->
+      <nz-form-item>
+        <nz-form-control nzErrorTip="La contraseña debe tener al menos 6 caracteres">
+          <nz-input-group nzPrefixIcon="lock" nzSize="large">
+            <input 
+              [type]="passwordVisible ? 'text' : 'password'" 
+              nz-input 
+              formControlName="password" 
+              placeholder="Contraseña"
+            />
+            <nz-icon 
+              class="password-toggle"
+              slot="suffix"
+              [nzType]="passwordVisible ? 'eye-invisible' : 'eye'"
+              (click)="togglePasswordVisibility()"
+            ></nz-icon>
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Botón de login -->
+      <nz-form-item>
+        <button 
+          nz-button 
+          nzType="primary" 
+          nzSize="large" 
+          nzBlock
+          [nzLoading]="isLoading"
+          [disabled]="!loginForm.valid"
+          class="login-button"
+        >
+          <span *ngIf="!isLoading">Iniciar Sesión</span>
+          <span *ngIf="isLoading">Iniciando...</span>
+        </button>
+      </nz-form-item>
+    </form>
+
+  </div>
+</div>

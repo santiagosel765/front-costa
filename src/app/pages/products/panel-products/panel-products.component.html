@@ -1,0 +1,204 @@
+<!-- panel-products.component.html -->
+<div class="panel-container">
+  <nz-card [nzTitle]="cardTitle" class="panel-card">
+    
+    <!-- Header con botón crear -->
+    <div class="panel-header">
+      <div class="header-left">
+        <h2>{{ pageTitle }}</h2>
+        <p>{{ pageDescription }}</p>
+      </div>
+      <div class="header-right">
+        <button 
+          nz-button 
+          nzType="primary" 
+          nzSize="large"
+          (click)="createProduct()"
+          class="create-btn"
+        >
+          <nz-icon nzType="plus" nzTheme="outline" />
+          {{ createButtonText }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters-section">
+      <div class="filters-row">
+        <!-- Búsqueda -->
+        <nz-input-group nzPrefixIcon="search" class="search-input">
+          <input 
+            type="text" 
+            nz-input 
+            [placeholder]="searchPlaceholder"
+            [(ngModel)]="searchText"
+            (ngModelChange)="onSearch()"
+          />
+        </nz-input-group>
+
+        <!-- Filtro por categoría (ejemplo, se debería cargar dinámicamente) -->
+        <nz-select 
+          [(ngModel)]="selectedCategory" 
+          (ngModelChange)="onCategoryFilter()"
+          nzPlaceHolder="Filtrar por categoría"
+          class="category-filter"
+          nzAllowClear
+        >
+          <nz-option nzValue="all" nzLabel="Todas las categorías"></nz-option>
+          <nz-option nzValue="11" nzLabel="Herramientas Eléctricas"></nz-option>
+          <nz-option nzValue="12" nzLabel="Herramientas Manuales"></nz-option>
+          <nz-option nzValue="21" nzLabel="Tornillería"></nz-option>
+        </nz-select>
+
+        <!-- Filtro por estado -->
+        <nz-select 
+          [(ngModel)]="selectedStatus" 
+          (ngModelChange)="onStatusFilter()"
+          nzPlaceHolder="Filtrar por estado"
+          class="status-filter"
+          nzAllowClear
+        >
+          <nz-option nzValue="all" nzLabel="Todos los estados"></nz-option>
+          <nz-option nzValue="available" nzLabel="Disponible"></nz-option>
+          <nz-option nzValue="out_of_stock" nzLabel="Agotado"></nz-option>
+          <nz-option nzValue="discontinued" nzLabel="Descontinuado"></nz-option>
+        </nz-select>
+
+        <!-- Botón refrescar -->
+        <button 
+          nz-button 
+          nzType="default"
+          (click)="refreshData()"
+          [nzLoading]="isLoading"
+          nz-tooltip="Refrescar datos"
+        >
+          <nz-icon nzType="reload"></nz-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <nz-table 
+      #productTable 
+      [nzData]="filteredProducts" 
+      [nzPageSize]="pageSize"
+      [nzShowSizeChanger]="true"
+      [nzShowQuickJumper]="true"
+      [nzLoading]="isLoading"
+      nzShowPagination
+      class="products-table"
+    >
+      <thead>
+        <tr>
+          <th nzWidth="80px">Imagen</th>
+          <th>Producto</th>
+          <th>SKU</th>
+          <th>Categoría</th>
+          <th nzWidth="120px">Precio</th>
+          <th nzWidth="100px">Stock</th>
+          <th nzWidth="130px">Estado</th>
+          <th nzWidth="150px">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let product of productTable.data">
+          
+          <!-- Imagen -->
+           <td>
+                <div class="product-image-container">
+                    <img 
+                    [src]="product.imageUrl || 'assets/images/product-svgrepo-com.svg'"
+                    [alt]="product.name"
+                    class="product-image"
+                    (error)="onImageError($event)"
+                    >
+                </div>
+            </td>
+          
+          <!-- Nombre y Descripción -->
+          <td>
+            <div class="product-name-cell">
+              <strong>{{ product.name }}</strong>
+              <div class="product-description" [title]="product.description">
+                {{ product.description | slice:0:50 }}<span *ngIf="product.description.length > 50">...</span>
+              </div>
+            </div>
+          </td>
+
+          <!-- SKU -->
+          <td>{{ product.sku }}</td>
+
+          <!-- Categoría -->
+          <td>
+            <nz-tag nzColor="geekblue">{{ product.categoryName }}</nz-tag>
+          </td>
+          
+          <!-- Precio -->
+          <td>{{ product.price | currency:'Q' }}</td>
+          
+          <!-- Stock -->
+          <td>
+             <nz-tag [nzColor]="product.stock > 0 ? 'blue' : 'gold'">
+              {{ product.stock }} unidades
+            </nz-tag>
+          </td>
+
+          <!-- Estado -->
+          <td>
+            <nz-tag 
+              [nzColor]="getStatusColor(product.status)"
+            >
+              {{ getStatusText(product.status) }}
+            </nz-tag>
+          </td>
+          
+          <!-- Acciones -->
+          <td>
+            <div class="action-buttons">
+              <!-- Editar -->
+              <button 
+                nz-button 
+                nzType="primary" 
+                nzSize="small"
+                (click)="editProduct(product.id)"
+                nz-tooltip="Editar Producto"
+              >
+                <nz-icon nzType="edit"></nz-icon>
+              </button>
+              
+              <!-- Eliminar -->
+              <button 
+                nz-button 
+                nzDanger 
+                nzSize="small"
+                nz-popconfirm
+                [nzPopconfirmTitle]="getDeleteConfirmMessage(product.name)"
+                nzPopconfirmPlacement="top"
+                (nzOnConfirm)="deleteProduct(product.id)"
+                nz-tooltip="Eliminar Producto"
+              >
+                <nz-icon nzType="delete"></nz-icon>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+  </nz-card>
+  
+   <!-- Modales -->
+  <app-create-product
+    [isVisible]="isCreateModalVisible"
+    (visibleChange)="onCreateModalVisibleChange($event)"
+    (productCreated)="onProductCreated($event)"
+  ></app-create-product>
+
+  <app-updated-product
+    [isVisible]="isUpdateModalVisible"
+    [productData]="selectedProductForEdit"
+    (visibleChange)="onUpdateModalVisibleChange($event)"
+    (productUpdated)="onProductUpdated($event)"
+  ></app-updated-product>
+
+</div>

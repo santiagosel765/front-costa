@@ -1,0 +1,170 @@
+/* Extender la tabla base para productos */
+.products-table {
+  /* Hereda automáticamente de .data-table en components.css */
+}
+
+/* ========== PERSONALIZACIÓN DE TAGS PARA PRODUCTOS ========== */
+
+/* Tags de estado de stock */
+.products-table .ant-tag[nzColor="blue"] {
+  background: var(--tag-available-bg);
+  color: var(--tag-available-color);
+}
+
+.products-table .ant-tag[nzColor="gold"] {
+  background: var(--tag-out-of-stock-bg);
+  color: var(--tag-out-of-stock-color);
+}
+
+/* Tags de categoría */
+.products-table .ant-tag[nzColor="geekblue"] {
+  background: var(--tag-category-bg);
+  color: var(--tag-category-color);
+}
+
+/* Tags de estado de producto */
+.products-table .ant-tag[nzColor="green"] {
+  background: var(--color-success);
+  color: var(--color-white);
+}
+
+.products-table .ant-tag[nzColor="red"] {
+  background: var(--color-error);
+  color: var(--color-white);
+}
+
+.products-table .ant-tag[nzColor="orange"] {
+  background: var(--color-warning);
+  color: var(--color-white);
+}
+
+/* ========== HOVER EFFECTS ESPECÍFICOS PARA PRODUCTOS ========== */
+
+.products-table .ant-table-tbody > tr:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.products-table .ant-table-tbody > tr:hover .product-image-container {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-md);
+}
+
+/* ========== MEJORAS PARA LA CELDA DE PRECIO ========== */
+
+.products-table td:nth-child(5) {
+  /* Celda de precio */
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+}
+
+/* ========== ESTILOS ESPECÍFICOS ADICIONALES ========== */
+
+/* Filtro específico de categorías para productos */
+.products-table .category-filter {
+  min-width: var(--filter-select-min-width);
+}
+
+/* Estado de stock bajo (si quisieras agregarlo) */
+.products-table .stock-low {
+  background: var(--color-warning);
+  color: var(--color-white);
+  animation: pulse 2s infinite;
+}
+
+.products-table .stock-critical {
+  background: var(--color-error);
+  color: var(--color-white);
+  animation: pulse 1s infinite;
+}
+
+/* ========== RESPONSIVE ESPECÍFICO PARA PRODUCTOS ========== */
+
+@media (max-width: 768px) {
+  /* Ajustar tamaño de imagen en móvil */
+  .products-table .product-image-container {
+    width: calc(var(--size-product-image) - 8px);
+    height: calc(var(--size-product-image) - 8px);
+  }
+  
+  /* Hacer más compacta la celda de nombre en móvil */
+  .products-table .product-name-cell strong {
+    font-size: var(--font-size-sm);
+  }
+  
+  .products-table .product-description {
+    font-size: var(--font-size-xs);
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 480px) {
+  /* En móvil muy pequeño, ocultar imagen y hacer más compacto */
+  .products-table .product-image-container {
+    width: calc(var(--size-product-image) - 12px);
+    height: calc(var(--size-product-image) - 12px);
+  }
+  
+  /* Hacer el texto aún más compacto */
+  .products-table .product-name-cell {
+    gap: var(--space-1);
+  }
+}
+
+/* ========== ESTADOS DE LOADING ESPECÍFICOS ========== */
+
+.products-table.ant-table-loading .product-image-container {
+  opacity: 0.5;
+  animation: pulse 2s infinite;
+}
+
+.products-table.ant-table-loading .product-name-cell {
+  opacity: 0.7;
+}
+
+/* ========== ANIMACIONES ESPECÍFICAS ========== */
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ========== UTILIDADES ESPECÍFICAS PARA PRODUCTOS ========== */
+
+/* Para resaltar productos nuevos o promocionales */
+.products-table .product-featured {
+  position: relative;
+}
+
+.products-table .product-featured::after {
+  content: '✨';
+  position: absolute;
+  top: var(--space-1);
+  right: var(--space-1);
+  font-size: var(--font-size-sm);
+  z-index: 1;
+}
+
+/* Para productos con descuento */
+.products-table .product-discount {
+  background: linear-gradient(45deg, transparent 48%, var(--color-success) 49%, var(--color-success) 51%, transparent 52%);
+}
+
+/* ========== MEJORAS DE ACCESIBILIDAD ESPECÍFICAS ========== */
+
+.products-table .product-image-container:focus-within {
+  outline: 2px solid var(--color-primary-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+.products-table .product-name-cell:focus-within {
+  outline: 1px solid var(--color-primary-600);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
