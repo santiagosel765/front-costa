@@ -12,7 +12,7 @@ import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
-import { AuthRoleSummary, AuthUserSummary } from '../../../core/models/auth-admin.models';
+import { AuthRoleSummary, AuthUserUpsertPayload } from '../../../core/models/auth-admin.models';
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
 
 @Component({
@@ -187,13 +187,13 @@ export class UserFormComponent implements OnInit {
     const { id, password, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
-    const payload: Partial<AuthUserSummary> & { password?: string } = {
+    const payload: AuthUserUpsertPayload = {
       ...rest,
       status: rest.status ?? 1,
       roleIds: rest.roleIds ?? [],
     };
     if (!this.isEdit() && password) {
-      payload['password'] = password;
+      payload.password = password;
     }
 
     const request$ = this.isEdit() && id

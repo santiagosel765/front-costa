@@ -11,7 +11,7 @@ import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 
 import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
-import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
+import { AuthModuleUpsertPayload } from '../../../core/models/auth-admin.models';
 
 @Component({
   standalone: true,
@@ -112,7 +112,7 @@ export class ModuleFormComponent implements OnInit {
     const { id, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
-    const payload: Partial<AuthModuleSummary> = {
+    const payload: AuthModuleUpsertPayload = {
       ...rest,
       status: rest.status ?? 1,
     };

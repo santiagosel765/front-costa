@@ -12,7 +12,7 @@ import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
-import { AuthRoleSummary } from '../../../core/models/auth-admin.models';
+import { AuthRoleUpsertPayload } from '../../../core/models/auth-admin.models';
 
 @Component({
   standalone: true,
@@ -126,7 +126,7 @@ export class RoleFormComponent implements OnInit {
     const { id, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
-    const payload: Partial<AuthRoleSummary> = {
+    const payload: AuthRoleUpsertPayload = {
       ...rest,
       status: rest.status ?? 1,
     };

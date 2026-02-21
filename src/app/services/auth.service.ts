@@ -12,9 +12,26 @@ export interface LoginRequest {
 
 export interface LoginResponse {
   token: string;
-  // Agrega otros campos que devuelva tu API
-  user?: any;
+  user?: UserSummary;
   expiresIn?: number;
+}
+
+export interface UserSummary {
+  id: string;
+  username: string;
+  email: string;
+  fullName?: string;
+  status?: number;
+  roleNames?: string[];
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ResetPasswordRequest {
+  usernameOrEmail: string;
 }
 
 @Injectable({
@@ -31,13 +48,15 @@ export class AuthService {
    * @returns Observable con la respuesta del servidor
    */
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    const endpoint = '/v1/auth/login';
+    return this.api.post<LoginResponse>('/v1/auth/login', credentials);
+  }
 
-    // Log para debug - quitar en producción
-    console.log('URL de login:', endpoint);
-    console.log('Credenciales enviadas:', credentials);
+  changePassword(payload: ChangePasswordRequest): Observable<void> {
+    return this.api.post<void>('/v1/auth/change-password', payload);
+  }
 
-    return this.api.post<LoginResponse>(endpoint, credentials);
+  resetPassword(payload: ResetPasswordRequest): Observable<void> {
+    return this.api.post<void>('/v1/auth/reset-password', payload);
   }
 
   /**
