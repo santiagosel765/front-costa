@@ -12,20 +12,23 @@ import { catchError } from 'rxjs/operators';
 import { NzMessageService } from 'ng-zorro-antd/message';
 
 import { environment } from '../../../environments/environment';
-import { AuthService } from '../../services/auth.service';
 import { mapHttpErrorMessage } from '../utils/api-error.util';
-import { ModulesStore } from '../state/modules.store';
+import { SessionStore } from '../state/session.store';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private readonly router = inject(Router);
-  private readonly authService = inject(AuthService);
-  private readonly modulesStore = inject(ModulesStore);
+  private readonly sessionStore = inject(SessionStore);
   private readonly message = inject(NzMessageService);
   private readonly excludedEndpoints = ['/v1/auth/login'];
   private readonly apiBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
 
   intercept(req: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    if (!this.shouldSkip(req.url) && this.sessionStore.isTokenExpired()) {
+      this.handleUnauthorized();
+      return throwError(() => new Error('Session expired'));
+    }
+
     const requestToSend = this.shouldAttachToken(req.url) ? this.attachToken(req) : req;
 
     return next.handle(requestToSend).pipe(
@@ -56,7 +59,7 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private attachToken(req: HttpRequest<unknown>): HttpRequest<unknown> {
-    const token = this.getToken();
+    const token = this.sessionStore.getToken();
     if (!token) {
       return req;
     }
@@ -66,10 +69,6 @@ export class AuthInterceptor implements HttpInterceptor {
         Authorization: `Bearer ${token}`,
       },
     });
-  }
-
-  private getToken(): string | null {
-    return sessionStorage.getItem('authToken') || localStorage.getItem('authToken');
   }
 
   private handleHttpError(error: HttpErrorResponse, requestUrl: string): void {
@@ -90,8 +89,7 @@ export class AuthInterceptor implements HttpInterceptor {
   }
 
   private handleUnauthorized(): void {
-    this.authService.logout();
-    this.modulesStore.reset();
-    this.router.navigate(['/login']);
+    this.sessionStore.clearSession(false);
+    this.router.navigate(['/auth/login']);
   }
 }

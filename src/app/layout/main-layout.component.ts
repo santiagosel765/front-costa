@@ -1,10 +1,12 @@
 // src/app/layouts/main-layout/main-layout.component.ts
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { SidebarComponent } from './sidebar/sidebar.component';
+import { AuthContextService } from '../core/services/auth-context.service';
+import { SessionStore } from '../core/state/session.store';
 
 @Component({
   selector: 'app-main-layout',
@@ -169,6 +171,17 @@ nz-content {
   `],
 
 })
-export class MainLayoutComponent {
+export class MainLayoutComponent implements OnInit {
+  private readonly authContextService = inject(AuthContextService);
+  private readonly sessionStore = inject(SessionStore);
+
   isCollapsed = false;
+
+  ngOnInit(): void {
+    if (!this.sessionStore.getToken() || this.sessionStore.hasContextLoaded()) {
+      return;
+    }
+
+    this.authContextService.loadContext().subscribe();
+  }
 }

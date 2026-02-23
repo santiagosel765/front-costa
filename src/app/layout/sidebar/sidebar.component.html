@@ -31,14 +31,14 @@
   <ng-template #noModules>
     <li nz-menu-item nzDisabled>
       <nz-icon nzType="info-circle"></nz-icon>
-      <span>Sin módulos disponibles</span>
+      <span>Sin módulos activos / contacte administración</span>
     </li>
   </ng-template>
 
   <li nz-menu-divider></li>
 
   <li nz-menu-item nzMatchRouter class="container-logout">
-    <a href="/logout">
+    <a href="/auth/login" (click)="logout($event)">
       <nz-icon nzType="logout" nzTheme="outline"></nz-icon>
       <span>Cerrar Sesión</span>
     </a>
