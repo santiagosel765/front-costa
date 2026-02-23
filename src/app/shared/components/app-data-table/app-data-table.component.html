@@ -1,0 +1,118 @@
+<div class="app-data-table">
+  <nz-alert *ngIf="error" nzType="error" [nzMessage]="error" nzShowIcon class="table-error"></nz-alert>
+
+  <div class="table-toolbar" *ngIf="showToolbar">
+    <nz-input-group nzPrefixIcon="search" class="toolbar-search">
+      <input
+        nz-input
+        type="text"
+        [placeholder]="searchPlaceholder"
+        [ngModel]="searchInput"
+        (ngModelChange)="onSearchInput($event)"
+      />
+    </nz-input-group>
+
+    <nz-select
+      *ngIf="showStatusFilter"
+      class="toolbar-status"
+      [ngModel]="statusValue"
+      (ngModelChange)="onStatusFilterChange($event)"
+      nzAllowClear
+      nzPlaceHolder="Estado"
+    >
+      <nz-option *ngFor="let option of statusOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+    </nz-select>
+  </div>
+
+  <nz-spin [nzSpinning]="loading">
+    <nz-table #baseTable nzBordered [nzData]="data" [nzFrontPagination]="false" [nzShowPagination]="false">
+      <thead>
+        <tr>
+          <th
+            *ngFor="let column of columns"
+            [style.width]="column.width"
+            [nzShowSort]="column.sortable"
+            [nzSortOrder]="resolveSortOrder(column)"
+            (nzSortOrderChange)="onSortOrderChange(column, $event)"
+          >
+            {{ column.title }}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let row of baseTable.data">
+          <td *ngFor="let column of columns">
+            <ng-container [ngSwitch]="column.cellType || 'text'">
+              <ng-container *ngSwitchCase="'tag'">
+                <nz-tag [nzColor]="column.tagColor?.(row) || 'default'">{{ column.tagText?.(row) || resolveValue(column, row) }}</nz-tag>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'actions'">
+                <div class="actions-cell">
+                  <ng-container *ngFor="let actionConfig of column.actions || []">
+                    <span nz-tooltip [nzTooltipTitle]="resolveTooltip(actionConfig, row)">
+                      <button
+                        *ngIf="!actionConfig.confirmTitle"
+                        nz-button
+                        nzType="link"
+                        [nzDanger]="actionConfig.danger"
+                        [disabled]="actionConfig.disabled?.(row) || false"
+                        (click)="triggerAction(actionConfig.type, row)"
+                      >
+                        <span *ngIf="actionConfig.icon" nz-icon [nzType]="actionConfig.icon"></span>
+                        {{ actionConfig.label }}
+                      </button>
+                    </span>
+
+                    <span nz-tooltip [nzTooltipTitle]="resolveTooltip(actionConfig, row)">
+                      <button
+                        *ngIf="actionConfig.confirmTitle"
+                        nz-button
+                        nzType="link"
+                        [nzDanger]="actionConfig.danger"
+                        [disabled]="actionConfig.disabled?.(row) || false"
+                        nz-popconfirm
+                        [nzPopconfirmTitle]="actionConfig.confirmTitle"
+                        nzPopconfirmPlacement="left"
+                        (nzOnConfirm)="triggerAction(actionConfig.type, row)"
+                      >
+                        <span *ngIf="actionConfig.icon" nz-icon [nzType]="actionConfig.icon"></span>
+                        {{ actionConfig.label }}
+                      </button>
+                    </span>
+                  </ng-container>
+                </div>
+              </ng-container>
+
+              <ng-container *ngSwitchCase="'template'">
+                <ng-container *ngTemplateOutlet="column.template || null; context: { $implicit: row }"></ng-container>
+              </ng-container>
+
+              <ng-container *ngSwitchDefault>{{ resolveValue(column, row) }}</ng-container>
+            </ng-container>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <nz-empty *ngIf="!loading && total === 0" [nzNotFoundContent]="emptyMessage"></nz-empty>
+
+    <nz-pagination
+      *ngIf="total > 0"
+      class="table-pagination"
+      [nzTotal]="total"
+      [nzPageIndex]="pageIndex"
+      [nzPageSize]="pageSize"
+      [nzPageSizeOptions]="pageSizeOptions"
+      [nzShowSizeChanger]="true"
+      [nzShowQuickJumper]="true"
+      [nzShowTotal]="totalTpl"
+      (nzPageIndexChange)="onPageIndexChange($event)"
+      (nzPageSizeChange)="onPageSizeChange($event)"
+    ></nz-pagination>
+
+    <ng-template #totalTpl let-total let-range="range">
+      Mostrando {{ range[0] }}-{{ range[1] }} de {{ total }}
+    </ng-template>
+  </nz-spin>
+</div>
