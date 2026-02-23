@@ -1,7 +1,4 @@
-:host {
-  display: block;
-}
-
-nz-card {
-  width: 100%;
+.client-form {
+  display: grid;
+  gap: 8px;
 }

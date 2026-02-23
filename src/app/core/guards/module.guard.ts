@@ -11,13 +11,13 @@ import {
 import { Observable, of } from 'rxjs';
 
 import { normalizeModuleName } from '../constants/module-route-map';
-import { SessionStore } from '../state/session.store';
+import { ModuleAccessService } from '../security/module-access.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ModuleGuard implements CanActivate, CanMatch {
-  private readonly sessionStore = inject(SessionStore);
+  private readonly moduleAccess = inject(ModuleAccessService);
   private readonly router = inject(Router);
 
   canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
@@ -35,6 +35,6 @@ export class ModuleGuard implements CanActivate, CanMatch {
       return true;
     }
 
-    return this.sessionStore.hasEnabledModule(moduleKey) ? true : this.router.parseUrl('/main/welcome');
+    return this.moduleAccess.hasModule(moduleKey) ? true : this.router.parseUrl('/main/welcome');
   }
 }
