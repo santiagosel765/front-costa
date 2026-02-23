@@ -16,6 +16,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { AuthUserSummary } from '../../../core/models/auth-admin.models';
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
 import { SessionStore } from '../../../core/state/session.store';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   standalone: true,
@@ -34,6 +35,7 @@ import { SessionStore } from '../../../core/state/session.store';
     NzSelectModule,
     NzPopconfirmModule,
     NzToolTipModule,
+    PageHeaderComponent,
   ],
 })
 export class UsersListComponent implements OnInit {
@@ -52,6 +54,10 @@ export class UsersListComponent implements OnInit {
 
   searchTerm = '';
   statusFilter: 'all' | 'active' | 'inactive' = 'all';
+  readonly breadcrumbs = [
+    { label: 'Core de Autenticación', link: '/main/auth' },
+    { label: 'Usuarios' },
+  ];
 
   ngOnInit(): void {
     this.reload();

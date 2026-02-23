@@ -1,113 +1,93 @@
-<nz-card nzBordered class="section-card">
-  <div class="section-header">
-    <div>
-      <p class="eyebrow">Gestión de usuarios</p>
-      <h3 class="section-title">Usuarios</h3>
-      <p class="section-subtitle">Gestión de cuentas, estado y roles asignados.</p>
-    </div>
-    <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+<div class="auth-page-container">
+  <app-page-header
+    [breadcrumbs]="breadcrumbs"
+    title="Usuarios"
+    subtitle="Gestiona cuentas, estados y roles asignados de forma centralizada."
+  >
+    <span headerActions nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
       <button nz-button nzType="primary" (click)="goCreate()" [disabled]="!canWrite">
         <span nz-icon nzType="user-add"></span>
-        Nuevo Usuario
+        Nuevo usuario
       </button>
     </span>
-  </div>
+  </app-page-header>
 
-  <div class="filters">
-    <nz-input-group nzPrefixIcon="search" class="filter-input">
-      <input
-        nz-input
-        type="text"
-        placeholder="Buscar por usuario, email o nombre"
-        [ngModel]="searchTerm"
-        (ngModelChange)="onSearch($event)"
-      />
-    </nz-input-group>
+  <nz-card nzBordered>
+    <div class="filters">
+      <nz-input-group nzPrefixIcon="search" class="filter-input">
+        <input
+          nz-input
+          type="text"
+          placeholder="Buscar por usuario, email o nombre"
+          [ngModel]="searchTerm"
+          (ngModelChange)="onSearch($event)"
+        />
+      </nz-input-group>
 
-    <nz-select
-      class="filter-select"
-      [ngModel]="statusFilter"
-      (ngModelChange)="onStatusChange($event)"
-      nzAllowClear
-      nzPlaceHolder="Estado"
-    >
-      <nz-option nzValue="all" nzLabel="Todos" />
-      <nz-option nzValue="active" nzLabel="Activos" />
-      <nz-option nzValue="inactive" nzLabel="Inactivos" />
-    </nz-select>
-  </div>
-
-  <nz-table
-    nzBordered
-    [nzData]="filteredUsers()"
-    [nzLoading]="loading()"
-    [nzPageSize]="10"
-    nzShowPagination
-    [nzNoResult]="noUsers"
-  >
-    <thead>
-      <tr>
-        <th>Usuario</th>
-        <th>Email</th>
-        <th>Nombre completo</th>
-        <th>Estado</th>
-        <th>Roles</th>
-        <th class="actions-col">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let user of filteredUsers()">
-        <td class="text-strong">{{ user.username }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.fullName || '-' }}</td>
-        <td>
-          <nz-tag [nzColor]="getStatusColor(user.status)">
-            {{ getStatusText(user.status) }}
-          </nz-tag>
-        </td>
-        <td>
-          <ng-container *ngIf="user.roleNames?.length || user.roles?.length; else noRoles">
-            <nz-tag nzColor="blue" *ngFor="let role of (user.roleNames?.length ? user.roleNames : user.roles)">{{ role }}</nz-tag>
-          </ng-container>
-          <ng-template #noRoles>
-            <nz-tag nzColor="default">{{ rolesLabel(user) }}</nz-tag>
-          </ng-template>
-        </td>
-        <td class="actions">
-          <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
-            <button nz-button nzType="link" (click)="edit(user.id)" [disabled]="!canWrite">
-              <span nz-icon nzType="edit"></span>
-              Editar
-            </button>
-          </span>
-          <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
-            <button
-              nz-button
-              nzType="link"
-              nzDanger
-              nz-popconfirm
-              nzPopconfirmTitle="¿Eliminar usuario?"
-              nzPopconfirmPlacement="left"
-              (nzOnConfirm)="remove(user.id)"
-              [disabled]="!canWrite"
-            >
-              <span nz-icon nzType="delete"></span>
-              Eliminar
-            </button>
-          </span>
-        </td>
-      </tr>
-    </tbody>
-  </nz-table>
-  <ng-template #noUsers>
-    <div class="empty-state">
-      <p>No hay usuarios registrados todavía.</p>
-      <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
-        <button nz-button nzType="primary" (click)="goCreate()" [disabled]="!canWrite">
-          <span nz-icon nzType="plus"></span>
-          Crear primer usuario
-        </button>
-      </span>
+      <nz-select
+        class="filter-select"
+        [ngModel]="statusFilter"
+        (ngModelChange)="onStatusChange($event)"
+        nzAllowClear
+        nzPlaceHolder="Estado"
+      >
+        <nz-option nzValue="all" nzLabel="Todos" />
+        <nz-option nzValue="active" nzLabel="Activos" />
+        <nz-option nzValue="inactive" nzLabel="Inactivos" />
+      </nz-select>
     </div>
-  </ng-template>
-</nz-card>
+
+    <nz-table nzBordered [nzData]="filteredUsers()" [nzLoading]="loading()" [nzPageSize]="10" nzShowPagination [nzNoResult]="noUsers">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Email</th>
+          <th>Nombre completo</th>
+          <th>Estado</th>
+          <th>Roles</th>
+          <th class="actions-col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers()">
+          <td class="text-strong">{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.fullName || '-' }}</td>
+          <td><nz-tag [nzColor]="getStatusColor(user.status)">{{ getStatusText(user.status) }}</nz-tag></td>
+          <td>
+            <ng-container *ngIf="user.roleNames?.length || user.roles?.length; else noRoles">
+              <nz-tag nzColor="blue" *ngFor="let role of (user.roleNames?.length ? user.roleNames : user.roles)">{{ role }}</nz-tag>
+            </ng-container>
+            <ng-template #noRoles><nz-tag nzColor="default">{{ rolesLabel(user) }}</nz-tag></ng-template>
+          </td>
+          <td class="actions">
+            <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+              <button nz-button nzType="link" (click)="edit(user.id)" [disabled]="!canWrite">
+                <span nz-icon nzType="edit"></span>
+                Editar
+              </button>
+            </span>
+            <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+              <button nz-button nzType="link" nzDanger nz-popconfirm nzPopconfirmTitle="¿Eliminar usuario?" nzPopconfirmPlacement="left" (nzOnConfirm)="remove(user.id)" [disabled]="!canWrite">
+                <span nz-icon nzType="delete"></span>
+                Eliminar
+              </button>
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+
+    <ng-template #noUsers>
+      <div class="empty-state">
+        <p>No hay usuarios registrados todavía.</p>
+        <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+          <button nz-button nzType="primary" (click)="goCreate()" [disabled]="!canWrite">
+            <span nz-icon nzType="plus"></span>
+            Crear primer usuario
+          </button>
+        </span>
+      </div>
+    </ng-template>
+  </nz-card>
+</div>

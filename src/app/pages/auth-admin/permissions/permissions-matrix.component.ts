@@ -5,6 +5,7 @@ import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
@@ -15,22 +16,14 @@ import { AuthModuleSummary, AuthRoleSummary } from '../../../core/models/auth-ad
 import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
 import { PermissionsAdminService } from '../../../core/services/auth-admin/permissions-admin.service';
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   standalone: true,
   selector: 'app-permissions-matrix',
   templateUrl: './permissions-matrix.component.html',
   styleUrls: ['./permissions-matrix.component.css'],
-  imports: [
-    CommonModule,
-    FormsModule,
-    NzCheckboxModule,
-    NzButtonModule,
-    NzCardModule,
-    NzIconModule,
-    NzSelectModule,
-    NzSpinModule,
-  ],
+  imports: [CommonModule, FormsModule, NzCheckboxModule, NzButtonModule, NzCardModule, NzIconModule, NzSelectModule, NzSpinModule, NzInputModule, PageHeaderComponent],
 })
 export class PermissionsMatrixComponent implements OnInit {
   private readonly permissionsService = inject(PermissionsAdminService);
@@ -50,13 +43,15 @@ export class PermissionsMatrixComponent implements OnInit {
   readonly originalAssigned = signal<string[]>([]);
   readonly availableSelection = signal<Set<string>>(new Set());
   readonly assignedSelection = signal<Set<string>>(new Set());
+  readonly availableSearch = signal('');
+  readonly assignedSearch = signal('');
 
-  readonly availableModules = computed(() =>
-    this.modules().filter((module) => !this.currentAssigned().includes(module.id)),
-  );
-  readonly assignedModules = computed(() =>
-    this.modules().filter((module) => this.currentAssigned().includes(module.id)),
-  );
+  readonly availableModules = computed(() => this.modules().filter((module) => !this.currentAssigned().includes(module.id)));
+  readonly assignedModules = computed(() => this.modules().filter((module) => this.currentAssigned().includes(module.id)));
+
+  readonly filteredAvailableModules = computed(() => this.filterBySearch(this.availableModules(), this.availableSearch()));
+  readonly filteredAssignedModules = computed(() => this.filterBySearch(this.assignedModules(), this.assignedSearch()));
+
   readonly hasChanges = computed(() => {
     const original = new Set(this.originalAssigned());
     const current = new Set(this.currentAssigned());
@@ -67,22 +62,23 @@ export class PermissionsMatrixComponent implements OnInit {
     return false;
   });
 
+  readonly breadcrumbs = [
+    { label: 'Core de Autenticación', link: '/main/auth' },
+    { label: 'Permisos' },
+  ];
+
   ngOnInit(): void {
     this.reload();
   }
 
   reload(): void {
     this.loading.set(true);
-    forkJoin({
-      roles: this.rolesService.list(),
-      modules: this.modulesService.list(),
-    })
+    forkJoin({ roles: this.rolesService.list(), modules: this.modulesService.list() })
       .pipe(finalize(() => this.loading.set(false)))
       .subscribe({
         next: ({ roles, modules }) => {
           this.roles.set(roles ?? []);
           this.modules.set(modules ?? []);
-
           const firstRole = this.selectedRoleId() ?? roles?.[0]?.id ?? null;
           this.onRoleChange(firstRole);
         },
@@ -94,6 +90,8 @@ export class PermissionsMatrixComponent implements OnInit {
     this.selectedRoleId.set(roleId);
     this.availableSelection.set(new Set());
     this.assignedSelection.set(new Set());
+    this.availableSearch.set('');
+    this.assignedSearch.set('');
 
     if (!roleId) {
       this.currentAssigned.set([]);
@@ -102,36 +100,26 @@ export class PermissionsMatrixComponent implements OnInit {
     }
 
     this.roleModulesLoading.set(true);
-    this.permissionsService
-      .getRoleModules(roleId)
-      .pipe(finalize(() => this.roleModulesLoading.set(false)))
-      .subscribe({
-        next: (assignment) => {
-          const assigned = assignment?.moduleIds ?? [];
-          this.currentAssigned.set([...assigned]);
-          this.originalAssigned.set([...assigned]);
-        },
-        error: () => {
-          this.message.error('No se pudieron cargar los módulos del rol');
-          this.currentAssigned.set([]);
-          this.originalAssigned.set([]);
-        },
-      });
+    this.permissionsService.getRoleModules(roleId).pipe(finalize(() => this.roleModulesLoading.set(false))).subscribe({
+      next: (assignment) => {
+        const assigned = assignment?.moduleIds ?? [];
+        this.currentAssigned.set([...assigned]);
+        this.originalAssigned.set([...assigned]);
+      },
+      error: () => {
+        this.message.error('No se pudieron cargar los módulos del rol');
+        this.currentAssigned.set([]);
+        this.originalAssigned.set([]);
+      },
+    });
   }
 
   toggleSelection(target: 'available' | 'assigned', id: string, checked: boolean): void {
     const selection = target === 'available' ? this.availableSelection() : this.assignedSelection();
     const updated = new Set(selection);
-    if (checked) {
-      updated.add(id);
-    } else {
-      updated.delete(id);
-    }
-    if (target === 'available') {
-      this.availableSelection.set(updated);
-    } else {
-      this.assignedSelection.set(updated);
-    }
+    if (checked) updated.add(id);
+    else updated.delete(id);
+    target === 'available' ? this.availableSelection.set(updated) : this.assignedSelection.set(updated);
   }
 
   moveToAssigned(): void {
@@ -147,17 +135,6 @@ export class PermissionsMatrixComponent implements OnInit {
     this.assignedSelection.set(new Set());
   }
 
-  assignAll(): void {
-    const updated = this.modules().map((m) => m.id);
-    this.currentAssigned.set(updated);
-    this.availableSelection.set(new Set());
-  }
-
-  clearAll(): void {
-    this.currentAssigned.set([]);
-    this.assignedSelection.set(new Set());
-  }
-
   save(): void {
     const roleId = this.selectedRoleId();
     if (!roleId) {
@@ -166,17 +143,20 @@ export class PermissionsMatrixComponent implements OnInit {
     }
 
     this.saving.set(true);
-    this.permissionsService
-      .updateRoleModules(roleId, this.currentAssigned())
-      .pipe(finalize(() => this.saving.set(false)))
-      .subscribe({
-        next: (response) => {
-          const updatedIds = response?.moduleIds ?? this.currentAssigned();
-          this.currentAssigned.set([...updatedIds]);
-          this.originalAssigned.set([...updatedIds]);
-          this.message.success('Permisos actualizados');
-        },
-        error: () => this.message.error('Error al guardar permisos'),
-      });
+    this.permissionsService.updateRoleModules(roleId, this.currentAssigned()).pipe(finalize(() => this.saving.set(false))).subscribe({
+      next: (response) => {
+        const updatedIds = response?.moduleIds ?? this.currentAssigned();
+        this.currentAssigned.set([...updatedIds]);
+        this.originalAssigned.set([...updatedIds]);
+        this.message.success('Permisos actualizados correctamente');
+      },
+      error: () => this.message.error('Error al guardar permisos'),
+    });
+  }
+
+  private filterBySearch(items: AuthModuleSummary[], term: string): AuthModuleSummary[] {
+    const text = term.trim().toLowerCase();
+    if (!text) return items;
+    return items.filter((item) => item.name.toLowerCase().includes(text) || (item.description ?? '').toLowerCase().includes(text));
   }
 }

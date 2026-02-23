@@ -1,0 +1,14 @@
+<div class="form-shell" [style.max-width.px]="maxWidth">
+  <nz-card nzBordered>
+    <h3 class="form-title" *ngIf="title">{{ title }}</h3>
+    <p class="form-helper" *ngIf="helperText">{{ helperText }}</p>
+
+    <div class="form-content">
+      <ng-content></ng-content>
+    </div>
+
+    <div class="form-actions">
+      <ng-content select="[formActions]"></ng-content>
+    </div>
+  </nz-card>
+</div>

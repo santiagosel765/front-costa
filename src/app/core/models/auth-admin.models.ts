@@ -4,6 +4,9 @@ export interface AuthUserSummary {
   email: string;
   fullName?: string;
   status: number;
+  statusId?: number | string;
+  statusCode?: number | string;
+  statusLabel?: string;
   roleIds?: string[];
   roleNames?: string[];
   roles?: string[];
@@ -15,6 +18,9 @@ export interface AuthRoleSummary {
   name: string;
   description: string;
   status: number;
+  statusId?: number | string;
+  statusCode?: number | string;
+  statusLabel?: string;
 }
 
 export interface AuthModuleSummary {
@@ -22,6 +28,9 @@ export interface AuthModuleSummary {
   name: string;
   description: string;
   status: number;
+  statusId?: number | string;
+  statusCode?: number | string;
+  statusLabel?: string;
 }
 
 export interface RoleModuleAssignment {
@@ -53,7 +62,6 @@ export interface PermissionMatrixCell {
   moduleId: string;
   enabled: boolean;
 }
-
 
 export interface AuthUserUpsertPayload {
   username: string;
