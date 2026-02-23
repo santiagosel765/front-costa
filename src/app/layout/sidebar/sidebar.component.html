@@ -1,8 +1,8 @@
-<ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed">
+<ul nz-menu nzTheme="dark" nzMode="inline" [nzInlineCollapsed]="collapsed" class="sidebar-menu">
   <li nz-menu-item nzMatchRouter>
     <a [routerLink]="['/main', 'welcome']">
       <nz-icon nzType="home"></nz-icon>
-      <span>Bienvenido</span>
+      <span class="menu-label">Bienvenido</span>
     </a>
   </li>
 
@@ -11,7 +11,7 @@
   <ng-container *ngIf="loading; else modulesList">
     <li nz-menu-item nzDisabled class="loading-item">
       <nz-spin nzSize="small"></nz-spin>
-      <span>Cargando módulos...</span>
+      <span class="menu-label">Cargando módulos...</span>
     </li>
   </ng-container>
 
@@ -21,7 +21,7 @@
         <li nz-menu-item nzMatchRouter>
           <a [routerLink]="item.route">
             <nz-icon [nzType]="item.icon"></nz-icon>
-            <span>{{ item.label }}</span>
+            <span class="menu-label" [title]="item.label">{{ item.label }}</span>
           </a>
         </li>
       </ng-container>
@@ -31,7 +31,7 @@
   <ng-template #noModules>
     <li nz-menu-item nzDisabled>
       <nz-icon nzType="info-circle"></nz-icon>
-      <span>Sin módulos activos / contacte administración</span>
+      <span class="menu-label">Sin módulos activos / contacte administración</span>
     </li>
   </ng-template>
 
@@ -40,7 +40,7 @@
   <li nz-menu-item nzMatchRouter class="container-logout">
     <a href="/auth/login" (click)="logout($event)">
       <nz-icon nzType="logout" nzTheme="outline"></nz-icon>
-      <span>Cerrar Sesión</span>
+      <span class="menu-label">Cerrar Sesión</span>
     </a>
   </li>
 </ul>

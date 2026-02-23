@@ -5,10 +5,12 @@
       <h3 class="section-title">Usuarios</h3>
       <p class="section-subtitle">Gestión de cuentas, estado y roles asignados.</p>
     </div>
-    <button nz-button nzType="primary" (click)="goCreate()">
-      <span nz-icon nzType="user-add"></span>
-      Nuevo Usuario
-    </button>
+    <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+      <button nz-button nzType="primary" (click)="goCreate()" [disabled]="!canWrite">
+        <span nz-icon nzType="user-add"></span>
+        Nuevo Usuario
+      </button>
+    </span>
   </div>
 
   <div class="filters">
@@ -72,22 +74,27 @@
           </ng-template>
         </td>
         <td class="actions">
-          <button nz-button nzType="link" (click)="edit(user.id)">
-            <span nz-icon nzType="edit"></span>
-            Editar
-          </button>
-          <button
-            nz-button
-            nzType="link"
-            nzDanger
-            nz-popconfirm
-            nzPopconfirmTitle="¿Eliminar usuario?"
-            nzPopconfirmPlacement="left"
-            (nzOnConfirm)="remove(user.id)"
-          >
-            <span nz-icon nzType="delete"></span>
-            Eliminar
-          </button>
+          <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+            <button nz-button nzType="link" (click)="edit(user.id)" [disabled]="!canWrite">
+              <span nz-icon nzType="edit"></span>
+              Editar
+            </button>
+          </span>
+          <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+            <button
+              nz-button
+              nzType="link"
+              nzDanger
+              nz-popconfirm
+              nzPopconfirmTitle="¿Eliminar usuario?"
+              nzPopconfirmPlacement="left"
+              (nzOnConfirm)="remove(user.id)"
+              [disabled]="!canWrite"
+            >
+              <span nz-icon nzType="delete"></span>
+              Eliminar
+            </button>
+          </span>
         </td>
       </tr>
     </tbody>
@@ -95,10 +102,12 @@
   <ng-template #noUsers>
     <div class="empty-state">
       <p>No hay usuarios registrados todavía.</p>
-      <button nz-button nzType="primary" (click)="goCreate()">
-        <span nz-icon nzType="plus"></span>
-        Crear primer usuario
-      </button>
+      <span nz-tooltip [nzTooltipTitle]="!canWrite ? writeBlockedMessage : null">
+        <button nz-button nzType="primary" (click)="goCreate()" [disabled]="!canWrite">
+          <span nz-icon nzType="plus"></span>
+          Crear primer usuario
+        </button>
+      </span>
     </div>
   </ng-template>
 </nz-card>

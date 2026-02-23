@@ -2,15 +2,17 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Subscription } from 'rxjs';
+import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzTabsModule } from 'ng-zorro-antd/tabs';
 
-import { UsersListComponent } from './users/users-list.component';
-import { RolesListComponent } from './roles/roles-list.component';
+import { SessionStore } from '../../core/state/session.store';
 import { ModulesListComponent } from './modules/modules-list.component';
 import { PermissionsMatrixComponent } from './permissions/permissions-matrix.component';
+import { RolesListComponent } from './roles/roles-list.component';
+import { UsersListComponent } from './users/users-list.component';
 
 @Component({
   selector: 'app-auth-admin-panel',
@@ -21,6 +23,7 @@ import { PermissionsMatrixComponent } from './permissions/permissions-matrix.com
     NzTabsModule,
     NzButtonModule,
     NzIconModule,
+    NzAlertModule,
     UsersListComponent,
     RolesListComponent,
     ModulesListComponent,
@@ -32,9 +35,14 @@ import { PermissionsMatrixComponent } from './permissions/permissions-matrix.com
 export class AuthAdminPanelComponent implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly sessionStore = inject(SessionStore);
 
+  readonly authModuleKey = 'CORE_DE_AUTENTICACION';
   readonly tabKeys = ['users', 'roles', 'modules', 'permissions'];
+
   activeTabIndex = 0;
+  canRead = this.sessionStore.canRead(this.authModuleKey);
+  canWrite = this.sessionStore.canWrite(this.authModuleKey);
   private querySub?: Subscription;
 
   ngOnInit(): void {
@@ -62,6 +70,10 @@ export class AuthAdminPanelComponent implements OnInit, OnDestroy {
       const selectedKey = tabFromQuery || tabFromData;
       const idx = selectedKey ? this.tabKeys.indexOf(selectedKey) : -1;
       this.activeTabIndex = idx >= 0 ? idx : 0;
+
+      if (!this.canWrite && this.activeTabIndex > 0) {
+        this.activeTabIndex = 0;
+      }
     });
   }
 }

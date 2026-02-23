@@ -11,9 +11,11 @@ import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 
 import { AuthUserSummary } from '../../../core/models/auth-admin.models';
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
+import { SessionStore } from '../../../core/state/session.store';
 
 @Component({
   standalone: true,
@@ -31,16 +33,22 @@ import { UsersAdminService } from '../../../core/services/auth-admin/users-admin
     NzInputModule,
     NzSelectModule,
     NzPopconfirmModule,
+    NzToolTipModule,
   ],
 })
 export class UsersListComponent implements OnInit {
   private readonly service = inject(UsersAdminService);
   private readonly router = inject(Router);
   private readonly message = inject(NzMessageService);
+  private readonly sessionStore = inject(SessionStore);
 
+  readonly authModuleKey = 'CORE_DE_AUTENTICACION';
   readonly users = signal<AuthUserSummary[]>([]);
   readonly filteredUsers = signal<AuthUserSummary[]>([]);
   readonly loading = signal(false);
+
+  readonly canWrite = this.sessionStore.canWrite(this.authModuleKey);
+  readonly writeBlockedMessage = 'Tu plan/rol no permite editar usuarios';
 
   searchTerm = '';
   statusFilter: 'all' | 'active' | 'inactive' = 'all';
@@ -62,14 +70,27 @@ export class UsersListComponent implements OnInit {
   }
 
   goCreate(): void {
+    if (!this.canWrite) {
+      this.message.info(this.writeBlockedMessage);
+      return;
+    }
     this.router.navigate(['/main/auth/users/new']);
   }
 
   edit(id: string): void {
+    if (!this.canWrite) {
+      this.message.info(this.writeBlockedMessage);
+      return;
+    }
     this.router.navigate(['/main/auth/users', id, 'edit']);
   }
 
   remove(id: string): void {
+    if (!this.canWrite) {
+      this.message.info(this.writeBlockedMessage);
+      return;
+    }
+
     this.loading.set(true);
     this.service.delete(id).subscribe({
       next: () => {

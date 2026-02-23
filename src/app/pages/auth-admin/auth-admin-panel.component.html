@@ -7,22 +7,39 @@
     </div>
   </div>
 
-  <nz-tabset
-    class="auth-admin-tabs"
-    [(nzSelectedIndex)]="activeTabIndex"
-    (nzSelectedIndexChange)="onTabChange($event)"
-  >
-    <nz-tab nzTitle="Usuarios" nzIcon="user">
-      <app-users-list></app-users-list>
-    </nz-tab>
-    <nz-tab nzTitle="Roles" nzIcon="team">
-      <app-roles-list></app-roles-list>
-    </nz-tab>
-    <nz-tab nzTitle="Módulos" nzIcon="appstore">
-      <app-modules-list></app-modules-list>
-    </nz-tab>
-    <nz-tab nzTitle="Permisos" nzIcon="safety">
-      <app-permissions-matrix></app-permissions-matrix>
-    </nz-tab>
-  </nz-tabset>
+  <nz-alert
+    *ngIf="!canWrite && canRead"
+    nzType="info"
+    nzShowIcon
+    nzMessage="Tu plan/rol no permite editar usuarios"
+    nzDescription="Puedes consultar la información, pero las acciones de escritura estarán bloqueadas."
+    class="permission-alert"
+  ></nz-alert>
+
+  <div class="no-access" *ngIf="!canRead; else authTabs">
+    <span nz-icon nzType="lock" class="no-access-icon"></span>
+    <h3>No tienes acceso</h3>
+    <p>No cuentas con permiso de lectura para este módulo. Contacta a administración.</p>
+  </div>
+
+  <ng-template #authTabs>
+    <nz-tabset
+      class="auth-admin-tabs"
+      [(nzSelectedIndex)]="activeTabIndex"
+      (nzSelectedIndexChange)="onTabChange($event)"
+    >
+      <nz-tab nzTitle="Usuarios" nzIcon="user">
+        <app-users-list></app-users-list>
+      </nz-tab>
+      <nz-tab nzTitle="Roles" nzIcon="team" [nzDisabled]="!canWrite">
+        <app-roles-list></app-roles-list>
+      </nz-tab>
+      <nz-tab nzTitle="Módulos" nzIcon="appstore" [nzDisabled]="!canWrite">
+        <app-modules-list></app-modules-list>
+      </nz-tab>
+      <nz-tab nzTitle="Permisos" nzIcon="safety" [nzDisabled]="!canWrite">
+        <app-permissions-matrix></app-permissions-matrix>
+      </nz-tab>
+    </nz-tabset>
+  </ng-template>
 </nz-card>
