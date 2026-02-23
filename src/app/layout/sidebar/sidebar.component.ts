@@ -13,16 +13,11 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
-import { Subject, map, takeUntil } from 'rxjs';
+import { Subject, takeUntil } from 'rxjs';
 
-import {
-  MODULE_ICON_MAP,
-  MODULE_LABEL_MAP,
-  MODULE_ROUTE_MAP,
-  normalizeModuleName,
-} from '../../core/constants/module-route-map';
-import { ModuleDTO } from '../../core/services/modules.service';
-import { ModulesStore } from '../../core/state/modules.store';
+import { normalizeModuleName, resolveModulePresentation } from '../../core/constants/module-route-map';
+import { AuthContextModule } from '../../core/models/auth-context.models';
+import { SessionStore } from '../../core/state/session.store';
 
 interface SidebarMenuItem {
   key: string;
@@ -42,7 +37,7 @@ interface SidebarMenuItem {
 export class SidebarComponent implements OnInit, OnDestroy {
   @Input() collapsed = false;
 
-  private readonly modulesStore = inject(ModulesStore);
+  private readonly sessionStore = inject(SessionStore);
   private readonly message = inject(NzMessageService);
   private readonly cdr = inject(ChangeDetectorRef);
 
@@ -54,19 +49,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loading = true;
 
-    this.modulesStore
-      // Se consume el store centralizado de módulos habilitados para alinear menú y guards.
-      .loadOnce()
-      .pipe(
-        map(() => this.modulesStore.getEnabledModules()),
-        takeUntil(this.destroy$),
-      )
+    this.sessionStore.modules$
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (enabledModules) => {
-          this.menuItems = enabledModules
-            .map((module) => this.buildMenuItem(module))
-            .filter((item): item is SidebarMenuItem => !!item);
-
+        next: (modules) => {
+          this.menuItems = modules.map((module) => this.buildMenuItem(module));
           this.loading = false;
           this.cdr.markForCheck();
         },
@@ -86,29 +73,20 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   trackByKey = (_: number, item: SidebarMenuItem): string => item.key;
 
-  private buildMenuItem(module: ModuleDTO): SidebarMenuItem | null {
-    const key = normalizeModuleName(module.name) ?? module.name?.toUpperCase();
+  logout(event: Event): void {
+    event.preventDefault();
+    this.sessionStore.clearSession();
+  }
 
-    if (!key) {
-      return null;
-    }
-
-    const route = MODULE_ROUTE_MAP[key] ?? '/main/welcome';
+  private buildMenuItem(module: AuthContextModule): SidebarMenuItem {
+    const key = normalizeModuleName(module.key) ?? module.key;
+    const metadata = resolveModulePresentation(module);
 
     return {
       key,
-      route,
-      // Se prioriza el nombre del módulo para mostrar el label real definido en BD.
-      label: MODULE_LABEL_MAP[key] ?? module.name ?? this.formatLabel(key),
-      icon: MODULE_ICON_MAP[key] ?? 'appstore',
+      route: metadata.route,
+      label: metadata.label,
+      icon: metadata.icon,
     };
-  }
-
-  private formatLabel(key: string): string {
-    return key
-      .toLowerCase()
-      .split('_')
-      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
-      .join(' ');
   }
 }

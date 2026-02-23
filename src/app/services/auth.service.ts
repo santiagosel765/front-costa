@@ -1,10 +1,9 @@
-/* auth.service.ts */
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { ApiService } from '../core/services/api.service';
+import { SessionStore } from '../core/state/session.store';
 
-// Interfaces para el tipado
 export interface LoginRequest {
   username: string;
   password: string;
@@ -39,14 +38,8 @@ export interface ResetPasswordRequest {
 })
 export class AuthService {
   private readonly api = inject(ApiService);
+  private readonly sessionStore = inject(SessionStore);
 
-  constructor() { }
-
-  /**
-   * Método para autenticar usuario y obtener token
-   * @param credentials - Objeto con username y password
-   * @returns Observable con la respuesta del servidor
-   */
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.api.post<LoginResponse>('/v1/auth/login', credentials);
   }
@@ -59,34 +52,19 @@ export class AuthService {
     return this.api.post<void>('/v1/auth/reset-password', payload);
   }
 
-  /**
-   * Método para guardar el token en localStorage
-   * @param token - Token JWT a guardar
-   */
   saveToken(token: string): void {
-    sessionStorage.setItem('authToken', token);
+    this.sessionStore.setToken(token);
   }
 
-  /**
-   * Método para obtener el token guardado
-   * @returns Token JWT o null si no existe
-   */
   getToken(): string | null {
-    return sessionStorage.getItem('authToken');
+    return this.sessionStore.getToken();
   }
 
-  /**
-   * Método para verificar si el usuario está autenticado
-   * @returns true si existe un token, false en caso contrario
-   */
   isAuthenticated(): boolean {
-    return this.getToken() !== null;
+    return this.sessionStore.isAuthenticated();
   }
 
-  /**
-   * Método para cerrar sesión (eliminar token)
-   */
   logout(): void {
-    sessionStorage.removeItem('authToken');
+    this.sessionStore.clearSession();
   }
 }
