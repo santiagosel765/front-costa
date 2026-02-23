@@ -1,3 +1,55 @@
-<nz-card nzTitle="Clientes">
-  <p>Administra la cartera de clientes y su información clave.</p>
+<nz-card nzTitle="Clientes" [nzExtra]="actionsTpl">
+  <ng-container *ngIf="!moduleNotLicensed(); else blockedState">
+    <app-data-table
+      [columns]="columns"
+      [data]="rows()"
+      [loading]="loading()"
+      [error]="error()"
+      [total]="total()"
+      [pageIndex]="tableState.snapshot.page"
+      [pageSize]="tableState.snapshot.size"
+      [sortField]="tableState.snapshot.sortField"
+      [sortOrder]="tableState.snapshot.sortOrder"
+      [searchValue]="tableState.snapshot.q"
+      searchPlaceholder="Buscar clientes por nombre o documento"
+      emptyMessage="No hay clientes activos"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)"
+      (searchChange)="onSearchChange($event)"
+      (action)="handleAction($event)"
+    ></app-data-table>
+  </ng-container>
 </nz-card>
+
+<ng-template #blockedState>
+  <nz-empty nzNotFoundContent="No tienes licencia para el módulo de clientes."></nz-empty>
+  <button nz-button nzType="default" (click)="goBack()">Volver al inicio</button>
+</ng-template>
+
+<ng-template #actionsTpl>
+  <button nz-button nzType="primary" (click)="openCreate()" [disabled]="!moduleAccess.hasModule('CLIENT')">
+    Nuevo cliente
+  </button>
+</ng-template>
+
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  [nzTitle]="editingId() ? 'Editar cliente' : 'Nuevo cliente'"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+  [nzOkLoading]="loading()"
+>
+  <form [formGroup]="form" class="client-form">
+    <label>Nombre</label>
+    <input nz-input formControlName="name" />
+
+    <label>Documento</label>
+    <input nz-input formControlName="document" />
+
+    <label>Email</label>
+    <input nz-input formControlName="email" />
+
+    <label>Teléfono</label>
+    <input nz-input formControlName="phone" />
+  </form>
+</nz-modal>

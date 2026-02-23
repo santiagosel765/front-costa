@@ -1,3 +1,55 @@
-<nz-card nzTitle="Proveedores">
-  <p>Consulta y administra tus proveedores autorizados.</p>
+<nz-card nzTitle="Proveedores" [nzExtra]="actionsTpl">
+  <ng-container *ngIf="!moduleNotLicensed(); else blockedState">
+    <app-data-table
+      [columns]="columns"
+      [data]="rows()"
+      [loading]="loading()"
+      [error]="error()"
+      [total]="total()"
+      [pageIndex]="tableState.snapshot.page"
+      [pageSize]="tableState.snapshot.size"
+      [sortField]="tableState.snapshot.sortField"
+      [sortOrder]="tableState.snapshot.sortOrder"
+      [searchValue]="tableState.snapshot.q"
+      searchPlaceholder="Buscar proveedores por nombre o RUC/NIT"
+      emptyMessage="No hay proveedores activos"
+      (pageChange)="onPageChange($event)"
+      (sortChange)="onSortChange($event)"
+      (searchChange)="onSearchChange($event)"
+      (action)="handleAction($event)"
+    ></app-data-table>
+  </ng-container>
 </nz-card>
+
+<ng-template #blockedState>
+  <nz-empty nzNotFoundContent="No tienes licencia para el módulo de proveedores."></nz-empty>
+  <button nz-button nzType="default" (click)="goBack()">Volver al inicio</button>
+</ng-template>
+
+<ng-template #actionsTpl>
+  <button nz-button nzType="primary" (click)="openCreate()" [disabled]="!moduleAccess.hasModule('PROVIDER')">
+    Nuevo proveedor
+  </button>
+</ng-template>
+
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  [nzTitle]="editingId() ? 'Editar proveedor' : 'Nuevo proveedor'"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+  [nzOkLoading]="loading()"
+>
+  <form [formGroup]="form" class="provider-form">
+    <label>Nombre</label>
+    <input nz-input formControlName="name" />
+
+    <label>RUC/NIT</label>
+    <input nz-input formControlName="taxId" />
+
+    <label>Email</label>
+    <input nz-input formControlName="email" />
+
+    <label>Teléfono</label>
+    <input nz-input formControlName="phone" />
+  </form>
+</nz-modal>

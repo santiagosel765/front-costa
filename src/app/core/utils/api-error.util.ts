@@ -13,6 +13,7 @@ interface ErrorBody {
 const FALLBACK_ERROR = 'Ocurrió un error inesperado. Inténtalo de nuevo.';
 
 const MODULE_PLAN_ERROR_HINTS = [
+  'MODULE_NOT_LICENSED',
   'MODULE_DISABLED',
   'MODULE_NOT_AVAILABLE',
   'TENANT_MODULE_DISABLED',
@@ -74,7 +75,7 @@ export function mapHttpErrorMessage(error: HttpErrorResponse): string {
 
   if (error.status === 403) {
     return isModuleUnavailableError(payload)
-      ? 'Módulo no disponible en tu plan.'
+      ? 'Módulo no licenciado para este tenant.'
       : 'No tienes permisos para realizar esta acción.';
   }
 

@@ -9,17 +9,14 @@ import {
 import { Router } from '@angular/router';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
-import { NzMessageService } from 'ng-zorro-antd/message';
 
 import { environment } from '../../../environments/environment';
-import { mapHttpErrorMessage } from '../utils/api-error.util';
 import { SessionStore } from '../state/session.store';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private readonly router = inject(Router);
   private readonly sessionStore = inject(SessionStore);
-  private readonly message = inject(NzMessageService);
   private readonly excludedEndpoints = ['/v1/auth/login'];
   private readonly apiBaseUrl = environment.apiBaseUrl.replace(/\/$/, '');
 
@@ -33,8 +30,8 @@ export class AuthInterceptor implements HttpInterceptor {
 
     return next.handle(requestToSend).pipe(
       catchError((error) => {
-        if (error instanceof HttpErrorResponse) {
-          this.handleHttpError(error, req.url);
+        if (error instanceof HttpErrorResponse && error.status === 401) {
+          this.handleUnauthorized();
         }
 
         return throwError(() => error);
@@ -69,23 +66,6 @@ export class AuthInterceptor implements HttpInterceptor {
         Authorization: `Bearer ${token}`,
       },
     });
-  }
-
-  private handleHttpError(error: HttpErrorResponse, requestUrl: string): void {
-    if (error.status === 401) {
-      this.handleUnauthorized();
-      return;
-    }
-
-    if (![400, 403, 409].includes(error.status)) {
-      return;
-    }
-
-    if (this.shouldSkip(requestUrl)) {
-      return;
-    }
-
-    this.message.error(mapHttpErrorMessage(error));
   }
 
   private handleUnauthorized(): void {
