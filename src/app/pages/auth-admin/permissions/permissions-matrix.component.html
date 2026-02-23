@@ -1,115 +1,68 @@
-<nz-card nzBordered class="section-card">
-  <div class="section-header">
-    <div>
-      <p class="eyebrow">Seguridad</p>
-      <h3 class="section-title">Permisos</h3>
-      <p class="section-subtitle">Asigna módulos disponibles por rol.</p>
-    </div>
-    <button
-      nz-button
-      nzType="primary"
-      (click)="save()"
-      [disabled]="!selectedRoleId() || saving() || !hasChanges() || isLoading()"
-      [nzLoading]="saving()"
-    >
+<div class="auth-page-container">
+  <app-page-header [breadcrumbs]="breadcrumbs" title="Permisos por rol" subtitle="Asigna módulos por rol y guarda únicamente cuando existan cambios.">
+    <button headerActions nz-button nzType="primary" (click)="save()" [disabled]="!selectedRoleId() || saving() || !hasChanges() || isLoading()" [nzLoading]="saving()">
       <span nz-icon nzType="save"></span>
       Guardar cambios
     </button>
-  </div>
+  </app-page-header>
 
-  <div class="filters">
-    <div class="filter-control">
-      <label class="filter-label">Rol</label>
-      <nz-select
-        nzShowSearch
-        nzPlaceHolder="Selecciona un rol"
-        [ngModel]="selectedRoleId()"
-        (ngModelChange)="onRoleChange($event)"
-        [nzLoading]="isLoading()"
-      >
-        <nz-option *ngFor="let role of roles()" [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
-      </nz-select>
+  <nz-card nzBordered>
+    <div class="filters">
+      <div class="filter-control">
+        <label class="filter-label">Rol</label>
+        <nz-select nzShowSearch nzPlaceHolder="Selecciona un rol" [ngModel]="selectedRoleId()" (ngModelChange)="onRoleChange($event)" [nzLoading]="isLoading()">
+          <nz-option *ngFor="let role of roles()" [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
+        </nz-select>
+      </div>
+      <p class="dirty-text" *ngIf="!hasChanges()">Sin cambios pendientes.</p>
+      <p class="dirty-text is-dirty" *ngIf="hasChanges()">Tienes cambios sin guardar.</p>
     </div>
-  </div>
 
-  <ng-container *ngIf="selectedRoleId(); else emptyState">
-    <div class="dual-list" [class.is-loading]="isLoading()">
-      <div class="list-column">
-        <div class="list-header">
-          <div>
-            <p class="eyebrow">Módulos</p>
-            <h4>No asignados</h4>
+    <ng-container *ngIf="selectedRoleId(); else emptyState">
+      <div class="dual-list" [class.is-loading]="isLoading()">
+        <div class="list-column">
+          <div class="list-header">
+            <h4>No asignados ({{ filteredAvailableModules().length }}/{{ availableModules().length }})</h4>
+            <nz-spin *ngIf="isLoading()" nzSimple></nz-spin>
           </div>
-          <nz-spin *ngIf="isLoading()" nzSimple></nz-spin>
-        </div>
-        <div class="list-body">
-          <label class="list-item" *ngFor="let module of availableModules()">
-            <label
-              nz-checkbox
-              [ngModel]="availableSelection().has(module.id)"
-              (ngModelChange)="toggleSelection('available', module.id, $event)"
-            >
-              {{ module.name }}
+          <nz-input-group nzPrefixIcon="search" class="list-search">
+            <input nz-input placeholder="Buscar no asignados" [ngModel]="availableSearch()" (ngModelChange)="availableSearch.set($event)" />
+          </nz-input-group>
+          <div class="list-body">
+            <label class="list-item" *ngFor="let module of filteredAvailableModules()">
+              <label nz-checkbox [ngModel]="availableSelection().has(module.id)" (ngModelChange)="toggleSelection('available', module.id, $event)">{{ module.name }}</label>
+              <p class="description">{{ module.description }}</p>
             </label>
-            <p class="description">{{ module.description }}</p>
-          </label>
-          <p class="empty" *ngIf="!availableModules().length">No hay módulos sin asignar.</p>
-        </div>
-      </div>
-
-      <div class="actions-column">
-        <button
-          nz-button
-          nzType="default"
-          (click)="moveToAssigned()"
-          [disabled]="!availableSelection().size || isLoading()"
-        >
-          Asignar →
-        </button>
-        <button
-          nz-button
-          nzType="default"
-          (click)="moveToAvailable()"
-          [disabled]="!assignedSelection().size || isLoading()"
-        >
-          ← Quitar
-        </button>
-        <button nz-button nzType="link" (click)="assignAll()" [disabled]="!modules().length || isLoading()">
-          Elegir todos
-        </button>
-        <button nz-button nzType="link" (click)="clearAll()" [disabled]="!currentAssigned().length || isLoading()">
-          Limpiar
-        </button>
-      </div>
-
-      <div class="list-column">
-        <div class="list-header">
-          <div>
-            <p class="eyebrow">Módulos</p>
-            <h4>Asignados</h4>
+            <p class="empty" *ngIf="!filteredAvailableModules().length">No hay módulos sin asignar con ese filtro.</p>
           </div>
-          <nz-spin *ngIf="isLoading()" nzSimple></nz-spin>
         </div>
-        <div class="list-body">
-          <label class="list-item" *ngFor="let module of assignedModules()">
-            <label
-              nz-checkbox
-              [ngModel]="assignedSelection().has(module.id)"
-              (ngModelChange)="toggleSelection('assigned', module.id, $event)"
-            >
-              {{ module.name }}
+
+        <div class="actions-column">
+          <button nz-button nzType="default" (click)="moveToAssigned()" [disabled]="!availableSelection().size || isLoading()">Asignar →</button>
+          <button nz-button nzType="default" (click)="moveToAvailable()" [disabled]="!assignedSelection().size || isLoading()">← Quitar</button>
+        </div>
+
+        <div class="list-column">
+          <div class="list-header">
+            <h4>Asignados ({{ filteredAssignedModules().length }}/{{ assignedModules().length }})</h4>
+            <nz-spin *ngIf="isLoading()" nzSimple></nz-spin>
+          </div>
+          <nz-input-group nzPrefixIcon="search" class="list-search">
+            <input nz-input placeholder="Buscar asignados" [ngModel]="assignedSearch()" (ngModelChange)="assignedSearch.set($event)" />
+          </nz-input-group>
+          <div class="list-body">
+            <label class="list-item" *ngFor="let module of filteredAssignedModules()">
+              <label nz-checkbox [ngModel]="assignedSelection().has(module.id)" (ngModelChange)="toggleSelection('assigned', module.id, $event)">{{ module.name }}</label>
+              <p class="description">{{ module.description }}</p>
             </label>
-            <p class="description">{{ module.description }}</p>
-          </label>
-          <p class="empty" *ngIf="!assignedModules().length">Aún no hay módulos asignados.</p>
+            <p class="empty" *ngIf="!filteredAssignedModules().length">No hay módulos asignados con ese filtro.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </ng-container>
+    </ng-container>
 
-  <ng-template #emptyState>
-    <div class="empty-state">
-      <p>Selecciona un rol para configurar sus módulos.</p>
-    </div>
-  </ng-template>
-</nz-card>
+    <ng-template #emptyState>
+      <div class="empty-state"><p>Selecciona un rol para configurar sus módulos.</p></div>
+    </ng-template>
+  </nz-card>
+</div>

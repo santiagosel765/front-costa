@@ -162,7 +162,12 @@ export class SessionStore {
   private getActiveModulesFromState(state: SessionState): AuthContextModule[] {
     const now = Date.now();
     return (state.modules ?? []).filter((module) => {
-      if (!module?.enabled) {
+      const statusValue = module?.statusId ?? module?.statusCode;
+      const isStatusEnabled = statusValue === undefined || statusValue === null
+        ? true
+        : String(statusValue).toUpperCase() === '1' || String(statusValue).toUpperCase() === 'ACTIVE';
+
+      if (!module?.enabled || !isStatusEnabled) {
         return false;
       }
 

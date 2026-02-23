@@ -13,6 +13,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { AuthRoleSummary } from '../../../core/models/auth-admin.models';
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   standalone: true,
@@ -29,6 +30,7 @@ import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin
     NzIconModule,
     NzInputModule,
     NzPopconfirmModule,
+    PageHeaderComponent,
   ],
 })
 export class RolesListComponent implements OnInit {
@@ -41,6 +43,10 @@ export class RolesListComponent implements OnInit {
   readonly loading = signal(false);
 
   searchTerm = '';
+  readonly breadcrumbs = [
+    { label: 'Core de Autenticación', link: '/main/auth' },
+    { label: 'Roles' },
+  ];
 
   ngOnInit(): void {
     this.reload();

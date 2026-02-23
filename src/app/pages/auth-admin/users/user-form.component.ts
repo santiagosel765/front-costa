@@ -1,166 +1,25 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzAlertModule } from 'ng-zorro-antd/alert';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 
 import { AuthRoleSummary, AuthUserUpsertPayload } from '../../../core/models/auth-admin.models';
 import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
 import { SessionStore } from '../../../core/state/session.store';
+import { FormShellComponent } from '../../../shared/components/form-shell/form-shell.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   standalone: true,
   selector: 'app-user-form',
-  template: `
-    <div class="auth-form-page">
-      <nz-page-header
-        nzTitle="{{ isEdit() ? 'Editar usuario' : 'Nuevo usuario' }}"
-        nzSubtitle="Gestiona la cuenta, el estado y los roles asignados."
-      ></nz-page-header>
-
-      <nz-alert
-        *ngIf="!canWrite"
-        nzType="warning"
-        nzShowIcon
-        nzMessage="Tu plan/rol no permite editar usuarios"
-        nzDescription="Puedes ver el detalle, pero no guardar cambios."
-        class="permission-alert"
-      ></nz-alert>
-
-      <div class="auth-edit-wrapper">
-        <nz-card nzTitle="Datos del usuario" nzBordered="true">
-          <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
-            <div nz-row nzGutter="16" class="auth-edit-grid">
-              <div nz-col nzXs="24" nzSm="12">
-                <nz-form-item>
-                  <nz-form-label nzRequired nzFor="username">Usuario</nz-form-label>
-                  <nz-form-control nzErrorTip="Ingresa un usuario válido">
-                    <input id="username" nz-input formControlName="username" />
-                  </nz-form-control>
-                </nz-form-item>
-              </div>
-
-              <div nz-col nzXs="24" nzSm="12">
-                <nz-form-item>
-                  <nz-form-label nzRequired nzFor="email">Email</nz-form-label>
-                  <nz-form-control nzErrorTip="Email inválido">
-                    <input id="email" nz-input formControlName="email" type="email" />
-                  </nz-form-control>
-                </nz-form-item>
-              </div>
-
-              <div nz-col nzXs="24" nzSm="12">
-                <nz-form-item>
-                  <nz-form-label nzRequired nzFor="fullName">Nombre completo</nz-form-label>
-                  <nz-form-control nzErrorTip="Requerido">
-                    <input id="fullName" nz-input formControlName="fullName" />
-                  </nz-form-control>
-                </nz-form-item>
-              </div>
-
-              <div nz-col nzXs="24" nzSm="12">
-                <nz-form-item>
-                  <nz-form-label nzFor="status" nzRequired>Estado</nz-form-label>
-                  <nz-form-control>
-                    <nz-select id="status" formControlName="status" nzPlaceHolder="Selecciona un estado">
-                      <nz-option [nzValue]="1" nzLabel="Activo"></nz-option>
-                      <nz-option [nzValue]="0" nzLabel="Inactivo"></nz-option>
-                    </nz-select>
-                  </nz-form-control>
-                </nz-form-item>
-              </div>
-
-              <div nz-col nzXs="24" nzSm="12" *ngIf="!isEdit()">
-                <nz-form-item>
-                  <nz-form-label nzFor="password" nzRequired>Contraseña</nz-form-label>
-                  <nz-form-control nzErrorTip="Ingresa una contraseña">
-                    <input id="password" nz-input type="password" formControlName="password" />
-                  </nz-form-control>
-                </nz-form-item>
-              </div>
-
-              <div nz-col nzXs="24" nzSm="24">
-                <nz-form-item>
-                  <nz-form-label nzFor="roleIds">Roles</nz-form-label>
-                  <nz-form-control>
-                    <nz-select
-                      id="roleIds"
-                      formControlName="roleIds"
-                      nzMode="multiple"
-                      nzPlaceHolder="Selecciona los roles para este usuario"
-                      [nzLoading]="loadingRoles()"
-                    >
-                      <nz-option *ngFor="let role of roles()" [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
-                    </nz-select>
-                    <div class="hint" *ngIf="!roles().length && !loadingRoles()">No hay roles disponibles.</div>
-                  </nz-form-control>
-                </nz-form-item>
-              </div>
-            </div>
-
-            <div class="auth-edit-actions">
-              <button nz-button nzType="default" type="button" (click)="cancel()">Cancelar</button>
-              <button nz-button nzType="primary" [disabled]="form.invalid || !canWrite" [nzLoading]="saving()" type="submit">
-                {{ isEdit() ? 'Guardar cambios' : 'Crear usuario' }}
-              </button>
-            </div>
-          </form>
-        </nz-card>
-      </div>
-    </div>
-  `,
-  styles: [
-    `
-      :host ::ng-deep .ant-page-header {
-        padding-left: 0;
-        padding-right: 0;
-        margin-bottom: 8px;
-      }
-      .auth-form-page {
-        max-width: 980px;
-        margin: 0 auto;
-      }
-      .permission-alert {
-        margin-bottom: 12px;
-      }
-      .auth-edit-wrapper {
-        padding: 0 0 24px;
-      }
-      .auth-edit-grid {
-        margin-top: 8px;
-      }
-      .auth-edit-actions {
-        position: sticky;
-        bottom: 0;
-        background: #fff;
-        margin-top: 16px;
-        padding-top: 12px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-      }
-      .hint {
-        color: #6b7280;
-        margin-top: 6px;
-      }
-      @media (max-width: 767px) {
-        .auth-edit-actions {
-          justify-content: stretch;
-          display: grid;
-          grid-template-columns: 1fr;
-        }
-      }
-    `,
-  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -168,11 +27,13 @@ import { SessionStore } from '../../../core/state/session.store';
     NzInputModule,
     NzButtonModule,
     NzSelectModule,
-    NzCardModule,
-    NzPageHeaderModule,
     NzGridModule,
     NzAlertModule,
+    PageHeaderComponent,
+    FormShellComponent,
   ],
+  templateUrl: './user-form.component.html',
+  styleUrl: './user-form.component.css',
 })
 export class UserFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -188,30 +49,41 @@ export class UserFormComponent implements OnInit {
   readonly roles = signal<AuthRoleSummary[]>([]);
   readonly loadingRoles = signal(false);
   readonly canWrite = this.sessionStore.canWrite('CORE_DE_AUTENTICACION');
+  readonly showChangePassword = signal(false);
+  readonly apiError = signal<string | null>(null);
 
-  readonly form = this.fb.nonNullable.group({
-    id: this.fb.control<string | null>(null),
-    username: ['', [Validators.required]],
-    email: ['', [Validators.required, Validators.email]],
-    fullName: ['', [Validators.required]],
-    password: ['', []],
-    status: this.fb.control<number>(1),
-    roleIds: this.fb.control<string[]>([]),
-  });
+  readonly form = this.fb.nonNullable.group(
+    {
+      id: this.fb.control<string | null>(null),
+      username: ['', [Validators.required, Validators.minLength(3)]],
+      email: ['', [Validators.required, Validators.email]],
+      fullName: ['', [Validators.required]],
+      password: ['', [Validators.minLength(8)]],
+      confirmPassword: ['', []],
+      status: this.fb.control<number>(1),
+      roleIds: this.fb.control<string[]>([]),
+    },
+    { validators: [passwordsMatchValidator] },
+  );
+
+  get breadcrumbs() {
+    return [
+      { label: 'Core de Autenticación', link: '/main/auth' },
+      { label: 'Usuarios', link: '/main/auth?tab=users' },
+      { label: this.isEdit() ? 'Editar' : 'Nuevo' },
+    ];
+  }
 
   ngOnInit(): void {
     this.loadRoles();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit.set(true);
-      this.form.get('password')?.clearValidators();
-      this.form.get('password')?.updateValueAndValidity();
-      this.service.get(id).subscribe((user) => {
-        this.form.patchValue({ ...user, password: '', roleIds: user.roleIds ?? [] });
-      });
+      this.service.get(id).subscribe((user) => this.form.patchValue({ ...user, status: Number(user.statusId ?? user.statusCode ?? user.status ?? 1), password: '', confirmPassword: '', roleIds: user.roleIds ?? [] }));
     } else {
-      this.form.get('password')?.setValidators([Validators.required]);
-      this.form.get('password')?.updateValueAndValidity();
+      this.form.controls.password.addValidators([Validators.required]);
+      this.form.controls.confirmPassword.addValidators([Validators.required]);
+      this.form.updateValueAndValidity();
     }
 
     if (!this.canWrite) {
@@ -228,7 +100,15 @@ export class UserFormComponent implements OnInit {
     });
   }
 
+  enablePasswordChange(): void {
+    this.showChangePassword.set(true);
+    this.form.controls.password.addValidators([Validators.required]);
+    this.form.controls.confirmPassword.addValidators([Validators.required]);
+    this.form.updateValueAndValidity();
+  }
+
   submit(): void {
+    this.apiError.set(null);
     if (!this.canWrite) {
       this.message.info('Tu plan/rol no permite editar usuarios');
       return;
@@ -239,7 +119,7 @@ export class UserFormComponent implements OnInit {
       return;
     }
 
-    const { id, password, ...rest } = this.form.getRawValue();
+    const { id, password, confirmPassword, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
     const payload: AuthUserUpsertPayload = {
@@ -247,7 +127,8 @@ export class UserFormComponent implements OnInit {
       status: rest.status ?? 1,
       roleIds: rest.roleIds ?? [],
     };
-    if (!this.isEdit() && password) {
+
+    if ((!this.isEdit() || this.showChangePassword()) && password) {
       payload.password = password;
     }
 
@@ -258,7 +139,10 @@ export class UserFormComponent implements OnInit {
         this.message.success('Usuario guardado');
         this.router.navigate(['/main/auth'], { queryParams: { tab: 'users' } });
       },
-      error: () => this.message.error('No se pudo guardar el usuario'),
+      error: () => {
+        this.apiError.set('No se pudo guardar el usuario. Verifica los datos e intenta nuevamente.');
+        this.message.error('No se pudo guardar el usuario');
+      },
       complete: () => this.saving.set(false),
     });
   }
@@ -266,4 +150,14 @@ export class UserFormComponent implements OnInit {
   cancel(): void {
     this.router.navigate(['/main/auth'], { queryParams: { tab: 'users' } });
   }
+}
+
+function passwordsMatchValidator(control: AbstractControl): ValidationErrors | null {
+  const password = control.get('password')?.value;
+  const confirmPassword = control.get('confirmPassword')?.value;
+  if (!password && !confirmPassword) {
+    return null;
+  }
+
+  return password === confirmPassword ? null : { passwordMismatch: true };
 }

@@ -4,6 +4,8 @@ export interface AuthContextUser {
   fullName?: string;
   email?: string;
   status?: string | number;
+  statusCode?: string | number;
+  statusLabel?: string;
   statusKey?: string;
   statusId?: string | number;
 }
@@ -18,6 +20,9 @@ export interface AuthContextModule {
   key: string;
   label?: string | null;
   enabled: boolean;
+  statusCode?: string | number;
+  statusId?: string | number;
+  statusLabel?: string;
   expiresAt?: string | null;
   baseRoute?: string | null;
   icon?: string | null;
@@ -43,8 +48,8 @@ export type AuthContextPermissions = Record<string, string[]>;
 const KNOWN_STATUS_KEYS = new Set(['ACTIVE', 'INACTIVE', 'BLOCKED', 'PENDING', 'SUSPENDED']);
 
 export function normalizeAuthContextUser(user: AuthContextUser): AuthContextUser {
-  const statusId = user.statusId ?? user.status;
-  const statusKey = resolveStatusKey(user.statusKey ?? user.status);
+  const statusId = user.statusId ?? user.statusCode ?? user.status;
+  const statusKey = resolveStatusKey(user.statusKey ?? user.statusCode ?? user.status);
 
   return {
     ...user,

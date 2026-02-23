@@ -2,95 +2,24 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { NzFormModule } from 'ng-zorro-antd/form';
-import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzPageHeaderModule } from 'ng-zorro-antd/page-header';
-import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 
-import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
 import { AuthRoleUpsertPayload } from '../../../core/models/auth-admin.models';
+import { RolesAdminService } from '../../../core/services/auth-admin/roles-admin.service';
+import { FormShellComponent } from '../../../shared/components/form-shell/form-shell.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   standalone: true,
   selector: 'app-role-form',
-  template: `
-    <nz-page-header
-      nzTitle="{{ isEdit() ? 'Editar rol' : 'Crear rol' }}"
-      nzSubtitle="Define el nombre, descripción y estado del rol."
-    ></nz-page-header>
-
-    <div class="auth-edit-wrapper">
-      <nz-card nzTitle="Información del rol" nzBordered="false">
-        <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
-          <div nz-row nzGutter="16" class="auth-edit-grid">
-            <div nz-col nzXs="24" nzSm="12">
-              <nz-form-item>
-                <nz-form-label nzRequired nzFor="name">Nombre</nz-form-label>
-                <nz-form-control nzErrorTip="Requerido">
-                  <input id="name" nz-input formControlName="name" />
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-
-            <div nz-col nzXs="24" nzSm="12">
-              <nz-form-item>
-                <nz-form-label nzFor="status" nzRequired>Estado</nz-form-label>
-                <nz-form-control>
-                  <nz-select id="status" formControlName="status" nzPlaceHolder="Selecciona un estado">
-                    <nz-option [nzValue]="1" nzLabel="Activo"></nz-option>
-                    <nz-option [nzValue]="0" nzLabel="Inactivo"></nz-option>
-                  </nz-select>
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-
-            <div nz-col nzXs="24">
-              <nz-form-item>
-                <nz-form-label nzFor="description">Descripción</nz-form-label>
-                <nz-form-control>
-                  <input id="description" nz-input formControlName="description" />
-                </nz-form-control>
-              </nz-form-item>
-            </div>
-          </div>
-
-          <div class="auth-edit-actions">
-            <button nz-button nzType="default" (click)="cancel()" type="button">Cancelar</button>
-            <button nz-button nzType="primary" [disabled]="form.invalid" [nzLoading]="saving()" type="submit">
-              {{ isEdit() ? 'Guardar cambios' : 'Crear rol' }}
-            </button>
-          </div>
-        </form>
-      </nz-card>
-    </div>
-  `,
-  styles: [
-    `
-      :host ::ng-deep .ant-page-header { padding-left: 0; padding-right: 0; margin-bottom: 12px; }
-      .auth-edit-wrapper { padding: 16px 24px 24px; }
-      .auth-edit-grid { margin-top: 8px; }
-      .auth-edit-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 8px; }
-      @media (max-width: 767px) {
-        .auth-edit-wrapper { padding: 12px 12px 24px; }
-        .auth-edit-actions { justify-content: flex-start; }
-      }
-    `,
-  ],
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    NzFormModule,
-    NzInputModule,
-    NzButtonModule,
-    NzPageHeaderModule,
-    NzCardModule,
-    NzGridModule,
-    NzSelectModule,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, NzFormModule, NzInputModule, NzButtonModule, NzGridModule, NzSelectModule, PageHeaderComponent, FormShellComponent],
+  templateUrl: './role-form.component.html',
+  styleUrl: './role-form.component.css',
 })
 export class RoleFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
@@ -109,11 +38,19 @@ export class RoleFormComponent implements OnInit {
     status: this.fb.control<number>(1),
   });
 
+  get breadcrumbs() {
+    return [
+      { label: 'Core de Autenticación', link: '/main/auth' },
+      { label: 'Roles', link: '/main/auth?tab=roles' },
+      { label: this.isEdit() ? 'Editar' : 'Nuevo' },
+    ];
+  }
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.isEdit.set(true);
-      this.service.get(id).subscribe((role) => this.form.patchValue(role));
+      this.service.get(id).subscribe((role) => this.form.patchValue({ ...role, status: Number(role.statusId ?? role.statusCode ?? role.status ?? 1) }));
     }
   }
 
@@ -126,10 +63,7 @@ export class RoleFormComponent implements OnInit {
     const { id, ...rest } = this.form.getRawValue();
     this.saving.set(true);
 
-    const payload: AuthRoleUpsertPayload = {
-      ...rest,
-      status: rest.status ?? 1,
-    };
+    const payload: AuthRoleUpsertPayload = { ...rest, status: rest.status ?? 1 };
     const request$ = this.isEdit() && id ? this.service.update(id, payload) : this.service.create(payload);
 
     request$.subscribe({

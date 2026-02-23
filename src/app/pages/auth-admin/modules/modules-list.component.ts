@@ -14,6 +14,7 @@ import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { AuthModuleSummary } from '../../../core/models/auth-admin.models';
 import { ModulesAdminService } from '../../../core/services/auth-admin/modules-admin.service';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   standalone: true,
@@ -31,6 +32,7 @@ import { ModulesAdminService } from '../../../core/services/auth-admin/modules-a
     NzInputModule,
     NzSelectModule,
     NzPopconfirmModule,
+    PageHeaderComponent,
   ],
 })
 export class ModulesListComponent implements OnInit {
@@ -44,6 +46,10 @@ export class ModulesListComponent implements OnInit {
 
   searchTerm = '';
   statusFilter: 'all' | 'active' | 'inactive' = 'all';
+  readonly breadcrumbs = [
+    { label: 'Core de Autenticación', link: '/main/auth' },
+    { label: 'Módulos' },
+  ];
 
   ngOnInit(): void {
     this.reload();

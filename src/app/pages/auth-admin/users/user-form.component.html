@@ -1,0 +1,78 @@
+<div class="auth-page-container">
+  <app-page-header
+    [breadcrumbs]="breadcrumbs"
+    [title]="isEdit() ? 'Editar usuario' : 'Nuevo usuario'"
+    subtitle="Completa los datos principales y los roles para esta cuenta."
+    backLink="/main/auth"
+    backLabel="Volver al listado"
+  ></app-page-header>
+
+  <nz-alert *ngIf="apiError()" nzType="error" nzShowIcon [nzMessage]="apiError()!" class="api-alert"></nz-alert>
+  <nz-alert
+    *ngIf="!canWrite"
+    nzType="warning"
+    nzShowIcon
+    nzMessage="Tu plan/rol no permite editar usuarios"
+    nzDescription="Puedes ver el detalle, pero no guardar cambios."
+    class="api-alert"
+  ></nz-alert>
+
+  <app-form-shell
+    title="Datos del usuario"
+    [helperText]="form.invalid ? 'Completa los campos requeridos para crear o actualizar el usuario.' : ''"
+  >
+    <form nz-form nzLayout="vertical" [formGroup]="form" (ngSubmit)="submit()">
+      <div nz-row nzGutter="16">
+        <div nz-col nzXs="24" nzSm="12">
+          <nz-form-item><nz-form-label nzRequired nzFor="username">Usuario</nz-form-label><nz-form-control nzErrorTip="Mínimo 3 caracteres"><input id="username" nz-input formControlName="username" /></nz-form-control></nz-form-item>
+        </div>
+        <div nz-col nzXs="24" nzSm="12">
+          <nz-form-item><nz-form-label nzRequired nzFor="email">Email</nz-form-label><nz-form-control nzErrorTip="Email inválido"><input id="email" nz-input formControlName="email" type="email" /></nz-form-control></nz-form-item>
+        </div>
+        <div nz-col nzXs="24" nzSm="12">
+          <nz-form-item><nz-form-label nzRequired nzFor="fullName">Nombre completo</nz-form-label><nz-form-control nzErrorTip="Requerido"><input id="fullName" nz-input formControlName="fullName" /></nz-form-control></nz-form-item>
+        </div>
+        <div nz-col nzXs="24" nzSm="12">
+          <nz-form-item>
+            <nz-form-label nzRequired nzFor="status">Estado</nz-form-label>
+            <nz-form-control>
+              <nz-select id="status" formControlName="status" nzPlaceHolder="Selecciona un estado">
+                <nz-option [nzValue]="1" nzLabel="Activo"></nz-option>
+                <nz-option [nzValue]="0" nzLabel="Inactivo"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <ng-container *ngIf="!isEdit() || showChangePassword()">
+          <div nz-col nzXs="24" nzSm="12">
+            <nz-form-item><nz-form-label nzRequired nzFor="password">Contraseña</nz-form-label><nz-form-control nzErrorTip="Mínimo 8 caracteres"><input id="password" nz-input type="password" formControlName="password" /></nz-form-control></nz-form-item>
+          </div>
+          <div nz-col nzXs="24" nzSm="12">
+            <nz-form-item><nz-form-label nzRequired nzFor="confirmPassword">Confirmar contraseña</nz-form-label><nz-form-control nzErrorTip="Las contraseñas no coinciden"><input id="confirmPassword" nz-input type="password" formControlName="confirmPassword" /></nz-form-control></nz-form-item>
+          </div>
+        </ng-container>
+
+        <div nz-col nzXs="24" *ngIf="isEdit() && !showChangePassword()">
+          <button nz-button nzType="default" type="button" (click)="enablePasswordChange()">Cambiar contraseña</button>
+        </div>
+
+        <div nz-col nzXs="24">
+          <nz-form-item>
+            <nz-form-label nzFor="roleIds">Roles</nz-form-label>
+            <nz-form-control>
+              <nz-select id="roleIds" formControlName="roleIds" nzMode="multiple" nzPlaceHolder="Selecciona los roles para este usuario" [nzLoading]="loadingRoles()">
+                <nz-option *ngFor="let role of roles()" [nzValue]="role.id" [nzLabel]="role.name"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <div formActions class="action-row">
+        <button nz-button nzType="default" type="button" (click)="cancel()">Cancelar</button>
+        <button nz-button nzType="primary" [disabled]="form.invalid || !canWrite" [nzLoading]="saving()" type="submit">{{ isEdit() ? 'Guardar cambios' : 'Crear usuario' }}</button>
+      </div>
+    </form>
+  </app-form-shell>
+</div>

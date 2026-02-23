@@ -1,0 +1,38 @@
+.page-header-shell {
+  margin-bottom: 24px;
+}
+
+.page-breadcrumbs {
+  margin-bottom: 8px;
+}
+
+.header-main-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.page-subtitle {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 15px;
+}
+
+.page-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .header-main-row {
+    flex-direction: column;
+  }
+}

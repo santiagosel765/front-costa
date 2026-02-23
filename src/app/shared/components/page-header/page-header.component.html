@@ -1,0 +1,25 @@
+<div class="page-header-shell">
+  <nz-breadcrumb *ngIf="breadcrumbs.length" class="page-breadcrumbs">
+    <nz-breadcrumb-item *ngFor="let breadcrumb of breadcrumbs; let isLast = last">
+      <ng-container *ngIf="breadcrumb.link && !isLast; else plainItem">
+        <a [routerLink]="breadcrumb.link">{{ breadcrumb.label }}</a>
+      </ng-container>
+      <ng-template #plainItem>{{ breadcrumb.label }}</ng-template>
+    </nz-breadcrumb-item>
+  </nz-breadcrumb>
+
+  <div class="header-main-row">
+    <div>
+      <h1 class="page-title">{{ title }}</h1>
+      <p class="page-subtitle" *ngIf="subtitle">{{ subtitle }}</p>
+    </div>
+
+    <div class="page-header-actions">
+      <button *ngIf="backLink" nz-button nzType="default" [routerLink]="backLink">
+        <span nz-icon nzType="arrow-left"></span>
+        {{ backLabel }}
+      </button>
+      <ng-content select="[headerActions]"></ng-content>
+    </div>
+  </div>
+</div>
