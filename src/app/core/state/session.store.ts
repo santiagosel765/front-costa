@@ -6,10 +6,13 @@ import { map } from 'rxjs/operators';
 import { resolveModulePresentation, normalizeModuleName } from '../constants/module-route-map';
 import {
   AuthContextModule,
+  AuthContextPermissions,
   AuthContextResponse,
   AuthContextToken,
   AuthContextTenant,
   AuthContextUser,
+  normalizeAuthContextPermissions,
+  normalizeAuthContextUser,
 } from '../models/auth-context.models';
 import { isJwtExpired } from '../utils/jwt.util';
 
@@ -20,6 +23,7 @@ interface SessionState {
   tenant: AuthContextTenant | null;
   roles: string[];
   modules: AuthContextModule[];
+  permissions: AuthContextPermissions;
   serverTime: string | null;
 }
 
@@ -32,6 +36,7 @@ const INITIAL_STATE: SessionState = {
   tenant: null,
   roles: [],
   modules: [],
+  permissions: {},
   serverTime: null,
 };
 
@@ -61,11 +66,37 @@ export class SessionStore {
     this.updateState({
       accessToken: context.token?.accessToken ?? this.snapshot.accessToken,
       expiresAt: context.token?.expiresAt ?? this.snapshot.expiresAt,
-      user: context.user,
+      user: normalizeAuthContextUser(context.user),
       tenant: context.tenant,
       roles: context.roles ?? [],
       modules: context.modules ?? [],
+      permissions: normalizeAuthContextPermissions(context.permissions),
       serverTime: context.serverTime ?? null,
+    });
+  }
+
+  hasPermission(moduleKey: string, perm: string): boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
+
+    const normalizedModuleKey = normalizeModuleName(moduleKey) ?? moduleKey;
+    const permissions = this.snapshot.permissions[normalizedModuleKey] ?? [];
+    return permissions.includes(perm.toLowerCase());
+  }
+
+  canWrite(moduleKey: string): boolean {
+    return this.hasPermission(moduleKey, 'write');
+  }
+
+  canRead(moduleKey: string): boolean {
+    return this.hasPermission(moduleKey, 'read') || this.canWrite(moduleKey);
+  }
+
+  isAdmin(): boolean {
+    return this.snapshot.roles.some((role) => {
+      const normalizedRole = role.trim().toUpperCase();
+      return normalizedRole.includes('ADMIN');
     });
   }
 
@@ -173,6 +204,8 @@ export class SessionStore {
       return {
         ...INITIAL_STATE,
         ...parsed,
+        user: parsed.user ? normalizeAuthContextUser(parsed.user) : null,
+        permissions: normalizeAuthContextPermissions(parsed.permissions),
         accessToken: token ?? parsed.accessToken,
       };
     } catch {

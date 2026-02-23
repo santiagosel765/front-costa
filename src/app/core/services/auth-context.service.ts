@@ -3,7 +3,12 @@ import { Observable, catchError, map, tap } from 'rxjs';
 
 import { ApiService } from './api.service';
 import { normalizeModuleName } from '../constants/module-route-map';
-import { AuthContextModule, AuthContextResponse } from '../models/auth-context.models';
+import {
+  AuthContextModule,
+  AuthContextResponse,
+  normalizeAuthContextPermissions,
+  normalizeAuthContextUser,
+} from '../models/auth-context.models';
 import { ModulesService } from './modules.service';
 import { SessionStore } from '../state/session.store';
 
@@ -15,6 +20,7 @@ export class AuthContextService {
 
   loadContext(): Observable<AuthContextResponse> {
     return this.api.get<AuthContextResponse>('/v1/auth/me/context').pipe(
+      map((context) => this.normalizeContext(context)),
       tap((context) => this.sessionStore.setContext(context)),
       catchError(() => this.loadContextFromLegacyModules()),
     );
@@ -26,7 +32,9 @@ export class AuthContextService {
         const token = this.sessionStore.getToken();
 
         return {
-          user: this.sessionStore.snapshot.user ?? { id: 'unknown', username: 'unknown' },
+          user: normalizeAuthContextUser(
+            this.sessionStore.snapshot.user ?? { id: 'unknown', username: 'unknown', statusKey: 'UNKNOWN' },
+          ),
           tenant: this.sessionStore.snapshot.tenant ?? { tenantId: 'unknown', name: 'unknown' },
           roles: this.sessionStore.snapshot.roles,
           modules: modules.map((module) => ({
@@ -36,6 +44,7 @@ export class AuthContextService {
             baseRoute: null,
             expiresAt: null,
           })) as AuthContextModule[],
+          permissions: {},
           token: {
             accessToken: token ?? '',
             expiresAt: this.sessionStore.snapshot.expiresAt,
@@ -45,5 +54,13 @@ export class AuthContextService {
       }),
       tap((context) => this.sessionStore.setContext(context)),
     );
+  }
+
+  private normalizeContext(context: AuthContextResponse): AuthContextResponse {
+    return {
+      ...context,
+      user: normalizeAuthContextUser(context.user),
+      permissions: normalizeAuthContextPermissions(context.permissions),
+    };
   }
 }

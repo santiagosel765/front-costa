@@ -38,9 +38,7 @@ body {
 }
 
 .ant-menu-dark.ant-menu-dark:not(.ant-menu-horizontal) .ant-menu-item-selected {
-    margin: 0 !important;
-    padding-left: 70px !important;
-    
+    margin: 2px 0 !important;
     transition: all var(--transition-base) !important;
 }
 
