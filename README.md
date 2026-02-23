@@ -80,3 +80,24 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Tablas estandarizadas del ERP (NG-ZORRO)
+
+Las pantallas de **Usuarios**, **Roles** y **Módulos** del Core de Autenticación ahora usan el componente reusable `app-data-table` y estado de tabla persistido en query params (`page`, `size`, `q`, `status`, `sortField`, `sortOrder`).
+
+### Modo actual (client-side)
+
+Se usa `LocalArrayDataSource` (`src/app/shared/table/local-array-data-source.ts`) para:
+- filtrar por búsqueda y estado,
+- ordenar por columna,
+- paginar localmente,
+- devolver `{ items, total }` según `TableState`.
+
+### Cómo migrar a server-side
+
+1. Implementar un datasource `ApiPagedDataSource<T>` que cumpla la interfaz `TableDataSource<T>`.
+2. En `load(state)` llamar endpoints paginados del backend con esta firma sugerida:
+   - `GET /...?...&page=<1-based>&size=<n>&q=<texto>&status=<estado>&sortField=<campo>&sortOrder=<ascend|descend>`
+3. Responder con contrato compatible:
+   - `{ items: T[]; total: number; page: number; size: number }`
+4. Reemplazar `LocalArrayDataSource` por `ApiPagedDataSource` en cada pantalla sin cambiar la UI (`app-data-table`).

@@ -1,0 +1,34 @@
+.app-data-table {
+  display: block;
+}
+
+.table-error {
+  margin-bottom: 12px;
+}
+
+.table-toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.toolbar-search {
+  min-width: 280px;
+  flex: 1;
+}
+
+.toolbar-status {
+  min-width: 180px;
+}
+
+.actions-cell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.table-pagination {
+  margin-top: 16px;
+  text-align: right;
+}
