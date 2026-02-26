@@ -101,3 +101,13 @@ Se usa `LocalArrayDataSource` (`src/app/shared/table/local-array-data-source.ts`
 3. Responder con contrato compatible:
    - `{ items: T[]; total: number; page: number; size: number }`
 4. Reemplazar `LocalArrayDataSource` por `ApiPagedDataSource` en cada pantalla sin cambiar la UI (`app-data-table`).
+
+
+## Nuevas rutas Sprint 1 (Config + Org)
+- `/main/config/currencies`
+- `/main/config/taxes`
+- `/main/config/parameters`
+- `/main/config/payment-methods`
+- `/main/config/document-types`
+- `/main/org/branches`
+- `/main/org/branches/:id/warehouses`
