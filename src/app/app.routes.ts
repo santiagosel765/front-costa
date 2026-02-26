@@ -79,6 +79,21 @@ export const routes: Routes = [
         data: { moduleKey: 'PURCHASE' },
         loadChildren: () => import('./pages/purchase/purchase.routes').then((m) => m.PURCHASE_ROUTES),
       },
+
+      {
+        path: 'config',
+        canActivate: [ModuleGuard],
+        canMatch: [ModuleGuard],
+        data: { moduleKey: 'CONFIG' },
+        loadChildren: () => import('./pages/config/config.routes').then((m) => m.CONFIG_ROUTES),
+      },
+      {
+        path: 'org',
+        canActivate: [ModuleGuard],
+        canMatch: [ModuleGuard],
+        data: { moduleKey: 'ORG' },
+        loadChildren: () => import('./pages/org/org.routes').then((m) => m.ORG_ROUTES),
+      },
       { path: '', redirectTo: 'welcome', pathMatch: 'full' },
     ],
   },

@@ -19,6 +19,10 @@ export const MODULE_ALIAS: Record<string, string> = {
   CATEGORIAS: 'CATEGORY',
   INVENTORIES: 'INVENTORY',
   INVENTARIO: 'INVENTORY',
+  CONFIGURACION: 'CONFIG',
+  CONFIG: 'CONFIG',
+  ORGANIZACION: 'ORG',
+  ORGANIZATION: 'ORG',
 };
 
 export interface ModuleUiManifest {
@@ -36,6 +40,8 @@ export const MODULE_UI_MANIFEST: Record<string, ModuleUiManifest> = {
   PROVIDER: { route: '/main/providers', label: 'Proveedores', icon: 'contacts' },
   QUOTE: { route: '/main/quotes', label: 'Cotizaciones', icon: 'file-search' },
   PURCHASE: { route: '/main/purchases', label: 'Compras', icon: 'shopping-cart' },
+  CONFIG: { route: '/main/config/currencies', label: 'Configuración', icon: 'setting' },
+  ORG: { route: '/main/org/branches', label: 'Organización', icon: 'apartment' },
 };
 
 export function normalizeModuleName(name?: string | null): string | undefined {
