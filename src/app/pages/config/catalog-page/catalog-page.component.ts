@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -12,16 +12,23 @@ import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 
 import { SessionStore } from '../../../core/state/session.store';
+import { CatalogDto, CatalogRecord } from '../../../services/config/config.models';
 import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
 import { AppDataTableColumn, TableState } from '../../../shared/components/app-data-table/app-data-table.models';
 import { TableStateService } from '../../../shared/table/table-state.service';
-import { CatalogDto, CatalogRecord } from '../../../services/config/config.models';
 
 interface CatalogCrudApi {
   list(query: { page: number; size: number; search?: string }): import('rxjs').Observable<{ data: CatalogRecord[]; total: number }>;
   create(dto: CatalogDto): import('rxjs').Observable<CatalogRecord>;
   update(id: string, dto: CatalogDto): import('rxjs').Observable<CatalogRecord>;
   remove(id: string): import('rxjs').Observable<void>;
+}
+
+export interface CatalogFormField {
+  key: string;
+  label: string;
+  type: 'text' | 'number' | 'textarea' | 'switch';
+  required?: boolean;
 }
 
 @Component({
@@ -32,11 +39,19 @@ interface CatalogCrudApi {
   styleUrl: './catalog-page.component.css',
   providers: [TableStateService],
 })
-export class CatalogPageComponent implements OnInit, OnDestroy {
+export class CatalogPageComponent implements OnInit, OnDestroy, OnChanges {
   @Input({ required: true }) title = '';
   @Input({ required: true }) moduleKey = '';
   @Input({ required: true }) api!: CatalogCrudApi;
   @Input() createLabel = 'Nuevo';
+  @Input() fields: CatalogFormField[] | null = null;
+  @Input() columnsOverride?: AppDataTableColumn<CatalogRecord>[];
+
+  private readonly defaultFields: CatalogFormField[] = [
+    { key: 'code', label: 'Código', type: 'text', required: true },
+    { key: 'name', label: 'Nombre', type: 'text', required: true },
+    { key: 'active', label: 'Activo', type: 'switch' },
+  ];
 
   private readonly fb = inject(FormBuilder);
   private readonly message = inject(NzMessageService);
@@ -52,14 +67,11 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
   readonly total = signal(0);
   readonly isModalVisible = signal(false);
   readonly editingId = signal<string | null>(null);
+  readonly resolvedFields = signal<CatalogFormField[]>(this.defaultFields);
 
-  readonly form = this.fb.nonNullable.group({
-    code: ['', [Validators.required]],
-    name: ['', [Validators.required]],
-    active: [true],
-  });
+  form = this.fb.group({});
 
-  readonly columns: AppDataTableColumn<CatalogRecord>[] = [
+  readonly defaultColumns: AppDataTableColumn<CatalogRecord>[] = [
     { key: 'code', title: 'Código', sortable: true },
     { key: 'name', title: 'Nombre', sortable: true },
     {
@@ -72,7 +84,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     {
       key: 'updatedAt',
       title: 'Actualizado',
-      valueGetter: (row) => row.updatedAt ?? row.updated_at ?? '-',
+      valueGetter: (row) => row.updatedAt ?? '-',
     },
     {
       key: 'actions',
@@ -93,9 +105,35 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     },
   ];
 
+  get tableColumns(): AppDataTableColumn<CatalogRecord>[] {
+    if (!this.columnsOverride?.length) {
+      return this.defaultColumns;
+    }
+
+    const hasUpdatedAt = this.columnsOverride.some((column) => column.key === 'updatedAt');
+    const hasActions = this.columnsOverride.some((column) => column.key === 'actions');
+    const extraColumns: AppDataTableColumn<CatalogRecord>[] = [];
+
+    if (!hasUpdatedAt) {
+      extraColumns.push(this.defaultColumns.find((column) => column.key === 'updatedAt')!);
+    }
+    if (!hasActions) {
+      extraColumns.push(this.defaultColumns.find((column) => column.key === 'actions')!);
+    }
+
+    return [...this.columnsOverride, ...extraColumns];
+  }
+
   ngOnInit(): void {
+    this.configureForm();
     this.tableState.init(this.route, { size: 10 });
     this.tableState.state$.pipe(takeUntil(this.destroy$)).subscribe((state) => this.load(state));
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['fields'] && !changes['fields'].firstChange) {
+      this.configureForm();
+    }
   }
 
   ngOnDestroy(): void {
@@ -131,7 +169,7 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ code: '', name: '', active: true });
+    this.form.reset(this.buildDefaultValues());
     this.isModalVisible.set(true);
   }
 
@@ -164,9 +202,36 @@ export class CatalogPageComponent implements OnInit, OnDestroy {
     });
   }
 
+  private configureForm(): void {
+    const selectedFields = this.fields?.length ? this.fields : this.defaultFields;
+    this.resolvedFields.set(selectedFields);
+
+    const controls = selectedFields.reduce<Record<string, unknown>>((acc, field) => {
+      const initialValue = field.type === 'switch' ? true : null;
+      const validators = field.required ? [Validators.required] : [];
+      acc[field.key] = this.fb.control(initialValue, validators);
+      return acc;
+    }, {});
+
+    this.form = this.fb.group(controls);
+    this.form.reset(this.buildDefaultValues());
+  }
+
+  private buildDefaultValues(): Record<string, string | number | boolean | null> {
+    return this.resolvedFields().reduce<Record<string, string | number | boolean | null>>((acc, field) => {
+      acc[field.key] = field.type === 'switch' ? true : null;
+      return acc;
+    }, {});
+  }
+
   private openEdit(row: CatalogRecord): void {
     this.editingId.set(row.id);
-    this.form.reset({ code: row.code ?? '', name: row.name ?? '', active: !!row.active });
+    const values = this.resolvedFields().reduce<Record<string, unknown>>((acc, field) => {
+      acc[field.key] = row[field.key] ?? (field.type === 'switch' ? false : null);
+      return acc;
+    }, {});
+
+    this.form.reset(values);
     this.isModalVisible.set(true);
   }
 

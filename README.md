@@ -111,3 +111,4 @@ Se usa `LocalArrayDataSource` (`src/app/shared/table/local-array-data-source.ts`
 - `/main/config/document-types`
 - `/main/org/branches`
 - `/main/org/branches/:id/warehouses`
+- `/main/org/assignments`

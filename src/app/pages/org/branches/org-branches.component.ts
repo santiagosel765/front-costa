@@ -46,14 +46,18 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
   readonly form = this.fb.nonNullable.group({
     code: ['', [Validators.required]],
     name: ['', [Validators.required]],
+    address: [''],
+    description: [''],
     active: [true],
   });
 
   readonly columns: AppDataTableColumn<CatalogRecord>[] = [
     { key: 'code', title: 'Código' },
     { key: 'name', title: 'Nombre' },
+    { key: 'address', title: 'Dirección' },
+    { key: 'description', title: 'Descripción' },
     { key: 'active', title: 'Activo', cellType: 'tag', tagColor: (r) => (r.active ? 'green' : 'red'), tagText: (r) => (r.active ? 'Sí' : 'No') },
-    { key: 'updatedAt', title: 'Actualizado', valueGetter: (r) => r.updatedAt ?? r.updated_at ?? '-' },
+    { key: 'updatedAt', title: 'Actualizado', valueGetter: (r) => r.updatedAt ?? '-' },
     {
       key: 'actions',
       title: 'Acciones',
@@ -95,7 +99,7 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     }
     if (event.type === 'edit') {
       this.editingId.set(event.row.id);
-      this.form.reset({ code: event.row.code ?? '', name: event.row.name ?? '', active: !!event.row.active });
+      this.form.reset({ code: event.row.code ?? '', name: event.row.name ?? '', address: event.row.address ?? '', description: event.row.description ?? '', active: !!event.row.active });
       this.isModalVisible.set(true);
       return;
     }
@@ -104,11 +108,15 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ code: '', name: '', active: true });
+    this.form.reset({ code: '', name: '', address: '', description: '', active: true });
     this.isModalVisible.set(true);
   }
 
   closeModal(): void { this.isModalVisible.set(false); }
+
+  goAssignments(): void {
+    this.router.navigate(['/main/org/assignments']);
+  }
 
   save(): void {
     if (this.form.invalid) {

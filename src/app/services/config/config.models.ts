@@ -10,12 +10,26 @@ export interface CatalogQuery {
 
 export interface CatalogDto {
   code?: string;
-  name: string;
+  name?: string;
+  description?: string;
   active: boolean;
+  rate?: number;
+  value?: string;
+  address?: string;
+  branchId?: string;
+  [key: string]: string | number | boolean | null | undefined;
 }
 
 export interface CatalogRecord extends CatalogDto {
   id: string;
   updatedAt?: string;
-  updated_at?: string;
+}
+
+export function normalizeCatalogRecord(record: CatalogRecord): CatalogRecord {
+  const legacyUpdatedAt = (record as CatalogRecord & { updated_at?: string }).updated_at;
+
+  return {
+    ...record,
+    updatedAt: record.updatedAt ?? legacyUpdatedAt,
+  };
 }

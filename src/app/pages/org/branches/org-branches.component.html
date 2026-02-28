@@ -16,6 +16,7 @@
 </nz-card>
 
 <ng-template #actionsTpl>
+  <button nz-button nzType="default" (click)="goAssignments()">Asignaciones</button>
   <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Nueva sucursal</button>
 </ng-template>
 
@@ -26,6 +27,12 @@
 
     <label>Nombre</label>
     <input nz-input formControlName="name" />
+
+    <label>Dirección</label>
+    <textarea nz-input formControlName="address" rows="2"></textarea>
+
+    <label>Descripción</label>
+    <textarea nz-input formControlName="description" rows="2"></textarea>
 
     <label>Activo</label>
     <nz-switch formControlName="active"></nz-switch>

@@ -1,6 +1,6 @@
 <nz-card [nzTitle]="title" [nzExtra]="actionsTpl">
   <app-data-table
-    [columns]="columns"
+    [columns]="tableColumns"
     [data]="rows()"
     [loading]="loading()"
     [error]="error()"
@@ -27,13 +27,15 @@
   (nzOnOk)="save()"
 >
   <form [formGroup]="form" class="catalog-form">
-    <label>Código</label>
-    <input nz-input formControlName="code" />
+    <ng-container *ngFor="let field of resolvedFields()">
+      <label>{{ field.label }}</label>
 
-    <label>Nombre</label>
-    <input nz-input formControlName="name" />
-
-    <label>Activo</label>
-    <nz-switch formControlName="active"></nz-switch>
+      <ng-container [ngSwitch]="field.type">
+        <textarea *ngSwitchCase="'textarea'" nz-input [formControlName]="field.key" rows="3"></textarea>
+        <input *ngSwitchCase="'number'" nz-input type="number" [formControlName]="field.key" />
+        <nz-switch *ngSwitchCase="'switch'" [formControlName]="field.key"></nz-switch>
+        <input *ngSwitchDefault nz-input type="text" [formControlName]="field.key" />
+      </ng-container>
+    </ng-container>
   </form>
 </nz-modal>
