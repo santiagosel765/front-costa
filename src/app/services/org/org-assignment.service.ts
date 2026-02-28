@@ -30,8 +30,8 @@ export class OrgAssignmentService {
         params: {
           page: query.page,
           size: query.size,
-          userId: query.userId ?? '',
-          branchId: query.branchId ?? '',
+          ...(query.userId ? { userId: query.userId } : {}),
+          ...(query.branchId ? { branchId: query.branchId } : {}),
         },
       })
       .pipe(

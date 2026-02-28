@@ -13,6 +13,7 @@ import { provideAnimationsAsync } from '@angular/platform-browser/animations/asy
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { AuthInterceptor } from './core/interceptors/auth.interceptor';
+import { BranchHeaderInterceptor } from './core/interceptors/branch-header.interceptor';
 import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 
 registerLocaleData(en);
@@ -29,6 +30,11 @@ export const appConfig: ApplicationConfig = {
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthInterceptor,
+      multi: true,
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: BranchHeaderInterceptor,
       multi: true,
     },
     {

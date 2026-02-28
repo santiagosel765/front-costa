@@ -20,6 +20,16 @@ loadProducts() {
 }
 ```
 
+
+## Sprint 3: selector de sucursal activa
+
+- El header principal ahora carga las sucursales permitidas del usuario con `GET /v1/org/me/branches`.
+- La selección se valida con `GET /v1/org/me/branches/{branchId}/validate` antes de persistir.
+- La sucursal activa se persiste en `localStorage` usando la llave `activeBranchId`.
+- El contexto global está disponible en `BranchContextService` vía `branches$`, `activeBranch$`, `getActiveBranchId()`, `setActiveBranch()` y `clearActiveBranch()`.
+- Se agregó `ActiveBranchGuard` para exigir sucursal activa en rutas operativas de prueba: `/main/inventory` y `/main/purchases`.
+- Se incluyó `BranchHeaderInterceptor` para enviar `X-Branch-Id` cuando existe sucursal activa; por defecto está desactivado con `environment.enableBranchHeader = false`.
+
 ## Development server
 
 To start the Angular development server on its own, run:
