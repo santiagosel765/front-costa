@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 
+import { ActiveBranchGuard } from './core/guards/active-branch.guard';
 import { AuthGuard } from './core/guards/auth.guard';
 import { ModuleGuard } from './core/guards/module.guard';
 import { MainLayoutComponent } from './layout/main-layout.component';
@@ -46,8 +47,8 @@ export const routes: Routes = [
       },
       {
         path: 'inventory',
-        canActivate: [ModuleGuard],
-        canMatch: [ModuleGuard],
+        canActivate: [ModuleGuard, ActiveBranchGuard],
+        canMatch: [ModuleGuard, ActiveBranchGuard],
         data: { moduleKey: 'INVENTORY' },
         loadChildren: () => import('./pages/inventory/inventory.routes').then((m) => m.INVENTORY_ROUTES),
       },
@@ -74,8 +75,8 @@ export const routes: Routes = [
       },
       {
         path: 'purchases',
-        canActivate: [ModuleGuard],
-        canMatch: [ModuleGuard],
+        canActivate: [ModuleGuard, ActiveBranchGuard],
+        canMatch: [ModuleGuard, ActiveBranchGuard],
         data: { moduleKey: 'PURCHASE' },
         loadChildren: () => import('./pages/purchase/purchase.routes').then((m) => m.PURCHASE_ROUTES),
       },
