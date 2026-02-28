@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -100,8 +101,12 @@ export class OrgAssignmentsComponent implements OnInit {
         this.modalVisible.set(false);
         this.loadAssignments();
       },
-      error: () => {
-        this.message.error('No se pudo crear la asignación');
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 409) {
+          this.message.warning('La asignación ya existe para ese usuario y sucursal');
+        } else {
+          this.message.error('No se pudo crear la asignación');
+        }
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),
