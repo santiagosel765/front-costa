@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -150,8 +151,39 @@ export class PermissionsMatrixComponent implements OnInit {
         this.originalAssigned.set([...updatedIds]);
         this.message.success('Permisos actualizados correctamente');
       },
-      error: () => this.message.error('Error al guardar permisos'),
+      error: (error: HttpErrorResponse) => this.message.error(this.resolveSaveErrorMessage(error)),
     });
+  }
+
+  private resolveSaveErrorMessage(error: HttpErrorResponse): string {
+    const backendMessage = this.extractBackendMessage(error);
+    if (backendMessage) return backendMessage;
+
+    switch (error.status) {
+      case 409:
+        return 'Conflicto: módulo no pertenece al tenant o ya existe';
+      case 404:
+        return 'Rol no encontrado';
+      case 400:
+        return 'Solicitud inválida';
+      default:
+        return 'Error al guardar permisos';
+    }
+  }
+
+  private extractBackendMessage(error: HttpErrorResponse): string | null {
+    const value = error?.error;
+    if (!value) return null;
+    if (typeof value === 'string') return value.trim() || null;
+
+    if (typeof value === 'object' && 'message' in value) {
+      const message = value.message;
+      if (typeof message === 'string' && message.trim()) {
+        return message.trim();
+      }
+    }
+
+    return null;
   }
 
   private filterBySearch(items: AuthModuleSummary[], term: string): AuthModuleSummary[] {
