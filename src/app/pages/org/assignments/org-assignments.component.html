@@ -1,0 +1,69 @@
+<nz-card nzTitle="Asignaciones Usuario ↔ Sucursal" [nzExtra]="actionsTpl">
+  <div class="filters" [formGroup]="filtersForm">
+    <nz-radio-group [ngModel]="filterMode()" (ngModelChange)="setMode($event)">
+      <label nz-radio nzValue="user">Por usuario</label>
+      <label nz-radio nzValue="branch">Por sucursal</label>
+    </nz-radio-group>
+
+    <ng-container *ngIf="filterMode() === 'user'; else branchFilter">
+      <input nz-input placeholder="User ID (UUID)" formControlName="userId" />
+    </ng-container>
+
+    <ng-template #branchFilter>
+      <nz-select nzAllowClear nzShowSearch nzPlaceHolder="Sucursal" formControlName="branchId">
+        <nz-option *ngFor="let branch of branches()" [nzLabel]="branch.label" [nzValue]="branch.value"></nz-option>
+      </nz-select>
+    </ng-template>
+
+    <button nz-button nzType="default" (click)="applyFilters()">Filtrar</button>
+  </div>
+
+  <nz-table
+    [nzData]="rows()"
+    [nzLoading]="loading()"
+    [nzFrontPagination]="false"
+    [nzPageIndex]="page()"
+    [nzPageSize]="size()"
+    [nzTotal]="total()"
+    (nzPageIndexChange)="onPageChange($event)"
+  >
+    <thead>
+      <tr>
+        <th>User ID</th>
+        <th>Branch ID</th>
+        <th>Activo</th>
+        <th>Actualizado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of rows()">
+        <td>{{ item.userId }}</td>
+        <td>{{ item.branchId }}</td>
+        <td>
+          <nz-tag [nzColor]="item.active ? 'green' : 'red'">{{ item.active ? 'Sí' : 'No' }}</nz-tag>
+        </td>
+        <td>{{ item.updatedAt ?? '-' }}</td>
+        <td>
+          <button nz-button nzType="default" nzDanger [disabled]="!canDelete()" (click)="deleteAssignment(item.id)">Eliminar</button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</nz-card>
+
+<ng-template #actionsTpl>
+  <button nz-button nzType="primary" [disabled]="!canCreate()" (click)="openCreateModal()">Nueva asignación</button>
+</ng-template>
+
+<nz-modal [nzVisible]="modalVisible()" nzTitle="Nueva asignación" [nzOkLoading]="loading()" (nzOnCancel)="closeCreateModal()" (nzOnOk)="createAssignment()">
+  <form [formGroup]="createForm" class="create-form">
+    <label>User ID</label>
+    <input nz-input formControlName="userId" placeholder="UUID de usuario" />
+
+    <label>Sucursal</label>
+    <nz-select nzShowSearch nzPlaceHolder="Seleccionar sucursal" formControlName="branchId">
+      <nz-option *ngFor="let branch of branches()" [nzLabel]="branch.label" [nzValue]="branch.value"></nz-option>
+    </nz-select>
+  </form>
+</nz-modal>
