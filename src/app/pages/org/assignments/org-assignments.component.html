@@ -1,11 +1,11 @@
 <nz-card nzTitle="Asignaciones Usuario ↔ Sucursal" [nzExtra]="actionsTpl" class="org-card">
   <div class="filters" [formGroup]="filtersForm">
     <nz-select nzAllowClear nzShowSearch nzPlaceHolder="Usuario" formControlName="userId">
-      <nz-option *ngFor="let user of users()" [nzLabel]="user.label" [nzValue]="user.value"></nz-option>
+      <nz-option *ngFor="let user of users()" [nzLabel]="user.label" [nzValue]="user.id"></nz-option>
     </nz-select>
 
     <nz-select nzAllowClear nzShowSearch nzPlaceHolder="Sucursal" formControlName="branchId">
-      <nz-option *ngFor="let branch of branches()" [nzLabel]="branch.label" [nzValue]="branch.value"></nz-option>
+      <nz-option *ngFor="let branch of branchOptions()" [nzLabel]="branch.label" [nzValue]="branch.value"></nz-option>
     </nz-select>
 
     <button nz-button nzType="default" (click)="applyFilters()">
@@ -14,13 +14,18 @@
     </button>
   </div>
 
-  <div *ngIf="showSelectionMessage()" class="selection-hint">
+  <div *ngIf="!hasAppliedFilters()" class="selection-hint">
     <span nz-icon nzType="info-circle"></span>
     Seleccione un usuario o una sucursal para consultar asignaciones.
   </div>
 
+  <div *ngIf="hasAppliedFilters() && !loading() && rows().length === 0" class="selection-hint">
+    <span nz-icon nzType="inbox"></span>
+    No hay asignaciones para este criterio.
+  </div>
+
   <nz-table
-    *ngIf="!showSelectionMessage()"
+    *ngIf="hasAppliedFilters()"
     [nzData]="rows()"
     [nzLoading]="loading()"
     [nzFrontPagination]="false"
@@ -40,23 +45,14 @@
     </thead>
     <tbody>
       <tr *ngFor="let item of rows()">
-        <td>{{ item.userId }}</td>
-        <td>{{ item.branchId }}</td>
+        <td>{{ resolveUserLabel(item) }}</td>
+        <td>{{ resolveBranchLabel(item) }}</td>
         <td>
           <nz-tag [nzColor]="item.active ? 'green' : 'red'">{{ item.active ? 'Activo' : 'Inactivo' }}</nz-tag>
         </td>
         <td>{{ formatDate(item.updatedAt) }}</td>
         <td>
-          <button
-            nz-button
-            nzType="link"
-            nzDanger
-            nz-popconfirm
-            nzPopconfirmTitle="¿Confirma eliminar esta asignación?"
-            nzPopconfirmPlacement="left"
-            [disabled]="!canDelete()"
-            (nzOnConfirm)="deleteAssignment(item.id)"
-          >
+          <button nz-button nzType="link" nzDanger [disabled]="!canDelete()" (click)="confirmDelete(item)">
             <span nz-icon nzType="delete"></span>
             Eliminar
           </button>
@@ -73,26 +69,25 @@
   </button>
 </ng-template>
 
-<nz-modal
-  [nzVisible]="modalVisible()"
-  nzTitle="Nueva asignación"
-  [nzOkLoading]="loading()"
-  nzOkText="Guardar"
-  nzCancelText="Cancelar"
-  (nzOnCancel)="closeCreateModal()"
-  (nzOnOk)="createAssignment()"
->
-  <form [formGroup]="createForm" class="create-form">
-    <label>Usuario *</label>
-    <nz-select nzShowSearch nzPlaceHolder="Seleccionar usuario" formControlName="userId">
-      <nz-option *ngFor="let user of users()" [nzLabel]="user.label" [nzValue]="user.value"></nz-option>
-    </nz-select>
-    <small class="field-error" *ngIf="createForm.controls.userId.invalid && createForm.controls.userId.touched">El usuario es obligatorio.</small>
+<nz-modal [nzVisible]="modalVisible()" nzTitle="Nueva asignación" [nzFooter]="modalFooter" (nzOnCancel)="closeCreateModal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="createForm" class="create-form">
+      <label>Usuario *</label>
+      <nz-select nzShowSearch nzPlaceHolder="Seleccionar usuario" formControlName="userId">
+        <nz-option *ngFor="let user of users()" [nzLabel]="user.label" [nzValue]="user.id"></nz-option>
+      </nz-select>
+      <small class="field-error" *ngIf="createForm.controls.userId.invalid && createForm.controls.userId.touched">El usuario es obligatorio.</small>
 
-    <label>Sucursal *</label>
-    <nz-select nzShowSearch nzPlaceHolder="Seleccionar sucursal" formControlName="branchId">
-      <nz-option *ngFor="let branch of branches()" [nzLabel]="branch.label" [nzValue]="branch.value"></nz-option>
-    </nz-select>
-    <small class="field-error" *ngIf="createForm.controls.branchId.invalid && createForm.controls.branchId.touched">La sucursal es obligatoria.</small>
-  </form>
+      <label>Sucursal *</label>
+      <nz-select nzShowSearch nzPlaceHolder="Seleccionar sucursal" formControlName="branchId">
+        <nz-option *ngFor="let branch of branchOptions()" [nzLabel]="branch.label" [nzValue]="branch.value"></nz-option>
+      </nz-select>
+      <small class="field-error" *ngIf="createForm.controls.branchId.invalid && createForm.controls.branchId.touched">La sucursal es obligatoria.</small>
+    </form>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <button nz-button nzType="default" [disabled]="saving()" (click)="closeCreateModal()">Cancelar</button>
+    <button nz-button nzType="primary" [disabled]="createForm.invalid || saving()" [nzLoading]="saving()" (click)="createAssignment()">Guardar</button>
+  </ng-template>
 </nz-modal>

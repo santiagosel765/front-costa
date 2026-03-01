@@ -35,3 +35,17 @@
   background: #1677ff;
   border-right: 3px solid #69b1ff;
 }
+
+:host ::ng-deep .ant-menu-dark .ant-menu-submenu-title {
+  margin: 2px 0;
+  height: 42px;
+  line-height: 42px;
+}
+
+:host ::ng-deep .ant-menu-inline .ant-menu-sub.ant-menu-inline {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+:host ::ng-deep .ant-menu-inline .ant-menu-sub.ant-menu-inline .ant-menu-item {
+  padding-left: 48px !important;
+}

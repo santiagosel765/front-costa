@@ -1,6 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -17,13 +18,12 @@ import { SessionStore } from '../../../core/state/session.store';
 import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
 import { AppDataTableColumn, TableState } from '../../../shared/components/app-data-table/app-data-table.models';
 import { TableStateService } from '../../../shared/table/table-state.service';
-import { CatalogDto, CatalogRecord } from '../../../services/config/config.models';
-import { OrgBranchService } from '../../../services/org/org-branch.service';
+import { OrgBranchDto, OrgBranchRecord, OrgBranchService } from '../../../services/org/org-branch.service';
 
 @Component({
   selector: 'app-org-branches',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NzCardModule, NzButtonModule, NzModalModule, NzInputModule, NzSwitchModule, NzFormModule, NzIconModule, AppDataTableComponent],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NzCardModule, NzButtonModule, NzModalModule, NzInputModule, NzSwitchModule, NzFormModule, NzIconModule, AppDataTableComponent],
   templateUrl: './org-branches.component.html',
   styleUrl: './org-branches.component.css',
   providers: [TableStateService, DatePipe],
@@ -39,8 +39,9 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
   readonly tableState = inject(TableStateService);
   private readonly destroy$ = new Subject<void>();
 
-  readonly rows = signal<CatalogRecord[]>([]);
+  readonly rows = signal<OrgBranchRecord[]>([]);
   readonly loading = signal(false);
+  readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly total = signal(0);
   readonly isModalVisible = signal(false);
@@ -54,7 +55,7 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     active: [true],
   });
 
-  readonly columns: AppDataTableColumn<CatalogRecord>[] = [
+  readonly columns: AppDataTableColumn<OrgBranchRecord>[] = [
     { key: 'code', title: 'Código' },
     { key: 'name', title: 'Nombre' },
     { key: 'address', title: 'Dirección' },
@@ -130,7 +131,7 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     this.tableState.patch(this.router, { q: search, page: 1 });
   }
 
-  handleAction(event: { type: 'edit' | 'delete' | 'custom'; row: CatalogRecord }): void {
+  handleAction(event: { type: 'edit' | 'delete' | 'custom'; row: OrgBranchRecord }): void {
     if (event.type === 'edit') {
       this.editingId.set(event.row.id);
       this.form.reset({
@@ -153,7 +154,12 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     this.isModalVisible.set(true);
   }
 
-  closeModal(): void { this.isModalVisible.set(false); }
+  closeModal(): void {
+    if (this.saving()) {
+      return;
+    }
+    this.isModalVisible.set(false);
+  }
 
   goAssignments(): void {
     this.router.navigate(['/main/org/assignments']);
@@ -169,9 +175,9 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loading.set(true);
+    this.saving.set(true);
     const id = this.editingId();
-    const payload = this.form.getRawValue() as CatalogDto;
+    const payload = this.form.getRawValue() as OrgBranchDto;
     const request$ = id ? this.api.update(id, payload) : this.api.create(payload);
     request$.subscribe({
       next: () => {
@@ -179,11 +185,17 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
         this.isModalVisible.set(false);
         this.load(this.tableState.snapshot);
       },
-      error: () => {
-        this.message.error('No se pudo guardar la sucursal. Verifique los datos ingresados.');
-        this.loading.set(false);
+      error: (error: unknown) => {
+        if (error instanceof HttpErrorResponse && error.status === 409) {
+          this.form.controls.code.setErrors({ duplicate: true });
+          this.form.controls.code.markAsTouched();
+          this.message.warning('El código ya existe, use uno diferente.');
+        } else {
+          this.message.error('No se pudo guardar la sucursal. Verifique los datos ingresados.');
+        }
+        this.saving.set(false);
       },
-      complete: () => this.loading.set(false),
+      complete: () => this.saving.set(false),
     });
   }
 
