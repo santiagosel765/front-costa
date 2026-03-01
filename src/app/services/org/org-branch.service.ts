@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
+import { ApiResponse, PagedResponse, normalizePagedResponse, unwrapApiResponse } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { CatalogQuery } from '../config/config.models';
 
@@ -22,6 +22,9 @@ export interface OrgBranchDto extends OrgLocationFields {
   name: string;
   active: boolean;
   description?: string;
+  phone?: string;
+  email?: string;
+  managerName?: string;
 }
 
 export interface OrgBranchRecord extends OrgBranchDto {
@@ -43,17 +46,17 @@ export class OrgBranchService {
 
   list(query: CatalogQuery): Observable<PagedResponse<OrgBranchRecord>> {
     return this.api
-      .get<ApiResponse<PagedResponse<OrgBranchRecord>> | PagedResponse<OrgBranchRecord>>('/v1/org/branches', {
+      .get<ApiResponse<unknown> | unknown>('/v1/org/branches', {
         params: { page: Math.max(1, query.page), size: query.size, search: query.search ?? '' },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgBranchRecord>>(response)),
+        map((response) => normalizePagedResponse<OrgBranchRecord>(unwrapApiResponse(response), { page: query.page, size: query.size })),
         map((response) => ({
-          data: (response.data ?? []).map(normalizeBranchRecord),
-          total: response.total ?? 0,
-          page: Math.max(1, response.page ?? 1),
-          size: response.size ?? query.size,
-          totalPages: response.totalPages ?? 1,
+          data: response.items.map(normalizeBranchRecord),
+          total: response.total,
+          page: Math.max(1, response.page),
+          size: response.size,
+          totalPages: response.totalPages,
         })),
       );
   }

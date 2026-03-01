@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
+import { ApiResponse, PagedResponse, normalizePagedResponse, unwrapApiResponse } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { OrgLocationFields } from './org-branch.service';
 
@@ -12,6 +12,7 @@ export interface OrgWarehouse extends OrgLocationFields {
   code: string;
   name: string;
   description?: string;
+  warehouseType?: 'MAIN' | 'SALES' | 'RETURNS';
   active: boolean;
   updatedAt?: string;
   updated_at?: string;
@@ -23,6 +24,7 @@ export interface OrgWarehouseDto extends OrgLocationFields {
   code: string;
   name: string;
   description?: string;
+  warehouseType?: 'MAIN' | 'SALES' | 'RETURNS';
   active: boolean;
 }
 
@@ -31,6 +33,7 @@ export interface OrgWarehouseQuery {
   size: number;
   search?: string;
   branchId?: string;
+  active?: boolean;
 }
 
 function normalizeWarehouse(record: OrgWarehouse): OrgWarehouse {
@@ -47,22 +50,23 @@ export class OrgWarehouseService {
 
   list(query: OrgWarehouseQuery): Observable<PagedResponse<OrgWarehouse>> {
     return this.api
-      .get<ApiResponse<PagedResponse<OrgWarehouse>> | PagedResponse<OrgWarehouse>>('/v1/org/warehouses', {
+      .get<ApiResponse<unknown> | unknown>('/v1/org/warehouses', {
         params: {
           page: Math.max(1, query.page),
           size: query.size,
           search: query.search ?? '',
           ...(query.branchId ? { branchId: query.branchId } : {}),
+          ...(typeof query.active === 'boolean' ? { active: query.active } : {}),
         },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgWarehouse>>(response)),
+        map((response) => normalizePagedResponse<OrgWarehouse>(unwrapApiResponse(response), { page: query.page, size: query.size })),
         map((response) => ({
-          data: (response.data ?? []).map(normalizeWarehouse),
-          total: response.total ?? 0,
-          page: response.page ?? 1,
-          size: response.size ?? query.size,
-          totalPages: response.totalPages ?? 1,
+          data: response.items.map(normalizeWarehouse),
+          total: response.total,
+          page: response.page,
+          size: response.size,
+          totalPages: response.totalPages,
         })),
       );
   }

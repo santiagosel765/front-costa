@@ -16,9 +16,13 @@
     [pageIndex]="tableState.snapshot.page"
     [pageSize]="tableState.snapshot.size"
     [searchValue]="tableState.snapshot.q"
+    [showStatusFilter]="true"
+    [statusValue]="tableState.snapshot.status"
+    [statusOptions]="[{ label: 'Todos', value: null }, { label: 'Activos', value: 'true' }, { label: 'Inactivos', value: 'false' }]"
     searchPlaceholder="Buscar bodega"
     (pageChange)="onPageChange($event)"
     (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
     (action)="handleAction($event)"
   ></app-data-table>
 </nz-card>
@@ -46,6 +50,13 @@
 
       <label>Descripción</label>
       <textarea nz-input formControlName="description" rows="2"></textarea>
+
+      <label>Tipo de bodega</label>
+      <nz-select formControlName="warehouseType">
+        <nz-option nzLabel="Principal (MAIN)" nzValue="MAIN"></nz-option>
+        <nz-option nzLabel="Ventas (SALES)" nzValue="SALES"></nz-option>
+        <nz-option nzLabel="Devoluciones (RETURNS)" nzValue="RETURNS"></nz-option>
+      </nz-select>
 
       <h4>Ubicación</h4>
       <label>Dirección línea 1</label>

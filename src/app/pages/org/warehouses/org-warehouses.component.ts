@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -47,12 +47,17 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
   readonly isModalVisible = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly branches = signal<OrgBranchRecord[]>([]);
+  readonly branchMap = computed<Record<string, string>>(() => this.branches().reduce((acc, branch) => {
+    acc[branch.id] = `${branch.code} - ${branch.name}`;
+    return acc;
+  }, {} as Record<string, string>));
 
   readonly form = this.fb.nonNullable.group({
     branchId: ['', [Validators.required]],
     code: ['', [Validators.required]],
     name: ['', [Validators.required]],
     description: [''],
+    warehouseType: ['MAIN' as 'MAIN' | 'SALES' | 'RETURNS'],
     active: [true],
     addressLine1: [''],
     addressLine2: [''],
@@ -69,6 +74,7 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
     { key: 'code', title: 'Código' },
     { key: 'name', title: 'Nombre' },
     { key: 'branchName', title: 'Sucursal', valueGetter: (row) => this.resolveBranchName(row) },
+    { key: 'warehouseType', title: 'Tipo' },
     { key: 'location', title: 'Ubicación', valueGetter: (row) => this.resolveLocationSummary(row) },
     { key: 'active', title: 'Estado', cellType: 'tag', tagColor: (r) => (r.active ? 'green' : 'red'), tagText: (r) => (r.active ? 'Activo' : 'Inactivo') },
     { key: 'updatedAt', title: 'Actualizado', valueGetter: (r) => this.datePipe.transform(r.updatedAt, 'dd/MM/yyyy HH:mm') ?? '-' },
@@ -109,6 +115,10 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
     this.tableState.patch(this.router, { q: search, page: 1 });
   }
 
+  onFilterChange(change: { status: string | number | null }): void {
+    this.tableState.patch(this.router, { status: change.status, page: 1 });
+  }
+
   handleAction(event: { type: 'edit' | 'delete' | 'custom'; row: OrgWarehouse }): void {
     if (event.type === 'edit') {
       this.editingId.set(event.row.id);
@@ -117,6 +127,7 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
         code: event.row.code ?? '',
         name: event.row.name ?? '',
         description: event.row.description ?? '',
+        warehouseType: event.row.warehouseType ?? 'MAIN',
         active: !!event.row.active,
         addressLine1: event.row.addressLine1 ?? '',
         addressLine2: event.row.addressLine2 ?? '',
@@ -140,7 +151,7 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
   openCreate(): void {
     this.editingId.set(null);
     this.form.reset({
-      branchId: '', code: '', name: '', description: '', active: true,
+      branchId: '', code: '', name: '', description: '', warehouseType: 'MAIN', active: true,
       addressLine1: '', addressLine2: '', city: '', state: '', country: '', postalCode: '',
       latitude: null, longitude: null, locationNotes: '',
     });
@@ -197,7 +208,12 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.list({ page: state.page, size: state.size, search: state.q }).subscribe({
+    this.api.list({
+      page: state.page,
+      size: state.size,
+      search: state.q,
+      active: this.parseActiveFilter(state.status),
+    }).subscribe({
       next: (response) => {
         this.rows.set(response.data ?? []);
         this.total.set(response.total ?? 0);
@@ -218,8 +234,25 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
     });
   }
 
+
+  private parseActiveFilter(status: string | number | null): boolean | undefined {
+    if (status === null || status === undefined || status === '') {
+      return undefined;
+    }
+
+    if (status === 1 || status === '1' || status === 'true') {
+      return true;
+    }
+
+    if (status === 0 || status === '0' || status === 'false') {
+      return false;
+    }
+
+    return undefined;
+  }
+
   private resolveBranchName(row: OrgWarehouse): string {
-    return row.branchName || row.branch?.name || this.branches().find((branch) => branch.id === row.branchId)?.name || '—';
+    return this.branchMap()[row.branchId] || row.branchName || row.branch?.name || '—';
   }
 
   private resolveLocationSummary(row: OrgWarehouse): string {

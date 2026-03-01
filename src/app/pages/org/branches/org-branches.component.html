@@ -55,6 +55,20 @@
       <label>Descripción</label>
       <textarea nz-input formControlName="description" rows="2"></textarea>
 
+      <div class="location-grid">
+        <div>
+          <label>Teléfono</label>
+          <input nz-input formControlName="phone" />
+        </div>
+        <div>
+          <label>Email</label>
+          <input nz-input type="email" formControlName="email" />
+        </div>
+      </div>
+
+      <label>Encargado</label>
+      <input nz-input formControlName="managerName" />
+
       <h4>Ubicación</h4>
       <label>Dirección línea 1</label>
       <input nz-input formControlName="addressLine1" />

@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -52,6 +52,15 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
   readonly editingId = signal<string | null>(null);
   readonly branches = signal<OrgBranchRecord[]>([]);
   readonly documentTypes = signal<DocumentTypeRecord[]>([]);
+  readonly serverPreview = signal<string | null>(null);
+  readonly branchMap = computed<Record<string, string>>(() => this.branches().reduce((acc, branch) => {
+    acc[branch.id] = `${branch.code} - ${branch.name}`;
+    return acc;
+  }, {} as Record<string, string>));
+  readonly docTypeMap = computed<Record<string, string>>(() => this.documentTypes().reduce((acc, docType) => {
+    acc[docType.id] = `${docType.code} - ${docType.name}`;
+    return acc;
+  }, {} as Record<string, string>));
 
   readonly form = this.fb.nonNullable.group({
     branchId: ['', [Validators.required]],
@@ -96,7 +105,7 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
 
   get preview(): string {
     const { series, padding, nextNumber } = this.form.getRawValue();
-    return this.buildPreview(series, padding, nextNumber);
+    return this.serverPreview() || this.buildPreview(series, padding, nextNumber);
   }
 
   get branchOptions(): Array<{ label: string; value: string }> {
@@ -115,6 +124,10 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
     this.tableState.patch(this.router, { q: search, page: 1 });
   }
 
+  onFilterChange(change: { status: string | number | null }): void {
+    this.tableState.patch(this.router, { status: change.status, page: 1 });
+  }
+
   handleAction(event: { type: 'edit' | 'delete' | 'custom'; row: OrgDocumentNumbering }): void {
     if (event.type === 'edit') {
       this.editingId.set(event.row.id);
@@ -126,6 +139,8 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
         padding: event.row.padding ?? 8,
         active: !!event.row.active,
       });
+      this.serverPreview.set(null);
+      this.api.preview(event.row.id).subscribe({ next: (preview) => this.serverPreview.set(preview || null), error: () => this.serverPreview.set(null) });
       this.isModalVisible.set(true);
       return;
     }
@@ -137,12 +152,14 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
 
   openCreate(): void {
     this.editingId.set(null);
+    this.serverPreview.set(null);
     this.form.reset({ branchId: '', documentTypeId: '', series: '', nextNumber: 1, padding: 8, active: true });
     this.isModalVisible.set(true);
   }
 
   closeModal(): void {
     if (!this.saving()) {
+      this.serverPreview.set(null);
       this.isModalVisible.set(false);
     }
   }
@@ -161,7 +178,8 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
     request$.subscribe({
       next: () => {
         this.message.success(id ? 'Numeración actualizada' : 'Numeración creada');
-        this.isModalVisible.set(false);
+        this.serverPreview.set(null);
+      this.isModalVisible.set(false);
         this.load(this.tableState.snapshot);
       },
       error: () => {
@@ -176,7 +194,12 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.error.set(null);
 
-    this.api.list({ page: state.page, size: state.size, search: state.q }).subscribe({
+    this.api.list({
+      page: state.page,
+      size: state.size,
+      search: state.q,
+      active: this.parseActiveFilter(state.status),
+    }).subscribe({
       next: (response) => {
         this.rows.set(response.data ?? []);
         this.total.set(response.total ?? 0);
@@ -219,12 +242,29 @@ export class OrgNumberingComponent implements OnInit, OnDestroy {
     });
   }
 
+
+  private parseActiveFilter(status: string | number | null): boolean | undefined {
+    if (status === null || status === undefined || status === '') {
+      return undefined;
+    }
+
+    if (status === 1 || status === '1' || status === 'true') {
+      return true;
+    }
+
+    if (status === 0 || status === '0' || status === 'false') {
+      return false;
+    }
+
+    return undefined;
+  }
+
   private resolveBranchName(row: OrgDocumentNumbering): string {
-    return row.branchName || row.branch?.name || this.branches().find((branch) => branch.id === row.branchId)?.name || '—';
+    return this.branchMap()[row.branchId] || row.branchName || row.branch?.name || '—';
   }
 
   private resolveDocumentTypeName(row: OrgDocumentNumbering): string {
-    return row.documentTypeName || row.documentType?.name || this.documentTypes().find((dt) => dt.id === row.documentTypeId)?.name || '—';
+    return this.docTypeMap()[row.documentTypeId] || row.documentTypeName || row.documentType?.name || '—';
   }
 
   private buildPreview(series?: string, padding?: number, nextNumber?: number): string {

@@ -19,18 +19,11 @@ import { normalizeModuleName, resolveModulePresentation } from '../../core/const
 import { AuthContextModule } from '../../core/models/auth-context.models';
 import { SessionStore } from '../../core/state/session.store';
 
-interface SidebarMenuChild {
-  key: string;
-  route: string;
-  label: string;
-}
-
 interface SidebarMenuItem {
   key: string;
   route: string;
   label: string;
   icon: string;
-  children?: SidebarMenuChild[];
 }
 
 @Component({
@@ -103,11 +96,6 @@ export class SidebarComponent implements OnInit, OnDestroy {
       route: metadata.route,
       label: metadata.label,
       icon: metadata.icon,
-      children: key === 'ORG'
-        ? [
-            { key: 'ORG_HUB', route: '/main/org', label: 'Hub organización' },
-          ]
-        : undefined,
     };
   }
 }

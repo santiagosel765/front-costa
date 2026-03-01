@@ -41,7 +41,7 @@ export const MODULE_UI_MANIFEST: Record<string, ModuleUiManifest> = {
   QUOTE: { route: '/main/quotes', label: 'Cotizaciones', icon: 'file-search' },
   PURCHASE: { route: '/main/purchases', label: 'Compras', icon: 'shopping-cart' },
   CONFIG: { route: '/main/config', label: 'Configuración', icon: 'setting' },
-  ORG: { route: '/main/org', label: 'ORG', icon: 'apartment' },
+  ORG: { route: '/main/org', label: 'Organización', icon: 'apartment' },
 };
 
 export function normalizeModuleName(name?: string | null): string | undefined {
@@ -72,9 +72,11 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
     };
   }
 
+  const shouldPreferManifestLabel = key === 'ORG' || key === 'CONFIG';
+
   return {
     route: module.baseRoute || fromManifest.route,
     icon: module.icon || fromManifest.icon,
-    label: module.label || fromManifest.label,
+    label: shouldPreferManifestLabel ? fromManifest.label : (module.label || fromManifest.label),
   };
 }

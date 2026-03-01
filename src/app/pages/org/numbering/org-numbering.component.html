@@ -16,9 +16,13 @@
     [pageIndex]="tableState.snapshot.page"
     [pageSize]="tableState.snapshot.size"
     [searchValue]="tableState.snapshot.q"
+    [showStatusFilter]="true"
+    [statusValue]="tableState.snapshot.status"
+    [statusOptions]="[{ label: 'Todos', value: null }, { label: 'Activos', value: 'true' }, { label: 'Inactivos', value: 'false' }]"
     searchPlaceholder="Buscar numeración"
     (pageChange)="onPageChange($event)"
     (searchChange)="onSearchChange($event)"
+    (filterChange)="onFilterChange($event)"
     (action)="handleAction($event)"
   ></app-data-table>
 </nz-card>
