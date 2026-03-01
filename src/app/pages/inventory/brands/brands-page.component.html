@@ -1,0 +1,5 @@
+<nz-card nzTitle="Marcas" [nzExtra]="createTpl">
+  <app-data-table [columns]="columns" [data]="rows()" [loading]="loading()" [total]="total()" [pageIndex]="table.snapshot.page" [pageSize]="table.snapshot.size" [searchValue]="table.snapshot.q" (pageChange)="onPageChange($event)" (searchChange)="onSearchChange($event)" (action)="action($event)"></app-data-table>
+</nz-card>
+<ng-template #createTpl><button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate()">Crear</button></ng-template>
+<nz-modal [nzVisible]="modal()" [nzTitle]="editing() ? 'Editar marca' : 'Nueva marca'" [nzOkLoading]="saving()" (nzOnCancel)="modal.set(false)" (nzOnOk)="save()"><ng-container *nzModalContent><form [formGroup]="form" style="display:grid;gap:8px;"><label>Nombre *</label><input nz-input formControlName="name" /><label>Código</label><input nz-input formControlName="code" /></form></ng-container></nz-modal>

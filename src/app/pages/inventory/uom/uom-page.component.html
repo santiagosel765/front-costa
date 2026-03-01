@@ -1,0 +1,23 @@
+<nz-card nzTitle="Unidades de medida">
+  <nz-tabset>
+    <nz-tab nzTitle="Grupos">
+      <button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate(0)">Nuevo grupo</button>
+      <ul><li *ngFor="let g of groups()">{{ g.name }} ({{ g.code || '-' }})</li></ul>
+    </nz-tab>
+    <nz-tab nzTitle="Unidades">
+      <button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate(1)">Nueva unidad</button>
+      <ul><li *ngFor="let u of units()">{{ u.name }} [{{ u.symbol }}] <b *ngIf="u.isBase">Base</b></li></ul>
+    </nz-tab>
+    <nz-tab nzTitle="Conversiones">
+      <button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate(2)">Nueva conversión</button>
+      <ul><li *ngFor="let c of conversions()">{{ c.fromUomId }} → {{ c.toUomId }} = {{ c.factor }}</li></ul>
+    </nz-tab>
+  </nz-tabset>
+</nz-card>
+<nz-modal [nzVisible]="modal()" [nzTitle]="'Nuevo registro'" [nzOkLoading]="saving()" (nzOnCancel)="modal.set(false)" (nzOnOk)="save()">
+  <ng-container *nzModalContent>
+    <form *ngIf="tab()===0" [formGroup]="groupForm" style="display:grid;gap:8px;"><label>Nombre</label><input nz-input formControlName="name"/><label>Código</label><input nz-input formControlName="code"/></form>
+    <form *ngIf="tab()===1" [formGroup]="unitForm" style="display:grid;gap:8px;"><label>Grupo</label><nz-select formControlName="groupId"><nz-option *ngFor="let g of groups()" [nzValue]="g.id" [nzLabel]="g.name"></nz-option></nz-select><label>Nombre</label><input nz-input formControlName="name"/><label>Símbolo</label><input nz-input formControlName="symbol"/><label>Base</label><nz-switch formControlName="isBase"></nz-switch></form>
+    <form *ngIf="tab()===2" [formGroup]="convForm" style="display:grid;gap:8px;"><label>Grupo</label><nz-select formControlName="groupId"><nz-option *ngFor="let g of groups()" [nzValue]="g.id" [nzLabel]="g.name"></nz-option></nz-select><label>Desde</label><nz-select formControlName="fromUomId"><nz-option *ngFor="let u of units()" [nzValue]="u.id" [nzLabel]="u.name"></nz-option></nz-select><label>Hacia</label><nz-select formControlName="toUomId"><nz-option *ngFor="let u of units()" [nzValue]="u.id" [nzLabel]="u.name"></nz-option></nz-select><label>Factor</label><input nz-input type="number" formControlName="factor"/></form>
+  </ng-container>
+</nz-modal>

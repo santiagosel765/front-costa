@@ -1,3 +1,11 @@
-<nz-card nzTitle="Inventario">
-  <p>Gestiona productos, existencias y movimientos desde este módulo.</p>
+<nz-card nzTitle="Inventario / Datos Maestros">
+  <nav class="inv-nav">
+    <a routerLink="categories">Categorías</a>
+    <a routerLink="brands">Marcas</a>
+    <a routerLink="uom">Unidades de Medida</a>
+    <a routerLink="attributes">Atributos</a>
+    <a routerLink="tax-profiles">Perfiles de Impuestos</a>
+    <a routerLink="products">Productos</a>
+  </nav>
 </nz-card>
+<router-outlet></router-outlet>

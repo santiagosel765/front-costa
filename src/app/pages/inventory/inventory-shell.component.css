@@ -1,7 +1,2 @@
-:host {
-  display: block;
-}
-
-nz-card {
-  width: 100%;
-}
+.inv-nav { display:flex; gap:16px; flex-wrap:wrap; }
+.inv-nav a { color:#1677ff; }
