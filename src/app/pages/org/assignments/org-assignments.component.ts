@@ -59,7 +59,6 @@ export class OrgAssignmentsComponent implements OnInit {
   readonly total = signal(0);
   readonly pageIndex = signal(1);
   readonly pageSize = signal(10);
-  readonly hasAppliedFilters = signal(false);
 
   readonly breadcrumbs = [
     { label: 'Organización', link: '/main/org' },
@@ -84,6 +83,7 @@ export class OrgAssignmentsComponent implements OnInit {
   ngOnInit(): void {
     this.loadBranches();
     this.loadUsers();
+    this.loadAssignments();
   }
 
   canCreate(): boolean {
@@ -96,7 +96,6 @@ export class OrgAssignmentsComponent implements OnInit {
 
   applyFilters(): void {
     this.pageIndex.set(1);
-    this.hasAppliedFilters.set(true);
     this.loadAssignments();
   }
 
@@ -113,10 +112,8 @@ export class OrgAssignmentsComponent implements OnInit {
 
   clearFilters(): void {
     this.filtersForm.reset({ userId: '', branchId: '' });
-    this.hasAppliedFilters.set(false);
-    this.rows.set([]);
-    this.total.set(0);
     this.pageIndex.set(1);
+    this.loadAssignments();
   }
 
   goBranches(): void {
@@ -147,12 +144,7 @@ export class OrgAssignmentsComponent implements OnInit {
         this.message.success('Asignación creada');
         this.modalVisible.set(false);
 
-        const { userId, branchId } = this.filtersForm.getRawValue();
-        const hasSelectedFilters = !!userId || !!branchId;
-        if (hasSelectedFilters) {
-          this.hasAppliedFilters.set(true);
-          this.loadAssignments();
-        }
+        this.loadAssignments();
       },
       error: (error: unknown) => {
         if (error instanceof HttpErrorResponse && error.status === 409) {
@@ -242,7 +234,7 @@ export class OrgAssignmentsComponent implements OnInit {
   private loadBranches(): void {
     this.branchService.list({ page: 1, size: 200 }).subscribe({
       next: (response) => {
-        const mapped = response.data.data ?? [];
+        const mapped = response.data ?? [];
         this.branches.set(mapped);
         this.branchOptions.set(mapped.map((branch) => ({ label: `${branch.code ?? ''} - ${branch.name ?? branch.id}`, value: branch.id })));
       },
@@ -256,12 +248,6 @@ export class OrgAssignmentsComponent implements OnInit {
   private loadAssignments(): void {
     const { userId, branchId } = this.filtersForm.getRawValue();
 
-    if (!userId && !branchId) {
-      this.rows.set([]);
-      this.total.set(0);
-      return;
-    }
-
     this.loading.set(true);
     this.assignmentService.list({
       page: this.pageIndex(),
@@ -270,10 +256,10 @@ export class OrgAssignmentsComponent implements OnInit {
       branchId: branchId || undefined,
     }).subscribe({
       next: (response) => {
-        this.rows.set(response.data.data ?? []);
-        this.total.set(response.data.total ?? 0);
-        this.pageIndex.set(response.data.page ?? this.pageIndex());
-        this.pageSize.set(response.data.size ?? this.pageSize());
+        this.rows.set(response.data ?? []);
+        this.total.set(response.total ?? 0);
+        this.pageIndex.set(response.page ?? this.pageIndex());
+        this.pageSize.set(response.size ?? this.pageSize());
       },
       error: () => {
         this.rows.set([]);

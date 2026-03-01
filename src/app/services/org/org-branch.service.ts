@@ -30,19 +30,17 @@ function normalizeBranchRecord(record: OrgBranchRecord): OrgBranchRecord {
 export class OrgBranchService {
   private readonly api = inject(ApiService);
 
-  list(query: CatalogQuery): Observable<ApiResponse<PagedResponse<OrgBranchRecord>>> {
+  list(query: CatalogQuery): Observable<PagedResponse<OrgBranchRecord>> {
     return this.api
-      .get<ApiResponse<PagedResponse<OrgBranchRecord>>>('/v1/org/branches', {
+      .get<ApiResponse<PagedResponse<OrgBranchRecord>> | PagedResponse<OrgBranchRecord>>('/v1/org/branches', {
         params: { page: Math.max(1, query.page), size: query.size, search: query.search ?? '' },
       })
       .pipe(
+        map((response) => unwrapApiResponse<PagedResponse<OrgBranchRecord>>(response)),
         map((response) => ({
           ...response,
-          data: {
-            ...response.data,
-            page: Math.max(1, response.data?.page ?? 1),
-            data: (response.data?.data ?? []).map(normalizeBranchRecord),
-          },
+          page: Math.max(1, response.page ?? 1),
+          data: (response.data ?? []).map(normalizeBranchRecord),
         })),
       );
   }
