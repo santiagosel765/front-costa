@@ -16,16 +16,11 @@
   gap: 8px;
 }
 
-.selection-hint {
-  padding: 24px;
+.selection-empty {
+  margin-bottom: 12px;
+  padding: 12px 0;
   border: 1px dashed #d9d9d9;
   border-radius: 8px;
-  color: #6b7280;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
 }
 
 .create-form {

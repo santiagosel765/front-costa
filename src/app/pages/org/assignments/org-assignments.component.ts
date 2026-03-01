@@ -6,6 +6,7 @@ import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzEmptyModule } from 'ng-zorro-antd/empty';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
@@ -36,6 +37,7 @@ import { OrgAssignmentRecord, OrgAssignmentService } from '../../../services/org
     NzTableModule,
     NzTagModule,
     NzIconModule,
+    NzEmptyModule,
     NzFormModule,
     NzPaginationModule,
     PageHeaderComponent,
