@@ -149,7 +149,7 @@ export class ConfigPaymentMethodsComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.success(editing ? 'Método de pago actualizado' : 'Método de pago creado');
         this.closeModal();
-        this.loadPaymentMethods();
+        this.tableState.reload();
       },
       error: (error: HttpErrorResponse) => {
         this.message.error(mapHttpErrorMessage(error));
@@ -174,7 +174,7 @@ export class ConfigPaymentMethodsComponent implements OnInit, OnDestroy {
           this.service.delete(row.id).subscribe({
             next: () => {
               this.message.success('Método de pago eliminado');
-              this.loadPaymentMethods();
+              this.tableState.reload();
               resolve();
             },
             error: (error: HttpErrorResponse) => {
@@ -186,10 +186,6 @@ export class ConfigPaymentMethodsComponent implements OnInit, OnDestroy {
           });
         }),
     });
-  }
-
-  private loadPaymentMethods(): void {
-    this.load(this.tableState.snapshot);
   }
 
   private load(state: TableState): void {

@@ -110,6 +110,13 @@ export function readAuditFields(source: Record<string, unknown>): AuditFields {
 }
 
 export function normalizeListResponse<T>(response: unknown, mapItem: (item: unknown) => T): NormalizedListResponse<T> {
+  if (Array.isArray(response)) {
+    return {
+      data: response.map((item) => mapItem(item)),
+      total: response.length,
+    };
+  }
+
   const source = (response ?? {}) as { data?: unknown; items?: unknown; total?: unknown };
   const dataNode = source.data;
 
