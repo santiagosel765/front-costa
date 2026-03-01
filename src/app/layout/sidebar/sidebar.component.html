@@ -18,22 +18,12 @@
   <ng-template #modulesList>
     <ng-container *ngIf="menuItems.length; else noModules">
       <ng-container *ngFor="let item of menuItems; trackBy: trackByKey">
-        <li *ngIf="item.children?.length; else directLink" nz-submenu [nzTitle]="item.label" [nzIcon]="item.icon">
-          <ul>
-            <li nz-menu-item nzMatchRouter *ngFor="let child of item.children">
-              <a [routerLink]="child.route">{{ child.label }}</a>
-            </li>
-          </ul>
+        <li nz-menu-item nzMatchRouter>
+          <a [routerLink]="item.route">
+            <nz-icon [nzType]="item.icon"></nz-icon>
+            <span class="menu-label" [title]="item.label">{{ item.label }}</span>
+          </a>
         </li>
-
-        <ng-template #directLink>
-          <li nz-menu-item nzMatchRouter>
-            <a [routerLink]="item.route">
-              <nz-icon [nzType]="item.icon"></nz-icon>
-              <span class="menu-label" [title]="item.label">{{ item.label }}</span>
-            </a>
-          </li>
-        </ng-template>
       </ng-container>
     </ng-container>
   </ng-template>

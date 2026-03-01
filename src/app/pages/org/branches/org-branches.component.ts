@@ -63,6 +63,9 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     code: ['', [Validators.required]],
     name: ['', [Validators.required]],
     description: [''],
+    phone: [''],
+    email: [''],
+    managerName: [''],
     active: [true],
     addressLine1: [''],
     addressLine2: [''],
@@ -172,6 +175,9 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
         code: event.row.code ?? '',
         name: event.row.name ?? '',
         description: event.row.description ?? '',
+        phone: event.row.phone ?? '',
+        email: event.row.email ?? '',
+        managerName: event.row.managerName ?? '',
         active: !!event.row.active,
         addressLine1: event.row.addressLine1 ?? '',
         addressLine2: event.row.addressLine2 ?? '',
@@ -192,7 +198,7 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
   openCreate(): void {
     this.editingId.set(null);
     this.form.reset({
-      code: '', name: '', description: '', active: true,
+      code: '', name: '', description: '', phone: '', email: '', managerName: '', active: true,
       addressLine1: '', addressLine2: '', city: '', state: '', country: '', postalCode: '',
       latitude: null, longitude: null, locationNotes: '',
     });

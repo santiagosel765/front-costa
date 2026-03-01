@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
+import { ApiResponse, PagedResponse, normalizePagedResponse, unwrapApiResponse } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 
 export interface OrgDocumentNumbering {
@@ -34,6 +34,7 @@ export interface OrgDocumentNumberingQuery {
   size: number;
   search?: string;
   branchId?: string;
+  active?: boolean;
 }
 
 function normalizeNumbering(record: OrgDocumentNumbering): OrgDocumentNumbering {
@@ -51,22 +52,23 @@ export class OrgDocumentNumberingService {
 
   list(query: OrgDocumentNumberingQuery): Observable<PagedResponse<OrgDocumentNumbering>> {
     return this.api
-      .get<ApiResponse<PagedResponse<OrgDocumentNumbering>> | PagedResponse<OrgDocumentNumbering>>('/v1/org/document-numbering', {
+      .get<ApiResponse<unknown> | unknown>('/v1/org/document-numbering', {
         params: {
           page: Math.max(1, query.page),
           size: query.size,
           search: query.search ?? '',
           ...(query.branchId ? { branchId: query.branchId } : {}),
+          ...(typeof query.active === 'boolean' ? { active: query.active } : {}),
         },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgDocumentNumbering>>(response)),
+        map((response) => normalizePagedResponse<OrgDocumentNumbering>(unwrapApiResponse(response), { page: query.page, size: query.size })),
         map((response) => ({
-          data: (response.data ?? []).map(normalizeNumbering),
-          total: response.total ?? 0,
-          page: response.page ?? 1,
-          size: response.size ?? query.size,
-          totalPages: response.totalPages ?? 1,
+          data: response.items.map(normalizeNumbering),
+          total: response.total,
+          page: response.page,
+          size: response.size,
+          totalPages: response.totalPages,
         })),
       );
   }
@@ -85,5 +87,11 @@ export class OrgDocumentNumberingService {
 
   remove(id: string): Observable<void> {
     return this.api.delete(`/v1/org/document-numbering/${id}`).pipe(map(() => void 0));
+  }
+
+  preview(id: string): Observable<string> {
+    return this.api
+      .get<ApiResponse<{ preview?: string }> | { preview?: string }>(`/v1/org/document-numbering/${id}/preview`)
+      .pipe(map((response) => unwrapApiResponse(response).preview ?? ''));
   }
 }
