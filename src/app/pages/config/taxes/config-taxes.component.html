@@ -1,35 +1,70 @@
-<nz-card>
-  <div class="header-row">
-    <div>
-      <h2>Impuestos</h2>
-      <p>Configura los impuestos disponibles para documentos y operaciones.</p>
-    </div>
-    <button nz-button nzType="primary" (click)="openModal()">Nuevo impuesto</button>
-  </div>
-
+<nz-card nzTitle="Impuestos" [nzExtra]="createTpl">
   <app-data-table
     [columns]="columns"
-    [data]="[]"
-    [loading]="false"
-    [total]="0"
-    [showToolbar]="false"
-    emptyMessage="Aún no hay impuestos"
-    emptyActionLabel="Crear primero impuesto"
-    (emptyAction)="openModal()"
+    [data]="rows()"
+    [loading]="loading()"
+    [error]="error()"
+    [total]="total()"
+    [pageIndex]="state.page"
+    [pageSize]="state.size"
+    [searchValue]="state.q"
+    searchPlaceholder="Buscar en impuestos"
+    [emptyMessage]="'Aún no hay impuestos'"
+    [emptyActionLabel]="'Crear primer impuesto'"
+    (emptyAction)="createFirst()"
+    (pageChange)="onPageChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (action)="handleAction($event)"
   ></app-data-table>
 </nz-card>
 
+<ng-template #createTpl>
+  <button nz-button nzType="primary" (click)="openCreate()">Nuevo impuesto</button>
+</ng-template>
+
 <nz-modal
   [nzVisible]="isModalVisible()"
-  nzTitle="Nuevo impuesto"
+  [nzTitle]="editingRow() ? 'Editar impuesto' : 'Nuevo impuesto'"
+  [nzOkLoading]="saving()"
+  [nzOkDisabled]="form.invalid || saving()"
   nzOkText="Guardar"
   nzCancelText="Cancelar"
-  [nzOkDisabled]="!taxName.trim()"
   (nzOnCancel)="closeModal()"
   (nzOnOk)="save()"
 >
   <ng-container *nzModalContent>
-    <label>Nombre</label>
-    <input nz-input [(ngModel)]="taxName" placeholder="Ej. IVA" />
+    <form nz-form [formGroup]="form" class="config-form">
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">Nombre</nz-form-label>
+        <nz-form-control [nzErrorTip]="nameErrorTpl">
+          <input nz-input formControlName="name" maxlength="100" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label [nzRequired]="true">Tasa (%)</nz-form-label>
+        <nz-form-control [nzErrorTip]="rateErrorTpl">
+          <nz-input-number formControlName="rate" [nzMin]="0" [nzMax]="100" [nzStep]="0.01"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label>Activo</nz-form-label>
+        <nz-form-control>
+          <nz-switch formControlName="active"></nz-switch>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+
+    <ng-template #nameErrorTpl>
+      <ng-container *ngIf="form.controls.name.hasError('required')">Nombre es requerido</ng-container>
+      <ng-container *ngIf="form.controls.name.hasError('maxlength')">Máximo 100 caracteres</ng-container>
+    </ng-template>
+
+    <ng-template #rateErrorTpl>
+      <ng-container *ngIf="form.controls.rate.hasError('required')">Tasa es requerida</ng-container>
+      <ng-container *ngIf="form.controls.rate.hasError('min')">El mínimo es 0</ng-container>
+      <ng-container *ngIf="form.controls.rate.hasError('max')">El máximo es 100</ng-container>
+    </ng-template>
   </ng-container>
 </nz-modal>

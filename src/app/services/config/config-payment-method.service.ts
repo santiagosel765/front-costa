@@ -1,35 +1,55 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
+import { ApiResponse, unwrapApiResponse } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
-import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
-import { CatalogDto, CatalogQuery, CatalogRecord, normalizeCatalogRecord } from './config.models';
+import {
+  CatalogQuery,
+  NormalizedListResponse,
+  PaymentMethodDto,
+  PaymentMethodRecord,
+  normalizeListResponse,
+  readAuditFields,
+  readBooleanField,
+  readStringField,
+} from './config.models';
 
 @Injectable({ providedIn: 'root' })
 export class ConfigPaymentMethodService {
   private readonly api = inject(ApiService);
 
-  list(query: CatalogQuery): Observable<PagedResponse<CatalogRecord>> {
+  list(params: CatalogQuery): Observable<NormalizedListResponse<PaymentMethodRecord>> {
     return this.api
-      .get<ApiResponse<PagedResponse<CatalogRecord>> | PagedResponse<CatalogRecord>>('/v1/config/payment-methods', {
-        params: { page: query.page, size: query.size, search: query.search ?? '' },
+      .get<ApiResponse<unknown> | unknown>('/v1/config/payment-methods', {
+        params: { page: params.page, size: params.size, search: params.search ?? '' },
       })
-      .pipe(map((response) => unwrapApiResponse(response)), map((response) => ({ ...response, data: (response.data ?? []).map(normalizeCatalogRecord) })));
+      .pipe(map((response) => normalizeListResponse(unwrapApiResponse(response), (item) => this.mapRecord(item))));
   }
 
-  create(dto: CatalogDto): Observable<CatalogRecord> {
+  create(payload: PaymentMethodDto): Observable<PaymentMethodRecord> {
     return this.api
-      .post<ApiResponse<CatalogRecord> | CatalogRecord>('/v1/config/payment-methods', dto)
-      .pipe(map((response) => normalizeCatalogRecord(unwrapApiResponse(response))));
+      .post<ApiResponse<unknown> | unknown>('/v1/config/payment-methods', payload)
+      .pipe(map((response) => this.mapRecord(unwrapApiResponse(response))));
   }
 
-  update(id: string, dto: CatalogDto): Observable<CatalogRecord> {
+  update(id: string, payload: PaymentMethodDto): Observable<PaymentMethodRecord> {
     return this.api
-      .put<ApiResponse<CatalogRecord> | CatalogRecord>(`/v1/config/payment-methods/${id}`, dto)
-      .pipe(map((response) => normalizeCatalogRecord(unwrapApiResponse(response))));
+      .put<ApiResponse<unknown> | unknown>(`/v1/config/payment-methods/${id}`, payload)
+      .pipe(map((response) => this.mapRecord(unwrapApiResponse(response))));
   }
 
-  remove(id: string): Observable<void> {
+  delete(id: string): Observable<void> {
     return this.api.delete(`/v1/config/payment-methods/${id}`).pipe(map(() => void 0));
+  }
+
+  private mapRecord(item: unknown): PaymentMethodRecord {
+    const source = (item ?? {}) as Record<string, unknown>;
+    return {
+      id: readStringField(source, 'id', 'id') ?? '',
+      name: readStringField(source, 'name', 'name') ?? '',
+      description: readStringField(source, 'description', 'description'),
+      active: readBooleanField(source, 'active', 'active', true),
+      ...readAuditFields(source),
+    };
   }
 }
