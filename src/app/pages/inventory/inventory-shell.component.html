@@ -1,11 +1,20 @@
-<nz-card nzTitle="Inventario / Datos Maestros">
-  <nav class="inv-nav">
-    <a routerLink="categories">Categorías</a>
-    <a routerLink="brands">Marcas</a>
-    <a routerLink="uom">Unidades de Medida</a>
-    <a routerLink="attributes">Atributos</a>
-    <a routerLink="tax-profiles">Perfiles de Impuestos</a>
-    <a routerLink="products">Productos</a>
+<nz-card class="inventory-shell" nzBordered>
+  <div class="page-header">
+    <div>
+      <p class="eyebrow">Panel central</p>
+      <h2 class="page-title">Inventario / Datos Maestros</h2>
+      <p class="page-subtitle">Gestiona catálogos base y productos desde un único hub.</p>
+    </div>
+  </div>
+
+  <nav class="inv-nav" aria-label="Navegación de inventario">
+    <a routerLink="products" routerLinkActive="active">Productos</a>
+    <a routerLink="categories" routerLinkActive="active">Categorías</a>
+    <a routerLink="brands" routerLinkActive="active">Marcas</a>
+    <a routerLink="uom" routerLinkActive="active">UOM</a>
+    <a routerLink="attributes" routerLinkActive="active">Atributos</a>
+    <a routerLink="tax-profiles" routerLinkActive="active">Perfiles de Impuestos</a>
   </nav>
+
+  <router-outlet></router-outlet>
 </nz-card>
-<router-outlet></router-outlet>
