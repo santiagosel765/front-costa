@@ -1,32 +1,58 @@
-<nz-card nzTitle="Sucursales" [nzExtra]="actionsTpl">
-  <app-data-table
-    [columns]="columns"
-    [data]="rows()"
-    [loading]="loading()"
-    [error]="error()"
-    [total]="total()"
-    [pageIndex]="tableState.snapshot.page"
-    [pageSize]="tableState.snapshot.size"
-    [searchValue]="tableState.snapshot.q"
-    searchPlaceholder="Buscar sucursal"
-    (pageChange)="onPageChange($event)"
-    (searchChange)="onSearchChange($event)"
-    (action)="handleAction($event)"
-  ></app-data-table>
+<nz-card nzTitle="Sucursales" [nzExtra]="actionsTpl" class="org-card">
+  <ng-container *ngIf="total() || loading() || error(); else emptyState">
+    <app-data-table
+      [columns]="columns"
+      [data]="rows()"
+      [loading]="loading()"
+      [error]="error()"
+      [total]="total()"
+      [pageIndex]="tableState.snapshot.page"
+      [pageSize]="tableState.snapshot.size"
+      [searchValue]="tableState.snapshot.q"
+      searchPlaceholder="Buscar sucursal"
+      (pageChange)="onPageChange($event)"
+      (searchChange)="onSearchChange($event)"
+      (action)="handleAction($event)"
+    ></app-data-table>
+  </ng-container>
+
+  <ng-template #emptyState>
+    <div class="empty-state">
+      <span nz-icon nzType="apartment" class="empty-state-icon"></span>
+      <h3>No hay sucursales registradas</h3>
+      <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Crear primera sucursal</button>
+    </div>
+  </ng-template>
 </nz-card>
 
 <ng-template #actionsTpl>
-  <button nz-button nzType="default" (click)="goAssignments()">Asignaciones</button>
-  <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Nueva sucursal</button>
+  <button nz-button nzType="default" (click)="goAssignments()">
+    <span nz-icon nzType="interaction"></span>
+    Asignaciones
+  </button>
+  <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">
+    <span nz-icon nzType="plus"></span>
+    Nueva sucursal
+  </button>
 </ng-template>
 
-<nz-modal [nzVisible]="isModalVisible()" [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'" [nzOkLoading]="loading()" (nzOnCancel)="closeModal()" (nzOnOk)="save()">
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'"
+  [nzOkLoading]="loading()"
+  nzOkText="Guardar"
+  nzCancelText="Cancelar"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
   <form [formGroup]="form" class="branch-form">
-    <label>Código</label>
+    <label>Código *</label>
     <input nz-input formControlName="code" />
+    <small class="field-error" *ngIf="codeError">{{ codeError }}</small>
 
-    <label>Nombre</label>
+    <label>Nombre *</label>
     <input nz-input formControlName="name" />
+    <small class="field-error" *ngIf="nameError">{{ nameError }}</small>
 
     <label>Dirección</label>
     <textarea nz-input formControlName="address" rows="2"></textarea>
@@ -34,7 +60,9 @@
     <label>Descripción</label>
     <textarea nz-input formControlName="description" rows="2"></textarea>
 
-    <label>Activo</label>
-    <nz-switch formControlName="active"></nz-switch>
+    <div class="switch-row">
+      <label>Activo</label>
+      <nz-switch formControlName="active"></nz-switch>
+    </div>
   </form>
 </nz-modal>

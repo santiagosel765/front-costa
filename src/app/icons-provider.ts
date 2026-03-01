@@ -30,6 +30,7 @@ import {
   SafetyOutline,
   SafetyCertificateOutline,
   UserAddOutline,
+  ApartmentOutline,
   
   // 🚨 ÍCONOS FALTANTES QUE ESTÁN CAUSANDO EL PROBLEMA:
   PlusOutline,           // Para el botón "Nueva Categoría"
@@ -82,6 +83,7 @@ export const icons = [
   SafetyOutline,
   SafetyCertificateOutline,
   UserAddOutline,
+  ApartmentOutline,
   
   // 🚨 ÍCONOS CRÍTICOS FALTANTES:
   PlusOutline,           // MUY IMPORTANTE - botón nueva categoría
