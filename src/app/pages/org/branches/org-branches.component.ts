@@ -212,11 +212,7 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.success(id ? 'Sucursal actualizada' : 'Sucursal creada');
         this.isModalVisible.set(false);
-        if (!id) {
-          this.tableState.patch(this.router, { page: 1 });
-          return;
-        }
-        this.loadBranches();
+        this.loadBranches(!id);
       },
       error: (error: unknown) => {
         if (error instanceof HttpErrorResponse && error.status === 409) {
@@ -266,18 +262,19 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadBranches(): void {
-    const state: TableState = this.tableState.snapshot;
+  private loadBranches(resetPage = false): void {
+    const snapshot: TableState = this.tableState.snapshot;
+    const state: TableState = resetPage ? { ...snapshot, page: 1 } : snapshot;
     this.loading.set(true);
     this.error.set(null);
 
     this.api.list({ page: state.page, size: state.size, search: state.q }).subscribe({
       next: (response) => {
-        this.rows.set(response.data.data ?? []);
-        this.total.set(response.data.total ?? 0);
+        this.rows.set(response.data ?? []);
+        this.total.set(response.total ?? 0);
         this.tableState.patch(this.router, {
-          page: response.data.page ?? 1,
-          size: response.data.size ?? state.size,
+          page: response.page ?? 1,
+          size: response.size ?? state.size,
         });
       },
       error: () => {

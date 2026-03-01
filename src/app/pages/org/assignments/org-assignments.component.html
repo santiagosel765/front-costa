@@ -29,24 +29,18 @@
           <span nz-icon nzType="search"></span>
           Filtrar
         </button>
-        <button nz-button nzType="default" (click)="clearFilters()" [disabled]="!hasAppliedFilters()">
+        <button nz-button nzType="default" (click)="clearFilters()">
           Limpiar
         </button>
       </div>
     </div>
 
-    <div *ngIf="!hasAppliedFilters()" class="selection-hint">
-      <span nz-icon nzType="info-circle"></span>
-      Selecciona un usuario o una sucursal y presiona <strong>Filtrar</strong> para consultar asignaciones.
-    </div>
-
-    <div *ngIf="hasAppliedFilters() && !loading() && rows().length === 0" class="selection-hint">
+    <div *ngIf="!loading() && rows().length === 0" class="selection-hint">
       <span nz-icon nzType="inbox"></span>
       No hay asignaciones para este criterio.
     </div>
 
-    <ng-container *ngIf="hasAppliedFilters()">
-      <nz-table [nzData]="rows()" [nzLoading]="loading()" [nzFrontPagination]="false" [nzShowPagination]="false" nzBordered>
+    <nz-table [nzData]="rows()" [nzLoading]="loading()" [nzFrontPagination]="false" [nzShowPagination]="false" nzBordered>
         <thead>
           <tr>
             <th>Usuario</th>
@@ -74,8 +68,8 @@
         </tbody>
       </nz-table>
 
-      <nz-pagination
-        *ngIf="total() > 0"
+    <nz-pagination
+      *ngIf="total() > 0"
         class="table-pagination"
         [nzTotal]="total()"
         [nzPageIndex]="pageIndex()"
@@ -86,7 +80,6 @@
         (nzPageIndexChange)="onPageIndexChange($event)"
         (nzPageSizeChange)="onPageSizeChange($event)"
       ></nz-pagination>
-    </ng-container>
   </nz-card>
 </div>
 
