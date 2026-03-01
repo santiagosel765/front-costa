@@ -1,0 +1,31 @@
+<nz-card class="config-shell-card" nzBordered>
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Configuración</h2>
+      <p class="page-subtitle">Administra catálogos y parámetros del sistema.</p>
+    </div>
+  </div>
+
+  <nz-breadcrumb class="page-breadcrumb">
+    <nz-breadcrumb-item>
+      <a routerLink="/main/config">Configuración</a>
+    </nz-breadcrumb-item>
+    <nz-breadcrumb-item>{{ currentTabLabel }}</nz-breadcrumb-item>
+  </nz-breadcrumb>
+
+  <nz-tabset
+    class="config-tabs"
+    [nzSelectedIndex]="selectedIndex"
+    (nzSelectedIndexChange)="onTabChange($event)"
+  >
+    <nz-tab nzTitle="Monedas"></nz-tab>
+    <nz-tab nzTitle="Impuestos"></nz-tab>
+    <nz-tab nzTitle="Métodos de pago"></nz-tab>
+    <nz-tab nzTitle="Tipos de documento"></nz-tab>
+    <nz-tab nzTitle="Parámetros"></nz-tab>
+  </nz-tabset>
+
+  <div class="tab-content">
+    <router-outlet></router-outlet>
+  </div>
+</nz-card>
