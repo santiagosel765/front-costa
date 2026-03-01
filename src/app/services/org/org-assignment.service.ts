@@ -38,7 +38,7 @@ export class OrgAssignmentService {
     return this.api
       .get<ApiResponse<PagedResponse<OrgAssignmentRecord>> | PagedResponse<OrgAssignmentRecord>>('/v1/org/user-branch-assignments', {
         params: {
-          page: query.page,
+          page: Math.max(1, query.page),
           size: query.size,
           ...(query.userId ? { userId: query.userId } : {}),
           ...(query.branchId ? { branchId: query.branchId } : {}),

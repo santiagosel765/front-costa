@@ -17,13 +17,27 @@ import { takeUntil } from 'rxjs/operators';
 import { SessionStore } from '../../../core/state/session.store';
 import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
 import { AppDataTableColumn, TableState } from '../../../shared/components/app-data-table/app-data-table.models';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TableStateService } from '../../../shared/table/table-state.service';
 import { OrgBranchDto, OrgBranchRecord, OrgBranchService } from '../../../services/org/org-branch.service';
 
 @Component({
   selector: 'app-org-branches',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NzCardModule, NzButtonModule, NzModalModule, NzInputModule, NzSwitchModule, NzFormModule, NzIconModule, AppDataTableComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NzCardModule,
+    NzButtonModule,
+    NzModalModule,
+    NzInputModule,
+    NzSwitchModule,
+    NzFormModule,
+    NzIconModule,
+    AppDataTableComponent,
+    PageHeaderComponent,
+  ],
   templateUrl: './org-branches.component.html',
   styleUrl: './org-branches.component.css',
   providers: [TableStateService, DatePipe],
@@ -46,6 +60,11 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
   readonly total = signal(0);
   readonly isModalVisible = signal(false);
   readonly editingId = signal<string | null>(null);
+
+  readonly breadcrumbs = [
+    { label: 'Organización', link: '/main/org' },
+    { label: 'Sucursales' },
+  ];
 
   readonly form = this.fb.nonNullable.group({
     code: ['', [Validators.required]],
@@ -86,8 +105,8 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
   ];
 
   ngOnInit(): void {
-    this.tableState.init(this.route, { size: 10 });
-    this.tableState.state$.pipe(takeUntil(this.destroy$)).subscribe((state) => this.load(state));
+    this.tableState.init(this.route, { page: 1, size: 10 });
+    this.tableState.state$.pipe(takeUntil(this.destroy$)).subscribe(() => this.loadBranches());
   }
 
   ngOnDestroy(): void {
@@ -123,12 +142,22 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     return null;
   }
 
+  get emptyMessage(): string {
+    return this.tableState.snapshot.q
+      ? `No hay resultados para "${this.tableState.snapshot.q}".`
+      : 'No hay sucursales registradas.';
+  }
+
   onPageChange(change: { pageIndex: number; pageSize: number }): void {
     this.tableState.patch(this.router, { page: change.pageIndex, size: change.pageSize });
   }
 
   onSearchChange(search: string): void {
     this.tableState.patch(this.router, { q: search, page: 1 });
+  }
+
+  clearSearch(): void {
+    this.tableState.patch(this.router, { q: '', page: 1 });
   }
 
   handleAction(event: { type: 'edit' | 'delete' | 'custom'; row: OrgBranchRecord }): void {
@@ -183,7 +212,7 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.success(id ? 'Sucursal actualizada' : 'Sucursal creada');
         this.isModalVisible.set(false);
-        this.load(this.tableState.snapshot);
+        this.loadBranches();
       },
       error: (error: unknown) => {
         if (error instanceof HttpErrorResponse && error.status === 409) {
@@ -217,8 +246,13 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.api.remove(id).subscribe({
       next: () => {
+        const shouldGoPreviousPage = this.rows().length === 1 && this.tableState.snapshot.page > 1;
         this.message.success('Sucursal eliminada');
-        this.load(this.tableState.snapshot);
+        if (shouldGoPreviousPage) {
+          this.tableState.patch(this.router, { page: this.tableState.snapshot.page - 1 });
+          return;
+        }
+        this.loadBranches();
       },
       error: () => {
         this.message.error('No se pudo eliminar la sucursal');
@@ -228,7 +262,8 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private load(state: TableState): void {
+  private loadBranches(): void {
+    const state: TableState = this.tableState.snapshot;
     this.loading.set(true);
     this.error.set(null);
 

@@ -1,4 +1,4 @@
-.org-card {
+.org-page-container {
   max-width: 1120px;
   margin: 0 auto;
 }
@@ -20,26 +20,8 @@
   justify-content: space-between;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 56px 16px;
-  color: #6b7280;
+.search-empty-actions {
+  margin-top: 12px;
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  align-items: center;
-}
-
-.empty-state h3,
-.empty-state p {
-  margin: 0;
-}
-
-.empty-state h3 {
-  color: #111827;
-}
-
-.empty-state-icon {
-  font-size: 56px;
-  color: #1677ff;
+  justify-content: center;
 }
