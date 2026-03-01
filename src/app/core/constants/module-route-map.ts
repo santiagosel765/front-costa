@@ -15,7 +15,7 @@ const MODULE_ROUTES: Record<string, string | null> = {
   BANKS: '/main/welcome',
   REPORTING_BI: '/main/welcome',
   AUDIT_LOGS: '/main/welcome',
-  PRODUCT: '/main/products',
+  PRODUCTOS_Y_SERVICIOS: '/main/products',
   CATEGORY: '/main/categories',
   CLIENT: '/main/clients',
   CLIENTES: '/main/clients',
@@ -30,7 +30,6 @@ const MODULE_ROUTES: Record<string, string | null> = {
   NOTIFICACIONES: null,
   ORDENES_DE_SERVICIO: null,
   PRODUCCION: null,
-  PRODUCTOS_Y_SERVICIOS: '/main/products',
   PUNTO_DE_VENTA: null,
   WMS: null,
   WORKFLOWS: null,
@@ -61,9 +60,9 @@ export const MODULE_ALIAS: Record<string, string> = {
   PURCHASES: 'PURCHASE',
   PURCHASE_ORDERS: 'PURCHASE',
   COMPRAS: 'PURCHASE',
-  PRODUCTS: 'PRODUCT',
-  PRODUCTOS: 'PRODUCT',
-  PRODUCTOS_Y_SERVICIOS: 'PRODUCT',
+  PRODUCT: 'PRODUCTOS_Y_SERVICIOS',
+  PRODUCTS: 'PRODUCTOS_Y_SERVICIOS',
+  PRODUCTOS: 'PRODUCTOS_Y_SERVICIOS',
   CATEGORIES: 'CATEGORY',
   CATEGORIAS: 'CATEGORY',
   CUENTAS_POR_COBRAR: 'AR',
@@ -138,6 +137,8 @@ const MODULE_LABELS: Record<string, string> = {
   BANKS: 'Bancos',
   REPORTING_BI: 'Reporting y BI',
   AUDIT_LOGS: 'Auditoría y Logs',
+  DATOS_MAESTROS: 'Datos Maestros',
+  PRODUCTOS_Y_SERVICIOS: 'Productos y Servicios',
 };
 
 const MODULE_ICONS: Record<string, string> = {
@@ -153,11 +154,12 @@ const MODULE_ICONS: Record<string, string> = {
   BANKS: 'bank',
   REPORTING_BI: 'bar-chart',
   AUDIT_LOGS: 'audit',
-  PRODUCT: 'shopping',
+  PRODUCTOS_Y_SERVICIOS: 'shopping',
   CATEGORY: 'tags',
   CLIENT: 'team',
   PROVIDER: 'contacts',
   QUOTE: 'file-search',
+  DATOS_MAESTROS: 'database',
 };
 
 export function resolveModulePresentation(module: AuthContextModule): ModuleUiManifest {
