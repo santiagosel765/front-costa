@@ -97,7 +97,6 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
         {
           type: 'custom',
           label: 'Marcar funcional',
-          icon: 'star',
           disabled: (row) => !!row.isFunctional,
           tooltip: (row) => (row.isFunctional ? 'Esta moneda ya es funcional' : null),
         },
@@ -135,6 +134,8 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
 
   closeModal(): void {
     this.isModalVisible.set(false);
+    this.editingRow.set(null);
+    this.resetForm();
   }
 
   openEdit(row: CurrencyRecord): void {
@@ -202,8 +203,10 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
       },
       error: (error: HttpErrorResponse) => {
         if (error.status === 409) {
-          this.form.controls.code.setErrors({ duplicate: true });
-          this.form.controls.code.markAsTouched();
+          if (this.isDuplicateCodeConflict(error)) {
+            this.form.controls.code.setErrors({ duplicate: true });
+            this.form.controls.code.markAsTouched();
+          }
           this.message.warning(mapHttpErrorMessage(error));
         } else {
           this.message.error(mapHttpErrorMessage(error));
@@ -250,12 +253,21 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
         this.message.success('Moneda funcional actualizada');
         this.loadCurrencies();
       },
-      error: () => {
-        this.message.error('No se pudo marcar la moneda como funcional');
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 409) {
+          this.message.warning(mapHttpErrorMessage(error));
+        } else {
+          this.message.error(mapHttpErrorMessage(error));
+        }
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),
     });
+  }
+
+  private isDuplicateCodeConflict(error: HttpErrorResponse): boolean {
+    const message = mapHttpErrorMessage(error).toLowerCase();
+    return message.includes('código') || message.includes('codigo') || message.includes('code');
   }
 
   private loadCurrencies(): void {
