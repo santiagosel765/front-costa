@@ -35,7 +35,7 @@
       </div>
     </div>
 
-    <div *ngIf="!loading() && rows().length === 0" class="selection-hint">
+    <div *ngIf="initialized() && !loading() && !catalogsLoading() && rows().length === 0" class="selection-hint">
       <span nz-icon nzType="inbox"></span>
       No hay asignaciones para este criterio.
     </div>
@@ -52,8 +52,8 @@
         </thead>
         <tbody>
           <tr *ngFor="let item of rows()">
-            <td>{{ resolveUserLabel(item) }}</td>
-            <td>{{ resolveBranchLabel(item) }}</td>
+            <td>{{ item.userLabel }}</td>
+            <td>{{ item.branchLabel }}</td>
             <td>
               <nz-tag [nzColor]="item.active ? 'green' : 'red'">{{ item.active ? 'Activo' : 'Inactivo' }}</nz-tag>
             </td>
