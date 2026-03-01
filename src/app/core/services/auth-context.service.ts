@@ -4,8 +4,8 @@ import { Observable, catchError, map, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { normalizeModuleName } from '../constants/module-route-map';
 import {
-  AuthContextModule,
   AuthContextResponse,
+  normalizeAuthContextModule,
   normalizeAuthContextPermissions,
   normalizeAuthContextUser,
 } from '../models/auth-context.models';
@@ -37,13 +37,16 @@ export class AuthContextService {
           ),
           tenant: this.sessionStore.snapshot.tenant ?? { tenantId: 'unknown', name: 'unknown' },
           roles: this.sessionStore.snapshot.roles,
-          modules: modules.map((module) => ({
-            key: normalizeModuleName(module.name) ?? module.name,
-            label: module.name,
-            enabled: module.status === 1,
-            baseRoute: null,
-            expiresAt: null,
-          })) as AuthContextModule[],
+          modules: modules
+            .filter((module) => module.status === 1)
+            .map((module) => normalizeAuthContextModule({
+              moduleKey: normalizeModuleName(module.moduleKey) ?? normalizeModuleName(module.name) ?? module.name,
+              name: module.name,
+              enabled: module.status === 1,
+              statusCode: module.status,
+              baseRoute: null,
+              expiresAt: null,
+            })),
           permissions: {},
           token: {
             accessToken: token ?? '',
@@ -60,7 +63,19 @@ export class AuthContextService {
     return {
       ...context,
       user: normalizeAuthContextUser(context.user),
+      modules: (context.modules ?? [])
+        .map((module) => normalizeAuthContextModule(module))
+        .filter((module) => module.enabled && this.isModuleActive(module.statusCode ?? module.statusId)),
       permissions: normalizeAuthContextPermissions(context.permissions),
     };
+  }
+
+  private isModuleActive(status?: string | number): boolean {
+    if (status === undefined || status === null) {
+      return true;
+    }
+
+    const normalized = String(status).toUpperCase();
+    return normalized === '1' || normalized === 'ACTIVE';
   }
 }

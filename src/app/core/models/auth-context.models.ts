@@ -18,8 +18,9 @@ export interface AuthContextTenant {
 }
 
 export interface AuthContextModule {
-  key: string;
-  label?: string | null;
+  // moduleKey es la key técnica estable; name es únicamente el label de UI.
+  moduleKey: string;
+  name: string;
   enabled: boolean;
   statusCode?: string | number;
   statusId?: string | number;
@@ -27,6 +28,16 @@ export interface AuthContextModule {
   expiresAt?: string | null;
   baseRoute?: string | null;
   icon?: string | null;
+}
+
+export interface RawAuthContextModule extends Partial<AuthContextModule> {
+  module_key?: string;
+  label?: string;
+  status_code?: string | number;
+  status_id?: string | number;
+  status_label?: string;
+  expires_at?: string | null;
+  base_route?: string | null;
 }
 
 export interface AuthContextToken {
@@ -98,6 +109,30 @@ export function normalizeAuthContextPermissions(
     acc[normalizedKey] = { read: false, write: false, delete: false };
     return acc;
   }, {});
+}
+
+export function normalizeAuthContextModule(module: RawAuthContextModule): AuthContextModule {
+  const moduleKey = String(module.moduleKey ?? module.module_key ?? '').trim();
+  const normalizedModuleKey = moduleKey.toUpperCase();
+
+  const statusCode = module.statusCode ?? module.status_code;
+  const statusId = module.statusId ?? module.status_id;
+  const rawEnabled = module.enabled;
+  const enabledFromStatus = [statusCode, statusId].some(
+    (value) => value !== undefined && value !== null && String(value).toUpperCase() === '1',
+  );
+
+  return {
+    moduleKey: normalizedModuleKey,
+    name: String(module.name ?? module.label ?? normalizedModuleKey),
+    enabled: typeof rawEnabled === 'boolean' ? rawEnabled : ([statusCode, statusId].every((value) => value === undefined || value === null) ? true : enabledFromStatus),
+    statusCode: statusCode as string | number | undefined,
+    statusId: statusId as string | number | undefined,
+    statusLabel: (module.statusLabel ?? module.status_label) as string | undefined,
+    expiresAt: (module.expiresAt ?? module.expires_at) as string | null | undefined,
+    baseRoute: (module.baseRoute ?? module.base_route) as string | null | undefined,
+    icon: module.icon as string | null | undefined,
+  };
 }
 
 function resolveStatusKey(status?: string | number): string {

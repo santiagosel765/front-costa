@@ -7,6 +7,8 @@ import { ApiService } from './api.service';
 export interface ModuleDTO {
   id: string;
   name: string;
+  moduleKey?: string;
+  module_key?: string;
   description: string;
   status: number;
 }
