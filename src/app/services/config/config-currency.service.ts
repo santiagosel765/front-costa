@@ -8,6 +8,7 @@ import { CatalogQuery } from './config.models';
 export interface CurrencyDto {
   code: string;
   name: string;
+  description?: string;
   symbol?: string;
   decimals?: number;
   isFunctional?: boolean;
@@ -37,15 +38,15 @@ export class ConfigCurrencyService {
       );
   }
 
-  create(dto: CurrencyDto): Observable<CurrencyRecord> {
+  createCurrency(payload: CurrencyDto): Observable<CurrencyRecord> {
     return this.api
-      .post<ApiResponse<CurrencyRecord> | CurrencyRecord>('/v1/config/currencies', dto)
+      .post<ApiResponse<CurrencyRecord> | CurrencyRecord>('/v1/config/currencies', payload)
       .pipe(map((response) => this.normalizeRecord(unwrapApiResponse(response))));
   }
 
-  update(id: string, dto: CurrencyDto): Observable<CurrencyRecord> {
+  updateCurrency(id: string, payload: CurrencyDto): Observable<CurrencyRecord> {
     return this.api
-      .put<ApiResponse<CurrencyRecord> | CurrencyRecord>(`/v1/config/currencies/${id}`, dto)
+      .put<ApiResponse<CurrencyRecord> | CurrencyRecord>(`/v1/config/currencies/${id}`, payload)
       .pipe(map((response) => this.normalizeRecord(unwrapApiResponse(response))));
   }
 
@@ -53,8 +54,20 @@ export class ConfigCurrencyService {
     return this.api.put(`/v1/config/currencies/${id}/functional`, {}).pipe(map(() => void 0));
   }
 
-  remove(id: string): Observable<void> {
+  deleteCurrency(id: string): Observable<void> {
     return this.api.delete(`/v1/config/currencies/${id}`).pipe(map(() => void 0));
+  }
+
+  create(payload: CurrencyDto): Observable<CurrencyRecord> {
+    return this.createCurrency(payload);
+  }
+
+  update(id: string, payload: CurrencyDto): Observable<CurrencyRecord> {
+    return this.updateCurrency(id, payload);
+  }
+
+  remove(id: string): Observable<void> {
+    return this.deleteCurrency(id);
   }
 
   private extractListData(response: PagedResponse<CurrencyRecord>): CurrencyRecord[] {
@@ -76,6 +89,7 @@ export class ConfigCurrencyService {
       ...record,
       code: (record.code ?? '').trim().toUpperCase(),
       name: (record.name ?? '').trim(),
+      description: record.description ?? '',
       symbol: record.symbol ?? '',
       decimals: Number(record.decimals ?? 2),
       isFunctional: record.isFunctional ?? source.is_functional ?? false,
