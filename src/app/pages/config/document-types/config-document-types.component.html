@@ -1,0 +1,35 @@
+<nz-card>
+  <div class="header-row">
+    <div>
+      <h2>Tipos de documento</h2>
+      <p>Administra los tipos de documento que se usarán en procesos administrativos.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="openModal()">Nuevo tipo</button>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [data]="[]"
+    [loading]="false"
+    [total]="0"
+    [showToolbar]="false"
+    emptyMessage="Aún no hay tipos de documento"
+    emptyActionLabel="Crear primero tipo"
+    (emptyAction)="openModal()"
+  ></app-data-table>
+</nz-card>
+
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  nzTitle="Nuevo tipo de documento"
+  nzOkText="Guardar"
+  nzCancelText="Cancelar"
+  [nzOkDisabled]="!documentTypeName.trim()"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <label>Nombre</label>
+    <input nz-input [(ngModel)]="documentTypeName" placeholder="Ej. Factura" />
+  </ng-container>
+</nz-modal>

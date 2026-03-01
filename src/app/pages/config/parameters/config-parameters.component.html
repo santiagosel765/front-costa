@@ -1,0 +1,35 @@
+<nz-card>
+  <div class="header-row">
+    <div>
+      <h2>Parámetros</h2>
+      <p>Define parámetros generales para personalizar el comportamiento del sistema.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="openModal()">Nuevo parámetro</button>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [data]="[]"
+    [loading]="false"
+    [total]="0"
+    [showToolbar]="false"
+    emptyMessage="Aún no hay parámetros"
+    emptyActionLabel="Crear primero parámetro"
+    (emptyAction)="openModal()"
+  ></app-data-table>
+</nz-card>
+
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  nzTitle="Nuevo parámetro"
+  nzOkText="Guardar"
+  nzCancelText="Cancelar"
+  [nzOkDisabled]="!parameterName.trim()"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <label>Nombre</label>
+    <input nz-input [(ngModel)]="parameterName" placeholder="Ej. IVA_DEFAULT" />
+  </ng-container>
+</nz-modal>

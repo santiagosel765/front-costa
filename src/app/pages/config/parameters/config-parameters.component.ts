@@ -1,32 +1,51 @@
-import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule } from 'ng-zorro-antd/modal';
 
-import { ConfigParameterService } from '../../../services/config/config-parameter.service';
-import { CatalogRecord } from '../../../services/config/config.models';
+import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
 import { AppDataTableColumn } from '../../../shared/components/app-data-table/app-data-table.models';
-import { CatalogFormField, CatalogPageComponent } from '../catalog-page/catalog-page.component';
+
+interface ParameterRow {
+  code: string;
+  value: string;
+  status: string;
+}
 
 @Component({
   selector: 'app-config-parameters',
   standalone: true,
-  imports: [CatalogPageComponent],
-  template: `<app-catalog-page title="Parámetros" moduleKey="CONFIG" createLabel="Nuevo parámetro" [api]="api" [fields]="fields" [columnsOverride]="columns"></app-catalog-page>`,
+  imports: [CommonModule, FormsModule, NzCardModule, NzButtonModule, NzModalModule, NzInputModule, AppDataTableComponent],
+  templateUrl: './config-parameters.component.html',
+  styleUrls: ['./config-parameters.component.css'],
 })
 export class ConfigParametersComponent {
-  readonly api = inject(ConfigParameterService);
+  readonly isModalVisible = signal(false);
+  parameterName = '';
 
-  readonly fields: CatalogFormField[] = [
-    { key: 'code', label: 'Código', type: 'text', required: true },
-    { key: 'name', label: 'Nombre', type: 'text', required: true },
-    { key: 'description', label: 'Descripción', type: 'textarea' },
-    { key: 'value', label: 'Valor', type: 'text', required: true },
-    { key: 'active', label: 'Activo', type: 'switch' },
-  ];
-
-  readonly columns: AppDataTableColumn<CatalogRecord>[] = [
-    { key: 'code', title: 'Código', sortable: true },
-    { key: 'name', title: 'Nombre', sortable: true },
-    { key: 'description', title: 'Descripción' },
+  readonly columns: AppDataTableColumn<ParameterRow>[] = [
+    { key: 'code', title: 'Código' },
     { key: 'value', title: 'Valor' },
-    { key: 'active', title: 'Activo', cellType: 'tag', tagColor: (r) => (r.active ? 'green' : 'red'), tagText: (r) => (r.active ? 'Sí' : 'No') },
+    { key: 'status', title: 'Estado' },
   ];
+
+  constructor(private readonly message: NzMessageService) {}
+
+  openModal(): void {
+    this.isModalVisible.set(true);
+  }
+
+  closeModal(): void {
+    this.isModalVisible.set(false);
+  }
+
+  save(): void {
+    this.message.info('Pendiente de integrar backend');
+    this.parameterName = '';
+    this.closeModal();
+  }
 }
