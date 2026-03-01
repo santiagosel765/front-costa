@@ -71,6 +71,8 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy, OnChanges {
   @Input() sortOrder: AppTableSortOrder = null;
   @Input() emptyMessage = 'No hay resultados';
   @Input() showToolbar = true;
+  @Input() emptyActionLabel: string | null = null;
+  @Input() emptyActionDisabled = false;
   @Input() searchPlaceholder = 'Buscar';
   @Input() showStatusFilter = false;
   @Input() statusOptions: Array<{ label: string; value: string | number | null }> = [
@@ -84,6 +86,7 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy, OnChanges {
   @Output() readonly searchChange = new EventEmitter<string>();
   @Output() readonly filterChange = new EventEmitter<AppDataTableFilterChange>();
   @Output() readonly action = new EventEmitter<{ type: 'edit' | 'delete' | 'custom'; row: T }>();
+  @Output() readonly emptyAction = new EventEmitter<void>();
 
   protected searchInput = '';
   private readonly searchSubject = new Subject<string>();
@@ -141,6 +144,10 @@ export class AppDataTableComponent<T> implements OnInit, OnDestroy, OnChanges {
   resolveValue(column: AppDataTableColumn<T>, row: T): string | number {
     const value = column.valueGetter ? column.valueGetter(row) : (row as unknown as Record<string, unknown>)[column.key];
     return value === null || value === undefined || value === '' ? '-' : (value as string | number);
+  }
+
+  onEmptyAction(): void {
+    this.emptyAction.emit();
   }
 
   resolveTooltip(action: { tooltip?: string | ((row: T) => string | null) }, row: T): string | null {

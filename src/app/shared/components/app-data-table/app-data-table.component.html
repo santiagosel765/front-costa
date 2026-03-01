@@ -95,7 +95,22 @@
       </tbody>
     </nz-table>
 
-    <nz-empty *ngIf="!loading && total === 0" [nzNotFoundContent]="emptyMessage"></nz-empty>
+    <nz-empty *ngIf="!loading && total === 0" [nzNotFoundContent]="emptyTpl"></nz-empty>
+
+    <ng-template #emptyTpl>
+      <div class="empty-state">
+        <span>{{ emptyMessage }}</span>
+        <button
+          *ngIf="emptyActionLabel"
+          nz-button
+          nzType="primary"
+          [disabled]="emptyActionDisabled"
+          (click)="onEmptyAction()"
+        >
+          {{ emptyActionLabel }}
+        </button>
+      </div>
+    </ng-template>
 
     <nz-pagination
       *ngIf="total > 0"
