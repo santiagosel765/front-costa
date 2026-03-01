@@ -48,7 +48,8 @@ import {
   EyeOutline,            // Para ver
   DeleteOutline,         // Para eliminar
   FileOutline,           // Para subcategorías
-  RightOutline           // Para la flecha de jerarquía
+  RightOutline,          // Para la flecha de jerarquía
+  LockOutline            // Para formularios y pantallas con bloqueo
 } from '@ant-design/icons-angular/icons';
 
 export const icons = [
@@ -101,5 +102,6 @@ export const icons = [
   EyeOutline,            // Ver
   DeleteOutline,         // Eliminar
   FileOutline,           // Archivo
-  RightOutline           // Flecha
+  RightOutline,          // Flecha
+  LockOutline            // Candado
 ];

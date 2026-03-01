@@ -36,12 +36,20 @@ export class OrgBranchService {
         params: { page: Math.max(1, query.page), size: query.size, search: query.search ?? '' },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgBranchRecord>>(response)),
-        map((response) => ({
-          ...response,
-          page: Math.max(1, response.page ?? 1),
-          data: (response.data ?? []).map(normalizeBranchRecord),
-        })),
+        map((response) => unwrapApiResponse<PagedResponse<OrgBranchRecord> | { data?: OrgBranchRecord[]; total?: number; page?: number; size?: number; totalPages?: number }>(response)),
+        map((response) => {
+          const rows = Array.isArray((response as PagedResponse<OrgBranchRecord>).data)
+            ? (response as PagedResponse<OrgBranchRecord>).data
+            : [];
+
+          return {
+            data: rows.map(normalizeBranchRecord),
+            total: response.total ?? rows.length,
+            page: Math.max(1, response.page ?? 1),
+            size: response.size ?? query.size,
+            totalPages: response.totalPages ?? 1,
+          } satisfies PagedResponse<OrgBranchRecord>;
+        }),
       );
   }
 
