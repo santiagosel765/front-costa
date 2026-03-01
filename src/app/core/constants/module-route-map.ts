@@ -70,18 +70,18 @@ export function normalizeModuleName(name?: string | null): string | undefined {
 }
 
 export function resolveModulePresentation(module: AuthContextModule): ModuleUiManifest {
-  const key = normalizeModuleName(module.key) ?? module.key;
+  const key = normalizeModuleName(module.moduleKey) ?? module.moduleKey;
   const fromManifest = MODULE_UI_MANIFEST[key];
 
   if (!fromManifest) {
     if (isDevMode()) {
-      console.warn('[module-route-map] Unknown module key:', module.key);
+      console.warn('[module-route-map] Unknown module key:', module.moduleKey);
     }
 
     return {
       route: '/main/welcome',
       icon: 'appstore',
-      label: module.label || 'Disponible (pendiente configuración)',
+      label: module.name || 'Disponible (pendiente configuración)',
     };
   }
 
@@ -92,6 +92,6 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
   return {
     route: shouldPreferManifestRoute ? fromManifest.route : (module.baseRoute || fromManifest.route),
     icon: module.icon || fromManifest.icon,
-    label: shouldPreferManifestLabel ? fromManifest.label : (module.label || fromManifest.label),
+    label: shouldPreferManifestLabel ? fromManifest.label : (module.name || fromManifest.label),
   };
 }

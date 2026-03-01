@@ -15,7 +15,7 @@ import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Subject, takeUntil } from 'rxjs';
 
-import { normalizeModuleName, resolveModulePresentation } from '../../core/constants/module-route-map';
+import { resolveModulePresentation } from '../../core/constants/module-route-map';
 import { AuthContextModule } from '../../core/models/auth-context.models';
 import { SessionStore } from '../../core/state/session.store';
 
@@ -53,17 +53,12 @@ export class SidebarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (modules) => {
-          const uniqueMenuItems = new Map<string, SidebarMenuItem>();
+          const uniqueModules = Array.from(new Map(modules.map((module) => [module.moduleKey, module])).values());
 
-          modules.forEach((module) => {
-            const item = this.buildMenuItem(module);
-            const uniqueKey = this.resolveUniqueKey(module, item);
-            if (!uniqueMenuItems.has(uniqueKey)) {
-              uniqueMenuItems.set(uniqueKey, item);
-            }
-          });
+          this.menuItems = uniqueModules
+            .map((module) => this.buildMenuItem(module))
+            .sort((left, right) => left.label.localeCompare(right.label, 'es'));
 
-          this.menuItems = Array.from(uniqueMenuItems.values());
           this.loading = false;
           this.cdr.markForCheck();
         },
@@ -88,24 +83,13 @@ export class SidebarComponent implements OnInit, OnDestroy {
     this.sessionStore.clearSession();
   }
 
-
-  private resolveUniqueKey(module: AuthContextModule, item: SidebarMenuItem): string {
-    const normalizedKey = normalizeModuleName(module.key);
-    if (normalizedKey) {
-      return normalizedKey;
-    }
-
-    return item.key?.toUpperCase?.() || module.key || item.route;
-  }
-
   private buildMenuItem(module: AuthContextModule): SidebarMenuItem {
-    const key = normalizeModuleName(module.key) ?? module.key;
     const metadata = resolveModulePresentation(module);
 
     return {
-      key,
+      key: module.moduleKey,
       route: metadata.route,
-      label: metadata.label,
+      label: module.name,
       icon: metadata.icon,
     };
   }

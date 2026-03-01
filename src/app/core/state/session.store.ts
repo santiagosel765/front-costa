@@ -12,6 +12,7 @@ import {
   AuthContextToken,
   AuthContextTenant,
   AuthContextUser,
+  normalizeAuthContextModule,
   normalizeAuthContextPermissions,
   normalizeAuthContextUser,
 } from '../models/auth-context.models';
@@ -72,7 +73,7 @@ export class SessionStore {
       user: normalizeAuthContextUser(context.user),
       tenant: context.tenant,
       roles: context.roles ?? [],
-      modules: context.modules ?? [],
+      modules: (context.modules ?? []).map((module) => normalizeAuthContextModule(module)),
       permissions: normalizeAuthContextPermissions(context.permissions),
       serverTime: context.serverTime ?? null,
     });
@@ -127,7 +128,7 @@ export class SessionStore {
 
     const expected = normalizeModuleName(moduleKey) ?? moduleKey;
     return this.getActiveModules().some((module) => {
-      const normalizedKey = normalizeModuleName(module.key) ?? module.key;
+      const normalizedKey = normalizeModuleName(module.moduleKey) ?? module.moduleKey;
       return normalizedKey === expected;
     });
   }
@@ -235,6 +236,7 @@ export class SessionStore {
         ...INITIAL_STATE,
         ...parsed,
         user: parsed.user ? normalizeAuthContextUser(parsed.user) : null,
+        modules: (parsed.modules ?? []).map((module) => normalizeAuthContextModule(module)),
         permissions: normalizeAuthContextPermissions(parsed.permissions),
         accessToken: token ?? parsed.accessToken,
       };

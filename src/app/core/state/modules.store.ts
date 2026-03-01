@@ -67,7 +67,7 @@ export class ModulesStore {
 
     const normalized = moduleName.toUpperCase();
     return this.getEnabledModules().some((module) => {
-      const moduleKey = module.name?.toUpperCase() ?? '';
+      const moduleKey = (module.moduleKey ?? module.module_key ?? module.name)?.toUpperCase() ?? '';
       const alias = MODULE_ALIAS[moduleKey] ?? moduleKey;
       return alias === normalized;
     });
