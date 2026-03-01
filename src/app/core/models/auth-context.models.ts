@@ -19,25 +19,30 @@ export interface AuthContextTenant {
 
 export interface AuthContextModule {
   // moduleKey es la key técnica estable; name es únicamente el label de UI.
-  moduleKey: string;
-  name: string;
-  enabled: boolean;
+  moduleKey?: string | null;
+  name?: string | null;
+  key?: string | null;
+  label?: string | null;
+  enabled?: boolean;
   statusCode?: string | number;
   statusId?: string | number;
   statusLabel?: string;
   expiresAt?: string | null;
   baseRoute?: string | null;
   icon?: string | null;
+  sortOrder?: number | null;
 }
 
 export interface RawAuthContextModule extends Partial<AuthContextModule> {
   module_key?: string;
-  label?: string;
+  key?: string | null;
+  label?: string | null;
   status_code?: string | number;
   status_id?: string | number;
   status_label?: string;
   expires_at?: string | null;
   base_route?: string | null;
+  sort_order?: number | null;
 }
 
 export interface AuthContextToken {
@@ -112,7 +117,7 @@ export function normalizeAuthContextPermissions(
 }
 
 export function normalizeAuthContextModule(module: RawAuthContextModule): AuthContextModule {
-  const moduleKey = String(module.moduleKey ?? module.module_key ?? '').trim();
+  const moduleKey = String(module.moduleKey ?? module.module_key ?? module.key ?? '').trim();
   const normalizedModuleKey = moduleKey.toUpperCase();
 
   const statusCode = module.statusCode ?? module.status_code;
@@ -124,7 +129,9 @@ export function normalizeAuthContextModule(module: RawAuthContextModule): AuthCo
 
   return {
     moduleKey: normalizedModuleKey,
+    key: module.key ?? normalizedModuleKey,
     name: String(module.name ?? module.label ?? normalizedModuleKey),
+    label: String(module.label ?? module.name ?? normalizedModuleKey),
     enabled: typeof rawEnabled === 'boolean' ? rawEnabled : ([statusCode, statusId].every((value) => value === undefined || value === null) ? true : enabledFromStatus),
     statusCode: statusCode as string | number | undefined,
     statusId: statusId as string | number | undefined,
@@ -132,6 +139,7 @@ export function normalizeAuthContextModule(module: RawAuthContextModule): AuthCo
     expiresAt: (module.expiresAt ?? module.expires_at) as string | null | undefined,
     baseRoute: (module.baseRoute ?? module.base_route) as string | null | undefined,
     icon: module.icon as string | null | undefined,
+    sortOrder: (module.sortOrder ?? module.sort_order) as number | null | undefined,
   };
 }
 

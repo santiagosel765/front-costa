@@ -17,7 +17,7 @@ import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzSpinModule } from 'ng-zorro-antd/spin';
 import { Subject, takeUntil } from 'rxjs';
 
-import { resolveModulePresentation } from '../../core/constants/module-route-map';
+import { normalizeModuleName, resolveModulePresentation } from '../../core/constants/module-route-map';
 import { AuthContextModule } from '../../core/models/auth-context.models';
 import { SessionStore } from '../../core/state/session.store';
 
@@ -61,7 +61,19 @@ export class SidebarComponent implements OnInit, OnDestroy {
             console.debug('[sidebar] modules from session', modules.map((module) => module.moduleKey));
           }
 
-          const uniqueModules = Array.from(new Map(modules.map((module) => [module.moduleKey, module])).values());
+          const keyOf = (module: AuthContextModule): string =>
+            normalizeModuleName(module.moduleKey ?? module.key) ?? 'UNKNOWN';
+
+          if (isDevMode()) {
+            console.debug(
+              '[sidebar] normalized module keys',
+              modules.map((module) => ({ raw: module.moduleKey ?? module.key, normalized: keyOf(module) })),
+            );
+          }
+
+          const uniqueModules = Array.from(new Map(modules.map((module) => [keyOf(module), module])).entries()).map(
+            ([key, module]) => ({ ...module, moduleKey: key }),
+          );
 
           this.menuItems = uniqueModules
             .map((module) => this.buildMenuItem(module))
@@ -106,8 +118,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private buildMenuItem(module: AuthContextModule): SidebarMenuItem {
     const metadata = resolveModulePresentation(module);
 
+    const key = normalizeModuleName(module.moduleKey ?? module.key) ?? 'UNKNOWN';
+
     return {
-      key: module.moduleKey,
+      key,
       route: metadata.route,
       label: metadata.label,
       icon: metadata.icon,
