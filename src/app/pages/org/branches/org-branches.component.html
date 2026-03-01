@@ -1,53 +1,47 @@
-<div class="org-page-container">
-  <app-page-header
-    [breadcrumbs]="breadcrumbs"
-    title="Sucursales"
-    subtitle="Administra la estructura operativa de sucursales para inventario y asignaciones."
-  >
-    <button headerActions nz-button nzType="default" (click)="goAssignments()">
-      <span nz-icon nzType="interaction"></span>
-      Asignaciones
-    </button>
-    <button *ngIf="canWrite()" headerActions nz-button nzType="primary" (click)="openCreate()">
+<nz-card nzBordered>
+  <div class="branch-header">
+    <div>
+      <h3>Sucursales</h3>
+      <p>Administra sucursales y datos de ubicación operativa.</p>
+    </div>
+    <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">
       <span nz-icon nzType="plus"></span>
       Nueva sucursal
     </button>
-  </app-page-header>
+  </div>
 
-  <nz-card nzBordered>
-    <app-data-table
-      [columns]="columns"
-      [data]="rows()"
-      [loading]="loading()"
-      [error]="error()"
-      [total]="total()"
-      [pageIndex]="tableState.snapshot.page"
-      [pageSize]="tableState.snapshot.size"
-      [searchValue]="tableState.snapshot.q"
-      [emptyMessage]="emptyMessage"
-      searchPlaceholder="Buscar sucursal"
-      (pageChange)="onPageChange($event)"
-      (searchChange)="onSearchChange($event)"
-      (action)="handleAction($event)"
-    ></app-data-table>
+  <app-data-table
+    [columns]="columns"
+    [data]="rows()"
+    [loading]="loading()"
+    [error]="error()"
+    [total]="total()"
+    [pageIndex]="tableState.snapshot.page"
+    [pageSize]="tableState.snapshot.size"
+    [searchValue]="tableState.snapshot.q"
+    [emptyMessage]="emptyMessage"
+    searchPlaceholder="Buscar sucursal"
+    (pageChange)="onPageChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (action)="handleAction($event)"
+  ></app-data-table>
 
-    <div *ngIf="!loading() && rows().length === 0 && tableState.snapshot.q" class="search-empty-actions">
-      <button nz-button nzType="default" (click)="clearSearch()">
-        <span nz-icon nzType="close-circle"></span>
-        Limpiar filtro
-      </button>
-    </div>
+  <div *ngIf="!loading() && rows().length === 0 && tableState.snapshot.q" class="search-empty-actions">
+    <button nz-button nzType="default" (click)="clearSearch()">
+      <span nz-icon nzType="close-circle"></span>
+      Limpiar filtro
+    </button>
+  </div>
+</nz-card>
 
-    <div *ngIf="!loading() && rows().length === 0 && !tableState.snapshot.q && canWrite()" class="search-empty-actions">
-      <button nz-button nzType="primary" (click)="openCreate()">
-        <span nz-icon nzType="plus"></span>
-        Crear primera sucursal
-      </button>
-    </div>
-  </nz-card>
-</div>
-
-<nz-modal [nzVisible]="isModalVisible()" [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'" [nzFooter]="modalFooter" (nzOnCancel)="closeModal()">
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'"
+  [nzOkLoading]="saving()"
+  [nzOkDisabled]="form.invalid"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
   <ng-container *nzModalContent>
     <form [formGroup]="form" class="branch-form">
       <label>Código *</label>
@@ -58,11 +52,47 @@
       <input nz-input formControlName="name" />
       <small class="field-error" *ngIf="nameError">{{ nameError }}</small>
 
-      <label>Dirección</label>
-      <textarea nz-input formControlName="address" rows="2"></textarea>
-
       <label>Descripción</label>
       <textarea nz-input formControlName="description" rows="2"></textarea>
+
+      <h4>Ubicación</h4>
+      <label>Dirección línea 1</label>
+      <input nz-input formControlName="addressLine1" />
+
+      <label>Dirección línea 2</label>
+      <input nz-input formControlName="addressLine2" />
+
+      <div class="location-grid">
+        <div>
+          <label>Ciudad</label>
+          <input nz-input formControlName="city" />
+        </div>
+        <div>
+          <label>Depto / Estado</label>
+          <input nz-input formControlName="state" />
+        </div>
+        <div>
+          <label>País</label>
+          <input nz-input formControlName="country" />
+        </div>
+      </div>
+
+      <label>Código postal</label>
+      <input nz-input formControlName="postalCode" />
+
+      <div class="location-grid">
+        <div>
+          <label>Latitud</label>
+          <input nz-input type="number" formControlName="latitude" />
+        </div>
+        <div>
+          <label>Longitud</label>
+          <input nz-input type="number" formControlName="longitude" />
+        </div>
+      </div>
+
+      <label>Notas de ubicación</label>
+      <textarea nz-input formControlName="locationNotes" rows="2"></textarea>
 
       <div class="switch-row">
         <label>Activo</label>
@@ -70,9 +100,4 @@
       </div>
     </form>
   </ng-container>
-
-  <ng-template #modalFooter>
-    <button nz-button nzType="default" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
-    <button nz-button nzType="primary" (click)="save()" [disabled]="form.invalid || saving()" [nzLoading]="saving()">Guardar</button>
-  </ng-template>
 </nz-modal>

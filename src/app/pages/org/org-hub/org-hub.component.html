@@ -1,0 +1,20 @@
+<nz-card class="org-hub-card" nzBordered>
+  <div class="org-hub-header">
+    <h2>Organización</h2>
+    <p>Hub central para administrar sucursales, asignaciones, bodegas y numeración.</p>
+  </div>
+
+  <nz-tabset [nzSelectedIndex]="selectedIndex" (nzSelectedIndexChange)="onTabChange($event)">
+    <nz-tab nzTitle="Sucursales"></nz-tab>
+    <nz-tab nzTitle="Asignaciones"></nz-tab>
+    <nz-tab nzTitle="Bodegas"></nz-tab>
+    <nz-tab nzTitle="Numeración"></nz-tab>
+  </nz-tabset>
+
+  <div class="org-tab-content" [ngSwitch]="activeTab">
+    <app-org-branches *ngSwitchCase="'branches'"></app-org-branches>
+    <app-org-assignments *ngSwitchCase="'assignments'"></app-org-assignments>
+    <app-org-warehouses *ngSwitchCase="'warehouses'"></app-org-warehouses>
+    <app-org-numbering *ngSwitchCase="'numbering'"></app-org-numbering>
+  </div>
+</nz-card>

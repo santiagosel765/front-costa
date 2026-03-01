@@ -105,8 +105,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       icon: metadata.icon,
       children: key === 'ORG'
         ? [
-            { key: 'ORG_BRANCHES', route: '/main/org/branches', label: 'Sucursales' },
-            { key: 'ORG_ASSIGNMENTS', route: '/main/org/assignments', label: 'Asignaciones' },
+            { key: 'ORG_HUB', route: '/main/org', label: 'Hub organización' },
           ]
         : undefined,
     };

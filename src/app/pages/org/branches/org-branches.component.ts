@@ -17,7 +17,6 @@ import { takeUntil } from 'rxjs/operators';
 import { SessionStore } from '../../../core/state/session.store';
 import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
 import { AppDataTableColumn, TableState } from '../../../shared/components/app-data-table/app-data-table.models';
-import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { TableStateService } from '../../../shared/table/table-state.service';
 import { OrgBranchDto, OrgBranchRecord, OrgBranchService } from '../../../services/org/org-branch.service';
 
@@ -36,7 +35,6 @@ import { OrgBranchDto, OrgBranchRecord, OrgBranchService } from '../../../servic
     NzFormModule,
     NzIconModule,
     AppDataTableComponent,
-    PageHeaderComponent,
   ],
   templateUrl: './org-branches.component.html',
   styleUrl: './org-branches.component.css',
@@ -61,25 +59,32 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
   readonly isModalVisible = signal(false);
   readonly editingId = signal<string | null>(null);
 
-  readonly breadcrumbs = [
-    { label: 'Organización', link: '/main/org' },
-    { label: 'Sucursales' },
-  ];
-
   readonly form = this.fb.nonNullable.group({
     code: ['', [Validators.required]],
     name: ['', [Validators.required]],
-    address: [''],
     description: [''],
     active: [true],
+    addressLine1: [''],
+    addressLine2: [''],
+    city: [''],
+    state: [''],
+    country: [''],
+    postalCode: [''],
+    latitude: [null as number | null],
+    longitude: [null as number | null],
+    locationNotes: [''],
   });
 
   readonly columns: AppDataTableColumn<OrgBranchRecord>[] = [
     { key: 'code', title: 'Código' },
     { key: 'name', title: 'Nombre' },
-    { key: 'address', title: 'Dirección' },
+    {
+      key: 'location',
+      title: 'Ubicación',
+      valueGetter: (row) => this.resolveLocationSummary(row),
+    },
     { key: 'description', title: 'Descripción' },
-    { key: 'active', title: 'Activo', cellType: 'tag', tagColor: (r) => (r.active ? 'green' : 'red'), tagText: (r) => (r.active ? 'Activo' : 'Inactivo') },
+    { key: 'active', title: 'Estado', cellType: 'tag', tagColor: (r) => (r.active ? 'green' : 'red'), tagText: (r) => (r.active ? 'Activo' : 'Inactivo') },
     {
       key: 'updatedAt',
       title: 'Actualizado',
@@ -166,9 +171,17 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
       this.form.reset({
         code: event.row.code ?? '',
         name: event.row.name ?? '',
-        address: event.row.address ?? '',
         description: event.row.description ?? '',
         active: !!event.row.active,
+        addressLine1: event.row.addressLine1 ?? '',
+        addressLine2: event.row.addressLine2 ?? '',
+        city: event.row.city ?? '',
+        state: event.row.state ?? '',
+        country: event.row.country ?? '',
+        postalCode: event.row.postalCode ?? '',
+        latitude: event.row.latitude ?? null,
+        longitude: event.row.longitude ?? null,
+        locationNotes: event.row.locationNotes ?? '',
       });
       this.isModalVisible.set(true);
       return;
@@ -178,7 +191,11 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
 
   openCreate(): void {
     this.editingId.set(null);
-    this.form.reset({ code: '', name: '', address: '', description: '', active: true });
+    this.form.reset({
+      code: '', name: '', description: '', active: true,
+      addressLine1: '', addressLine2: '', city: '', state: '', country: '', postalCode: '',
+      latitude: null, longitude: null, locationNotes: '',
+    });
     this.form.controls.code.setErrors(null);
     this.isModalVisible.set(true);
   }
@@ -188,10 +205,6 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
       return;
     }
     this.isModalVisible.set(false);
-  }
-
-  goAssignments(): void {
-    this.router.navigate(['/main/org/assignments']);
   }
 
   save(): void {
@@ -226,6 +239,15 @@ export class OrgBranchesComponent implements OnInit, OnDestroy {
       },
       complete: () => this.saving.set(false),
     });
+  }
+
+  private resolveLocationSummary(row: OrgBranchRecord): string {
+    const firstLine = row.addressLine1?.trim();
+    const cityState = [row.city, row.state].filter(Boolean).join('/');
+    if (!firstLine && !cityState) {
+      return '—';
+    }
+    return [firstLine, cityState ? `(${cityState})` : ''].filter(Boolean).join(' ');
   }
 
   private validateUniqueCode(): boolean {

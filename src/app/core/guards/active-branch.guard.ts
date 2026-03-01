@@ -18,6 +18,6 @@ export class ActiveBranchGuard implements CanActivate, CanMatch {
   }
 
   private validate(): boolean | UrlTree {
-    return this.branchContext.getActiveBranchId() ? true : this.router.parseUrl('/main/org/branches');
+    return this.branchContext.getActiveBranchId() ? true : this.router.parseUrl('/main/org?tab=branches');
   }
 }

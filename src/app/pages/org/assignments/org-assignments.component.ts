@@ -117,7 +117,7 @@ export class OrgAssignmentsComponent implements OnInit {
   }
 
   goBranches(): void {
-    this.router.navigate(['/main/org/branches']);
+    this.router.navigate(['/main/org'], { queryParams: { tab: 'branches' } });
   }
 
   openCreateModal(): void {
