@@ -32,7 +32,8 @@
   (nzOnCancel)="closeModal()"
   (nzOnOk)="save()"
 >
-  <form nz-form [formGroup]="form" class="currency-form">
+  <ng-container *nzModalContent>
+    <form nz-form [formGroup]="form" class="currency-form">
     <nz-form-item>
       <nz-form-label [nzRequired]="true">Código</nz-form-label>
       <nz-form-control [nzErrorTip]="codeErrorTpl">
@@ -106,4 +107,5 @@
     <ng-container *ngIf="form.controls.decimals.hasError('min')">El mínimo es 0</ng-container>
     <ng-container *ngIf="form.controls.decimals.hasError('max')">El máximo es 6</ng-container>
   </ng-template>
+  </ng-container>
 </nz-modal>

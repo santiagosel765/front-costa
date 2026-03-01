@@ -35,7 +35,7 @@ import { TableStateService } from '../../../shared/table/table-state.service';
     AppDataTableComponent,
   ],
   templateUrl: './config-currencies.component.html',
-  styleUrl: './config-currencies.component.css',
+  styleUrls: ['./config-currencies.component.css'],
   providers: [TableStateService],
 })
 export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
