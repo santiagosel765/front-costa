@@ -3,6 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
@@ -15,6 +16,7 @@ import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
+import { AuthUserSummary } from '../../../core/models/auth-admin.models';
 import { SessionStore } from '../../../core/state/session.store';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { OrgBranchRecord, OrgBranchService } from '../../../services/org/org-branch.service';
@@ -54,11 +56,14 @@ export class OrgAssignmentsComponent implements OnInit {
   private readonly router = inject(Router);
 
   readonly loading = signal(false);
+  readonly catalogsLoading = signal(false);
   readonly saving = signal(false);
-  readonly rows = signal<OrgAssignmentRecord[]>([]);
+  readonly rows = signal<AssignmentRow[]>([]);
+  readonly assignments = signal<OrgAssignmentRecord[]>([]);
   readonly total = signal(0);
   readonly pageIndex = signal(1);
   readonly pageSize = signal(10);
+  readonly initialized = signal(false);
 
   readonly breadcrumbs = [
     { label: 'Organización', link: '/main/org' },
@@ -68,6 +73,8 @@ export class OrgAssignmentsComponent implements OnInit {
   readonly branches = signal<OrgBranchRecord[]>([]);
   readonly branchOptions = signal<Array<{ label: string; value: string }>>([]);
   readonly users = signal<Array<{ id: string; label: string; email?: string }>>([]);
+  readonly usersById = signal(new Map<string, AuthUserSummary>());
+  readonly branchesById = signal(new Map<string, OrgBranchRecord>());
   readonly modalVisible = signal(false);
 
   readonly filtersForm = this.fb.nonNullable.group({
@@ -81,9 +88,7 @@ export class OrgAssignmentsComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.loadBranches();
-    this.loadUsers();
-    this.loadAssignments();
+    this.loadInitialData();
   }
 
   canCreate(): boolean {
@@ -188,26 +193,7 @@ export class OrgAssignmentsComponent implements OnInit {
     return this.datePipe.transform(value, 'dd/MM/yyyy HH:mm') ?? '-';
   }
 
-  resolveUserLabel(item: OrgAssignmentRecord): string {
-    if (item.user?.fullName) {
-      return item.user.fullName;
-    }
-    const found = this.users().find((user) => user.id === item.userId);
-    return found?.label ?? item.userId;
-  }
-
-  resolveBranchLabel(item: OrgAssignmentRecord): string {
-    if (item.branch?.name) {
-      return item.branch.code ? `${item.branch.code} - ${item.branch.name}` : item.branch.name;
-    }
-    const found = this.branches().find((branch) => branch.id === item.branchId);
-    if (!found) {
-      return item.branchId;
-    }
-    return found.code ? `${found.code} - ${found.name}` : found.name;
-  }
-
-  confirmDelete(item: OrgAssignmentRecord): void {
+  confirmDelete(item: AssignmentRow): void {
     this.modal.confirm({
       nzTitle: '¿Confirma eliminar esta asignación?',
       nzContent: 'Esta acción no se puede deshacer.',
@@ -216,36 +202,34 @@ export class OrgAssignmentsComponent implements OnInit {
     });
   }
 
-  private loadUsers(): void {
-    this.usersService.list().subscribe({
-      next: (response) => {
-        this.users.set((response ?? []).map((user) => ({
-          id: user.id,
-          label: `${user.fullName || user.username} (${user.email})`,
-          email: user.email,
-        })));
+  private loadInitialData(): void {
+    this.loading.set(true);
+    this.catalogsLoading.set(true);
+    forkJoin({
+      users: this.usersService.list(),
+      branches: this.branchService.list({ page: 1, size: 200, search: '' }),
+    }).subscribe({
+      next: ({ users, branches }) => {
+        this.setUsersCatalog(users ?? []);
+        this.setBranchesCatalog(branches.data ?? []);
+        this.loadAssignments(true);
       },
       error: () => {
-        this.users.set([]);
+        this.message.error('No se pudieron cargar los catálogos de usuarios y sucursales');
+        this.rows.set([]);
+        this.assignments.set([]);
+        this.total.set(0);
+        this.loading.set(false);
+        this.catalogsLoading.set(false);
+        this.initialized.set(true);
+      },
+      complete: () => {
+        this.catalogsLoading.set(false);
       },
     });
   }
 
-  private loadBranches(): void {
-    this.branchService.list({ page: 1, size: 200 }).subscribe({
-      next: (response) => {
-        const mapped = response.data ?? [];
-        this.branches.set(mapped);
-        this.branchOptions.set(mapped.map((branch) => ({ label: `${branch.code ?? ''} - ${branch.name ?? branch.id}`, value: branch.id })));
-      },
-      error: () => {
-        this.branches.set([]);
-        this.branchOptions.set([]);
-      },
-    });
-  }
-
-  private loadAssignments(): void {
+  private loadAssignments(fromInitialLoad = false): void {
     const { userId, branchId } = this.filtersForm.getRawValue();
 
     this.loading.set(true);
@@ -256,17 +240,67 @@ export class OrgAssignmentsComponent implements OnInit {
       branchId: branchId || undefined,
     }).subscribe({
       next: (response) => {
-        this.rows.set(response.data ?? []);
+        const assignments = response.data ?? [];
+        this.assignments.set(assignments);
+        this.rows.set(assignments.map((item) => this.toRow(item)));
         this.total.set(response.total ?? 0);
         this.pageIndex.set(response.page ?? this.pageIndex());
         this.pageSize.set(response.size ?? this.pageSize());
       },
       error: () => {
         this.rows.set([]);
+        this.assignments.set([]);
         this.total.set(0);
         this.message.error('No se pudieron cargar las asignaciones');
       },
-      complete: () => this.loading.set(false),
+      complete: () => {
+        this.loading.set(false);
+        if (fromInitialLoad) {
+          this.initialized.set(true);
+        }
+      },
     });
   }
+
+  private setUsersCatalog(users: AuthUserSummary[]): void {
+    this.usersById.set(new Map(users.map((user) => [user.id, user])));
+    this.users.set(
+      users.map((user) => ({
+        id: user.id,
+        label: `${user.fullName || user.username} (${user.email})`,
+        email: user.email,
+      })),
+    );
+  }
+
+  private setBranchesCatalog(branches: OrgBranchRecord[]): void {
+    this.branchesById.set(new Map(branches.map((branch) => [branch.id, branch])));
+    this.branches.set(branches);
+    this.branchOptions.set(branches.map((branch) => ({ label: `${branch.code ?? ''} - ${branch.name ?? branch.id}`, value: branch.id })));
+  }
+
+  private toRow(item: OrgAssignmentRecord): AssignmentRow {
+    const user = this.usersById().get(item.userId);
+    const branch = this.branchesById().get(item.branchId);
+
+    return {
+      id: item.id,
+      userId: item.userId,
+      branchId: item.branchId,
+      userLabel: user ? `${user.fullName || user.username} (${user.email})` : item.userId,
+      branchLabel: branch ? `${branch.code} - ${branch.name}` : item.branchId,
+      active: item.active,
+      updatedAt: item.updatedAt,
+    };
+  }
+}
+
+interface AssignmentRow {
+  id: string;
+  userId: string;
+  branchId: string;
+  userLabel: string;
+  branchLabel: string;
+  active: boolean;
+  updatedAt?: string;
 }
