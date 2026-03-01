@@ -41,7 +41,7 @@ export const MODULE_UI_MANIFEST: Record<string, ModuleUiManifest> = {
   QUOTE: { route: '/main/quotes', label: 'Cotizaciones', icon: 'file-search' },
   PURCHASE: { route: '/main/purchases', label: 'Compras', icon: 'shopping-cart' },
   CONFIG: { route: '/main/config', label: 'Configuración', icon: 'setting' },
-  ORG: { route: '/main/org/branches', label: 'Sucursales y Organizaciones', icon: 'apartment' },
+  ORG: { route: '/main/org', label: 'ORG', icon: 'apartment' },
 };
 
 export function normalizeModuleName(name?: string | null): string | undefined {

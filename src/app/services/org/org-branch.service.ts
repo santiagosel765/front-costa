@@ -1,15 +1,26 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { ApiService } from '../../core/services/api.service';
 import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
+import { ApiService } from '../../core/services/api.service';
 import { CatalogQuery } from '../config/config.models';
 
-export interface OrgBranchDto {
+export interface OrgLocationFields {
+  addressLine1?: string;
+  addressLine2?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  postalCode?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  locationNotes?: string;
+}
+
+export interface OrgBranchDto extends OrgLocationFields {
   code: string;
   name: string;
   active: boolean;
-  address?: string;
   description?: string;
 }
 
@@ -36,20 +47,14 @@ export class OrgBranchService {
         params: { page: Math.max(1, query.page), size: query.size, search: query.search ?? '' },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgBranchRecord> | { data?: OrgBranchRecord[]; total?: number; page?: number; size?: number; totalPages?: number }>(response)),
-        map((response) => {
-          const rows = Array.isArray((response as PagedResponse<OrgBranchRecord>).data)
-            ? (response as PagedResponse<OrgBranchRecord>).data
-            : [];
-
-          return {
-            data: rows.map(normalizeBranchRecord),
-            total: response.total ?? rows.length,
-            page: Math.max(1, response.page ?? 1),
-            size: response.size ?? query.size,
-            totalPages: response.totalPages ?? 1,
-          } satisfies PagedResponse<OrgBranchRecord>;
-        }),
+        map((response) => unwrapApiResponse<PagedResponse<OrgBranchRecord>>(response)),
+        map((response) => ({
+          data: (response.data ?? []).map(normalizeBranchRecord),
+          total: response.total ?? 0,
+          page: Math.max(1, response.page ?? 1),
+          size: response.size ?? query.size,
+          totalPages: response.totalPages ?? 1,
+        })),
       );
   }
 

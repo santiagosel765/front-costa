@@ -1,12 +1,13 @@
 import { Routes } from '@angular/router';
 
-import { OrgAssignmentsComponent } from './assignments/org-assignments.component';
-import { OrgBranchesComponent } from './branches/org-branches.component';
-import { OrgWarehousesComponent } from './warehouses/org-warehouses.component';
+import { OrgHubComponent } from './org-hub/org-hub.component';
+import { OrgLegacyRedirectComponent } from './org-legacy-redirect.component';
 
 export const ORG_ROUTES: Routes = [
-  { path: 'branches', component: OrgBranchesComponent },
-  { path: 'branches/:id/warehouses', component: OrgWarehousesComponent },
-  { path: 'assignments', component: OrgAssignmentsComponent },
-  { path: '', redirectTo: 'branches', pathMatch: 'full' },
+  { path: '', component: OrgHubComponent },
+  { path: 'branches', component: OrgLegacyRedirectComponent, data: { tab: 'branches' } },
+  { path: 'assignments', component: OrgLegacyRedirectComponent, data: { tab: 'assignments' } },
+  { path: 'warehouses', component: OrgLegacyRedirectComponent, data: { tab: 'warehouses' } },
+  { path: 'numbering', component: OrgLegacyRedirectComponent, data: { tab: 'numbering' } },
+  { path: 'branches/:id/warehouses', component: OrgLegacyRedirectComponent, data: { tab: 'warehouses' } },
 ];

@@ -1,0 +1,17 @@
+.org-hub-card {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.org-hub-header h2 {
+  margin-bottom: 4px;
+}
+
+.org-hub-header p {
+  color: #64748b;
+  margin-bottom: 16px;
+}
+
+.org-tab-content {
+  margin-top: 16px;
+}

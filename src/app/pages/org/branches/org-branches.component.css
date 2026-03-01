@@ -1,10 +1,28 @@
-.org-page-container {
-  max-width: 1120px;
-  margin: 0 auto;
+.branch-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  gap: 12px;
+}
+
+.branch-header h3 {
+  margin: 0;
+}
+
+.branch-header p {
+  margin: 4px 0 0;
+  color: #64748b;
 }
 
 .branch-form {
   display: grid;
+  gap: 8px;
+}
+
+.location-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -24,4 +42,10 @@
   margin-top: 12px;
   display: flex;
   justify-content: center;
+}
+
+@media (max-width: 900px) {
+  .location-grid {
+    grid-template-columns: 1fr;
+  }
 }

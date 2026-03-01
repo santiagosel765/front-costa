@@ -1,4 +1,12 @@
-<nz-card nzTitle="Bodegas" [nzExtra]="actionsTpl">
+<nz-card nzBordered>
+  <div class="warehouse-header">
+    <div>
+      <h3>Bodegas</h3>
+      <p>Gestiona las bodegas por sucursal con ubicación detallada.</p>
+    </div>
+    <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Nueva bodega</button>
+  </div>
+
   <app-data-table
     [columns]="columns"
     [data]="rows()"
@@ -15,23 +23,73 @@
   ></app-data-table>
 </nz-card>
 
-<ng-template #actionsTpl>
-  <button nz-button nzType="default" (click)="goBack()">Volver</button>
-  <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Nueva bodega</button>
-</ng-template>
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  [nzTitle]="editingId() ? 'Editar bodega' : 'Nueva bodega'"
+  [nzOkLoading]="saving()"
+  [nzOkDisabled]="form.invalid"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <form [formGroup]="form" class="warehouse-form">
+      <label>Sucursal *</label>
+      <nz-select nzShowSearch nzPlaceHolder="Seleccionar sucursal" formControlName="branchId">
+        <nz-option *ngFor="let option of branchOptions" [nzLabel]="option.label" [nzValue]="option.value"></nz-option>
+      </nz-select>
 
-<nz-modal [nzVisible]="isModalVisible()" [nzTitle]="editingId() ? 'Editar bodega' : 'Nueva bodega'" [nzOkLoading]="loading()" (nzOnCancel)="closeModal()" (nzOnOk)="save()">
-  <form [formGroup]="form" class="warehouse-form">
-    <label>Código</label>
-    <input nz-input formControlName="code" />
+      <label>Código *</label>
+      <input nz-input formControlName="code" />
 
-    <label>Nombre</label>
-    <input nz-input formControlName="name" />
+      <label>Nombre *</label>
+      <input nz-input formControlName="name" />
 
-    <label>Descripción</label>
-    <textarea nz-input formControlName="description" rows="2"></textarea>
+      <label>Descripción</label>
+      <textarea nz-input formControlName="description" rows="2"></textarea>
 
-    <label>Activo</label>
-    <nz-switch formControlName="active"></nz-switch>
-  </form>
+      <h4>Ubicación</h4>
+      <label>Dirección línea 1</label>
+      <input nz-input formControlName="addressLine1" />
+
+      <label>Dirección línea 2</label>
+      <input nz-input formControlName="addressLine2" />
+
+      <div class="location-grid">
+        <div>
+          <label>Ciudad</label>
+          <input nz-input formControlName="city" />
+        </div>
+        <div>
+          <label>Depto / Estado</label>
+          <input nz-input formControlName="state" />
+        </div>
+        <div>
+          <label>País</label>
+          <input nz-input formControlName="country" />
+        </div>
+      </div>
+
+      <label>Código postal</label>
+      <input nz-input formControlName="postalCode" />
+
+      <div class="location-grid two-cols">
+        <div>
+          <label>Latitud</label>
+          <input nz-input type="number" formControlName="latitude" />
+        </div>
+        <div>
+          <label>Longitud</label>
+          <input nz-input type="number" formControlName="longitude" />
+        </div>
+      </div>
+
+      <label>Notas de ubicación</label>
+      <textarea nz-input formControlName="locationNotes" rows="2"></textarea>
+
+      <div class="switch-row">
+        <label>Activo</label>
+        <nz-switch formControlName="active"></nz-switch>
+      </div>
+    </form>
+  </ng-container>
 </nz-modal>

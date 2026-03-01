@@ -1,4 +1,4 @@
-.warehouse-header {
+.numbering-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -6,28 +6,35 @@
   gap: 12px;
 }
 
-.warehouse-header h3 {
+.numbering-header h3 {
   margin: 0;
 }
 
-.warehouse-header p {
+.numbering-header p {
   margin: 4px 0 0;
   color: #64748b;
 }
 
-.warehouse-form {
+.numbering-form {
   display: grid;
   gap: 8px;
 }
 
-.location-grid {
+.numeric-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.location-grid.two-cols {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.preview-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px;
 }
 
 .switch-row {
@@ -38,8 +45,7 @@
 }
 
 @media (max-width: 900px) {
-  .location-grid,
-  .location-grid.two-cols {
+  .numeric-grid {
     grid-template-columns: 1fr;
   }
 }
