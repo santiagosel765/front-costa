@@ -29,6 +29,11 @@ export class TableStateService {
     this.stateSubject.next(nextState);
   }
 
+
+  reload(): void {
+    this.stateSubject.next({ ...this.snapshot });
+  }
+
   patch(router: Router, patch: Partial<TableState>): void {
     const current = this.snapshot;
     const nextState = this.normalize({ ...current, ...patch });

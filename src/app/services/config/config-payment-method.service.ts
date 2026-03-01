@@ -21,7 +21,7 @@ export class ConfigPaymentMethodService {
   list(params: CatalogQuery): Observable<NormalizedListResponse<PaymentMethodRecord>> {
     return this.api
       .get<ApiResponse<unknown> | unknown>('/v1/config/payment-methods', {
-        params: { page: params.page, size: params.size, search: params.search ?? '' },
+        params: { page: Math.max(params.page - 1, 0), size: params.size, search: params.search ?? '' },
       })
       .pipe(map((response) => normalizeListResponse(unwrapApiResponse(response), (item) => this.mapRecord(item))));
   }

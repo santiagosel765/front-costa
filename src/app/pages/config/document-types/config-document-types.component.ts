@@ -160,7 +160,7 @@ export class ConfigDocumentTypesComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.success(editing ? 'Tipo de documento actualizado' : 'Tipo de documento creado');
         this.closeModal();
-        this.loadDocumentTypes();
+        this.tableState.reload();
       },
       error: (error: HttpErrorResponse) => {
         this.message.error(mapHttpErrorMessage(error));
@@ -185,7 +185,7 @@ export class ConfigDocumentTypesComponent implements OnInit, OnDestroy {
           this.service.delete(row.id).subscribe({
             next: () => {
               this.message.success('Tipo de documento eliminado');
-              this.loadDocumentTypes();
+              this.tableState.reload();
               resolve();
             },
             error: (error: HttpErrorResponse) => {
@@ -197,10 +197,6 @@ export class ConfigDocumentTypesComponent implements OnInit, OnDestroy {
           });
         }),
     });
-  }
-
-  private loadDocumentTypes(): void {
-    this.load(this.tableState.snapshot);
   }
 
   private load(state: TableState): void {

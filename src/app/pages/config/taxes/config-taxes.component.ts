@@ -162,7 +162,7 @@ export class ConfigTaxesComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.success(editing ? 'Impuesto actualizado' : 'Impuesto creado');
         this.closeModal();
-        this.loadTaxes();
+        this.tableState.reload();
       },
       error: (error: HttpErrorResponse) => {
         this.message.error(mapHttpErrorMessage(error));
@@ -187,7 +187,7 @@ export class ConfigTaxesComponent implements OnInit, OnDestroy {
           this.service.delete(row.id).subscribe({
             next: () => {
               this.message.success('Impuesto eliminado');
-              this.loadTaxes();
+              this.tableState.reload();
               resolve();
             },
             error: (error: HttpErrorResponse) => {
@@ -199,10 +199,6 @@ export class ConfigTaxesComponent implements OnInit, OnDestroy {
           });
         }),
     });
-  }
-
-  private loadTaxes(): void {
-    this.load(this.tableState.snapshot);
   }
 
   private load(state: TableState): void {

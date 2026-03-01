@@ -60,7 +60,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (modules) => {
-          this.menuItems = modules.map((module) => this.buildMenuItem(module));
+          const uniqueMenuItems = new Map<string, SidebarMenuItem>();
+
+          modules.forEach((module) => {
+            const item = this.buildMenuItem(module);
+            if (!uniqueMenuItems.has(item.key)) {
+              uniqueMenuItems.set(item.key, item);
+            }
+          });
+
+          this.menuItems = Array.from(uniqueMenuItems.values());
           this.loading = false;
           this.cdr.markForCheck();
         },

@@ -160,7 +160,7 @@ export class ConfigParametersComponent implements OnInit, OnDestroy {
       next: () => {
         this.message.success(editing ? 'Parámetro actualizado' : 'Parámetro creado');
         this.closeModal();
-        this.loadParameters();
+        this.tableState.reload();
       },
       error: (error: HttpErrorResponse) => {
         this.message.error(mapHttpErrorMessage(error));
@@ -185,7 +185,7 @@ export class ConfigParametersComponent implements OnInit, OnDestroy {
           this.service.delete(row.id).subscribe({
             next: () => {
               this.message.success('Parámetro eliminado');
-              this.loadParameters();
+              this.tableState.reload();
               resolve();
             },
             error: (error: HttpErrorResponse) => {
@@ -197,10 +197,6 @@ export class ConfigParametersComponent implements OnInit, OnDestroy {
           });
         }),
     });
-  }
-
-  private loadParameters(): void {
-    this.load(this.tableState.snapshot);
   }
 
   private load(state: TableState): void {
