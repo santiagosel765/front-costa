@@ -1,7 +1,12 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
 
-import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
+import {
+  ApiResponse,
+  PagedResponse,
+  normalizePagedResponse,
+  unwrapApiResponse,
+} from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
 import { OrgBranchRecord } from './org-branch.service';
 
@@ -34,40 +39,48 @@ export interface OrgAssignmentQuery {
 export class OrgAssignmentService {
   private readonly api = inject(ApiService);
 
-  list(query: OrgAssignmentQuery): Observable<PagedResponse<OrgAssignmentRecord>> {
+  list(
+    query: OrgAssignmentQuery,
+  ): Observable<PagedResponse<OrgAssignmentRecord>> {
+    const fallback = { page: Math.max(1, query.page), size: query.size };
+
     return this.api
-      .get<ApiResponse<PagedResponse<OrgAssignmentRecord>> | PagedResponse<OrgAssignmentRecord>>('/v1/org/user-branch-assignments', {
+      .get<ApiResponse<unknown> | unknown>('/v1/org/user-branch-assignments', {
         params: {
-          page: Math.max(1, query.page),
+          page: fallback.page,
           size: query.size,
           ...(query.userId ? { userId: query.userId } : {}),
           ...(query.branchId ? { branchId: query.branchId } : {}),
         },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgAssignmentRecord> | { data?: OrgAssignmentRecord[]; total?: number; page?: number; size?: number; totalPages?: number }>(response)),
-        map((response) => {
-          const rows = Array.isArray((response as PagedResponse<OrgAssignmentRecord>).data)
-            ? (response as PagedResponse<OrgAssignmentRecord>).data
-            : [];
-
-          return {
-            data: rows.map((item) => ({
-              ...item,
-              updatedAt: item.updatedAt ?? item.updated_at,
-            })),
-            total: response.total ?? rows.length,
-            page: Math.max(1, response.page ?? 1),
-            size: response.size ?? query.size,
-            totalPages: response.totalPages ?? 1,
-          } satisfies PagedResponse<OrgAssignmentRecord>;
-        }),
+        map((response) =>
+          normalizePagedResponse<OrgAssignmentRecord>(response, fallback),
+        ),
+        map(
+          (response) =>
+            ({
+              data: response.data.map((item) => ({
+                ...item,
+                updatedAt: item.updatedAt ?? item.updated_at,
+              })),
+              total: response.total,
+              page: response.page,
+              size: response.size,
+              totalPages: response.totalPages,
+            }) satisfies PagedResponse<OrgAssignmentRecord>,
+        ),
       );
   }
 
-  create(payload: { userId: string; branchId: string }): Observable<OrgAssignmentRecord> {
+  create(payload: {
+    userId: string;
+    branchId: string;
+  }): Observable<OrgAssignmentRecord> {
     return this.api
-      .post<ApiResponse<OrgAssignmentRecord> | OrgAssignmentRecord>('/v1/org/user-branch-assignments', payload)
+      .post<
+        ApiResponse<OrgAssignmentRecord> | OrgAssignmentRecord
+      >('/v1/org/user-branch-assignments', payload)
       .pipe(
         map((response) => unwrapApiResponse(response)),
         map((item) => ({
@@ -78,6 +91,8 @@ export class OrgAssignmentService {
   }
 
   remove(id: string): Observable<void> {
-    return this.api.delete(`/v1/org/user-branch-assignments/${id}`).pipe(map(() => void 0));
+    return this.api
+      .delete(`/v1/org/user-branch-assignments/${id}`)
+      .pipe(map(() => void 0));
   }
 }
