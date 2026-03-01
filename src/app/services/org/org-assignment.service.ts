@@ -45,15 +45,23 @@ export class OrgAssignmentService {
         },
       })
       .pipe(
-        map((response) => unwrapApiResponse<PagedResponse<OrgAssignmentRecord>>(response)),
-        map((response) => ({
-          ...response,
-          page: Math.max(1, response.page ?? 1),
-          data: (response.data ?? []).map((item) => ({
+        map((response) => unwrapApiResponse<PagedResponse<OrgAssignmentRecord> | { data?: OrgAssignmentRecord[]; total?: number; page?: number; size?: number; totalPages?: number }>(response)),
+        map((response) => {
+          const rows = Array.isArray((response as PagedResponse<OrgAssignmentRecord>).data)
+            ? (response as PagedResponse<OrgAssignmentRecord>).data
+            : [];
+
+          return {
+            data: rows.map((item) => ({
               ...item,
               updatedAt: item.updatedAt ?? item.updated_at,
             })),
-        })),
+            total: response.total ?? rows.length,
+            page: Math.max(1, response.page ?? 1),
+            size: response.size ?? query.size,
+            totalPages: response.totalPages ?? 1,
+          } satisfies PagedResponse<OrgAssignmentRecord>;
+        }),
       );
   }
 

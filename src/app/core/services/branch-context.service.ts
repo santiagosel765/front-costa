@@ -24,9 +24,16 @@ export class BranchContextService {
 
   loadAllowedBranches(): Observable<UserBranch[]> {
     return this.api
-      .get<ApiResponse<UserBranch[]> | UserBranch[]>('/v1/org/me/branches')
+      .get<ApiResponse<UserBranch[] | { data?: UserBranch[] }> | UserBranch[] | { data?: UserBranch[] }>('/v1/org/me/branches')
       .pipe(
-        map((response) => unwrapApiResponse(response) ?? []),
+        map((response) => {
+          const unwrapped = unwrapApiResponse<UserBranch[] | { data?: UserBranch[] }>(response) ?? [];
+          if (Array.isArray(unwrapped)) {
+            return unwrapped;
+          }
+
+          return Array.isArray(unwrapped.data) ? unwrapped.data : [];
+        }),
         map((branches) => branches.map((branch) => ({ ...branch, name: branch.name ?? branch.code ?? branch.id }))),
         tap((branches) => {
           this.branchesSubject.next(branches);

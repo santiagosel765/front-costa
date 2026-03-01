@@ -1,6 +1,7 @@
 // src/app/layouts/main-layout/main-layout.component.ts
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { RouterOutlet } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -254,11 +255,19 @@ export class MainLayoutComponent implements OnInit {
       .subscribe({
         next: (branches) => {
           this.branches = branches;
-          this.selectedBranchId = this.branchContextService.getActiveBranchId();
+          const activeBranchId = this.branchContextService.getActiveBranchId();
+          this.selectedBranchId = branches.some((branch) => branch.id === activeBranchId)
+            ? activeBranchId
+            : branches[0]?.id ?? null;
         },
-        error: () => {
+        error: (error: unknown) => {
           this.branches = [];
           this.selectedBranchId = null;
+
+          if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 500)) {
+            return;
+          }
+
           this.message.error('No se pudieron cargar las sucursales del usuario');
         },
       });
