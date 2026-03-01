@@ -42,7 +42,7 @@ export const routes: Routes = [
         path: 'products',
         canActivate: [ModuleGuard],
         canMatch: [ModuleGuard],
-        data: { moduleKey: 'INVENTORY' },
+        data: { moduleKey: 'PRODUCTOS_Y_SERVICIOS' },
         loadChildren: () => import('./pages/products/products.routes').then((m) => m.PRODUCTS_ROUTES),
       },
       {
