@@ -1,0 +1,14 @@
+.currency-form {
+  display: grid;
+  gap: 8px;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.help-text {
+  color: rgba(0, 0, 0, 0.45);
+}

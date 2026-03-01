@@ -1,0 +1,86 @@
+<nz-card nzTitle="Monedas" [nzExtra]="createTpl">
+  <app-data-table
+    [columns]="columns"
+    [data]="rows()"
+    [loading]="loading()"
+    [error]="error()"
+    [total]="total()"
+    [pageIndex]="state.page"
+    [pageSize]="state.size"
+    [searchValue]="state.q"
+    searchPlaceholder="Buscar en monedas"
+    [emptyMessage]="'No hay monedas registradas todavía'"
+    [emptyActionLabel]="'Crear primera moneda'"
+    (emptyAction)="createFirstCurrency()"
+    (pageChange)="onPageChange($event)"
+    (searchChange)="onSearchChange($event)"
+    (action)="handleAction($event)"
+  ></app-data-table>
+</nz-card>
+
+<ng-template #createTpl>
+  <button nz-button nzType="primary" (click)="openCreate()">Nueva moneda</button>
+</ng-template>
+
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  [nzTitle]="editingRow() ? 'Editar moneda' : 'Nueva moneda'"
+  [nzOkLoading]="saving()"
+  [nzOkDisabled]="form.invalid || saving()"
+  nzOkText="Guardar"
+  nzCancelText="Cancelar"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
+  <form nz-form [formGroup]="form" class="currency-form">
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">Código</nz-form-label>
+      <nz-form-control [nzErrorTip]="codeErrorTpl">
+        <input nz-input formControlName="code" maxlength="10" (blur)="onCodeBlur()" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label [nzRequired]="true">Nombre</nz-form-label>
+      <nz-form-control nzErrorTip="Nombre es requerido">
+        <input nz-input formControlName="name" maxlength="80" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label>Símbolo</nz-form-label>
+      <nz-form-control>
+        <input nz-input formControlName="symbol" maxlength="8" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label>Decimales</nz-form-label>
+      <nz-form-control>
+        <nz-input-number formControlName="decimals" [nzMin]="0" [nzMax]="8" [nzStep]="1"></nz-input-number>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label>Funcional</nz-form-label>
+      <nz-form-control>
+        <div class="switch-row">
+          <nz-switch formControlName="isFunctional"></nz-switch>
+          <small class="help-text">Solo una moneda funcional por tenant.</small>
+        </div>
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label>Activo</nz-form-label>
+      <nz-form-control>
+        <nz-switch formControlName="active"></nz-switch>
+      </nz-form-control>
+    </nz-form-item>
+  </form>
+
+  <ng-template #codeErrorTpl>
+    <ng-container *ngIf="form.controls.code.hasError('required')">Código es requerido</ng-container>
+    <ng-container *ngIf="form.controls.code.hasError('duplicate')">El código ya existe</ng-container>
+  </ng-template>
+</nz-modal>

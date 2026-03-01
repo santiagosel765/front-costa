@@ -1,30 +1,309 @@
-import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { HttpErrorResponse } from '@angular/common/http';
+import { NzButtonModule } from 'ng-zorro-antd/button';
+import { NzCardModule } from 'ng-zorro-antd/card';
+import { NzFormModule } from 'ng-zorro-antd/form';
+import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
+import { NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
+import { Subject, takeUntil } from 'rxjs';
 
-import { ConfigCurrencyService } from '../../../services/config/config-currency.service';
-import { CatalogRecord } from '../../../services/config/config.models';
-import { AppDataTableColumn } from '../../../shared/components/app-data-table/app-data-table.models';
-import { CatalogFormField, CatalogPageComponent } from '../catalog-page/catalog-page.component';
+import { ConfigCurrencyService, CurrencyRecord } from '../../../services/config/config-currency.service';
+import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
+import { AppDataTableColumn, TableState } from '../../../shared/components/app-data-table/app-data-table.models';
+import { TableStateService } from '../../../shared/table/table-state.service';
 
 @Component({
   selector: 'app-config-currencies',
   standalone: true,
-  imports: [CatalogPageComponent],
-  template: `<app-catalog-page title="Monedas" moduleKey="CONFIG" createLabel="Nueva moneda" [api]="api" [fields]="fields" [columnsOverride]="columns"></app-catalog-page>`,
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    NzButtonModule,
+    NzCardModule,
+    NzFormModule,
+    NzInputModule,
+    NzInputNumberModule,
+    NzModalModule,
+    NzSwitchModule,
+    AppDataTableComponent,
+  ],
+  templateUrl: './config-currencies.component.html',
+  styleUrl: './config-currencies.component.css',
+  providers: [TableStateService],
 })
-export class ConfigCurrenciesComponent {
-  readonly api = inject(ConfigCurrencyService);
+export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
+  private readonly service = inject(ConfigCurrencyService);
+  private readonly tableState = inject(TableStateService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly fb = inject(FormBuilder);
+  private readonly message = inject(NzMessageService);
+  private readonly modal = inject(NzModalService);
+  private readonly destroy$ = new Subject<void>();
 
-  readonly fields: CatalogFormField[] = [
-    { key: 'code', label: 'Código', type: 'text', required: true },
-    { key: 'name', label: 'Nombre', type: 'text', required: true },
-    { key: 'description', label: 'Descripción', type: 'textarea' },
-    { key: 'active', label: 'Activo', type: 'switch' },
-  ];
+  readonly rows = signal<CurrencyRecord[]>([]);
+  readonly total = signal(0);
+  readonly loading = signal(false);
+  readonly saving = signal(false);
+  readonly error = signal<string | null>(null);
+  readonly isModalVisible = signal(false);
+  readonly editingRow = signal<CurrencyRecord | null>(null);
 
-  readonly columns: AppDataTableColumn<CatalogRecord>[] = [
+  readonly form = this.fb.group({
+    code: this.fb.nonNullable.control('', [Validators.required]),
+    name: this.fb.nonNullable.control('', [Validators.required]),
+    symbol: this.fb.nonNullable.control(''),
+    decimals: this.fb.nonNullable.control(2),
+    isFunctional: this.fb.nonNullable.control(false),
+    active: this.fb.nonNullable.control(true),
+  });
+
+  readonly columns: AppDataTableColumn<CurrencyRecord>[] = [
     { key: 'code', title: 'Código', sortable: true },
     { key: 'name', title: 'Nombre', sortable: true },
-    { key: 'description', title: 'Descripción' },
-    { key: 'active', title: 'Activo', cellType: 'tag', tagColor: (r) => (r.active ? 'green' : 'red'), tagText: (r) => (r.active ? 'Sí' : 'No') },
+    { key: 'symbol', title: 'Símbolo', valueGetter: (row) => row.symbol || '-' },
+    { key: 'decimals', title: 'Decimales', valueGetter: (row) => row.decimals ?? 2 },
+    {
+      key: 'isFunctional',
+      title: 'Funcional',
+      cellType: 'tag',
+      tagColor: (row) => (row.isFunctional ? 'gold' : 'default'),
+      tagText: (row) => (row.isFunctional ? 'Funcional' : 'No funcional'),
+    },
+    {
+      key: 'active',
+      title: 'Activo',
+      cellType: 'tag',
+      tagColor: (row) => (row.active ? 'green' : 'red'),
+      tagText: (row) => (row.active ? 'Activo' : 'Inactivo'),
+    },
+    { key: 'updatedAt', title: 'Actualizado', valueGetter: (row) => this.formatDate(row.updatedAt) },
+    {
+      key: 'actions',
+      title: 'Acciones',
+      width: '320px',
+      cellType: 'actions',
+      actions: [
+        { type: 'edit', label: 'Editar', icon: 'edit' },
+        { type: 'delete', label: 'Eliminar', icon: 'delete', danger: true },
+        {
+          type: 'custom',
+          label: 'Marcar funcional',
+          icon: 'star',
+          disabled: (row) => !!row.isFunctional,
+          tooltip: (row) => (row.isFunctional ? 'Esta moneda ya es funcional' : null),
+        },
+      ],
+    },
   ];
+
+  get state() {
+    return this.tableState.snapshot;
+  }
+
+  ngOnInit(): void {
+    this.tableState.init(this.route, { size: 10 });
+    this.tableState.state$.pipe(takeUntil(this.destroy$)).subscribe((state) => this.load(state));
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  onPageChange(change: { pageIndex: number; pageSize: number }): void {
+    this.tableState.patch(this.router, { page: change.pageIndex, size: change.pageSize });
+  }
+
+  onSearchChange(search: string): void {
+    this.tableState.patch(this.router, { q: search, page: 1 });
+  }
+
+  openCreate(): void {
+    this.editingRow.set(null);
+    this.resetForm();
+    this.isModalVisible.set(true);
+  }
+
+  closeModal(): void {
+    this.isModalVisible.set(false);
+  }
+
+  openEdit(row: CurrencyRecord): void {
+    this.form.get('code')?.setErrors(null);
+    this.editingRow.set(row);
+    this.form.reset({
+      code: row.code ?? '',
+      name: row.name ?? '',
+      symbol: row.symbol ?? '',
+      decimals: row.decimals ?? 2,
+      isFunctional: !!row.isFunctional,
+      active: !!row.active,
+    });
+    this.isModalVisible.set(true);
+  }
+
+  handleAction(event: { type: 'edit' | 'delete' | 'custom'; row: CurrencyRecord }): void {
+    if (event.type === 'edit') {
+      this.openEdit(event.row);
+      return;
+    }
+
+    if (event.type === 'delete') {
+      this.confirmDelete(event.row);
+      return;
+    }
+
+    this.markAsFunctional(event.row);
+  }
+
+  onCodeBlur(): void {
+    const value = (this.form.controls.code.value ?? '').toString().trim().toUpperCase();
+    this.form.controls.code.setValue(value);
+  }
+
+  save(): void {
+    if (this.form.invalid || this.saving()) {
+      this.form.markAllAsTouched();
+      return;
+    }
+
+    this.onCodeBlur();
+    this.form.get('code')?.setErrors(null);
+
+    const payload = {
+      ...this.form.getRawValue(),
+      code: this.form.controls.code.value.trim().toUpperCase(),
+      name: this.form.controls.name.value.trim(),
+      symbol: this.form.controls.symbol.value.trim(),
+      decimals: Number(this.form.controls.decimals.value ?? 2),
+    };
+
+    const editing = this.editingRow();
+    this.saving.set(true);
+
+    const request$ = editing ? this.service.update(editing.id, payload) : this.service.create(payload);
+    request$.subscribe({
+      next: () => {
+        this.message.success(editing ? 'Moneda actualizada' : 'Moneda creada');
+        this.isModalVisible.set(false);
+        this.resetForm();
+        this.load(this.tableState.snapshot);
+      },
+      error: (error: HttpErrorResponse) => {
+        if (error.status === 409) {
+          this.form.controls.code.setErrors({ duplicate: true });
+          this.form.controls.code.markAsTouched();
+          this.message.warning('El código ya existe');
+        } else {
+          this.message.error('No se pudo guardar la moneda');
+        }
+      },
+      complete: () => this.saving.set(false),
+    });
+  }
+
+  createFirstCurrency(): void {
+    this.openCreate();
+  }
+
+  private confirmDelete(row: CurrencyRecord): void {
+    this.modal.confirm({
+      nzTitle: '¿Eliminar moneda?',
+      nzContent: `La moneda ${row.code} será eliminada. Esta acción no se puede deshacer.`,
+      nzOkDanger: true,
+      nzOnOk: () =>
+        new Promise<void>((resolve) => {
+          this.loading.set(true);
+          this.service.remove(row.id).subscribe({
+            next: () => {
+              this.message.success('Moneda eliminada');
+              this.load(this.tableState.snapshot);
+              resolve();
+            },
+            error: () => {
+              this.message.error('No se pudo eliminar la moneda');
+              this.loading.set(false);
+              resolve();
+            },
+            complete: () => this.loading.set(false),
+          });
+        }),
+    });
+  }
+
+  private markAsFunctional(row: CurrencyRecord): void {
+    if (row.isFunctional) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.service
+      .update(row.id, {
+        code: row.code,
+        name: row.name,
+        symbol: row.symbol,
+        decimals: row.decimals,
+        isFunctional: true,
+        active: row.active,
+      })
+      .subscribe({
+        next: () => {
+          this.message.success('Moneda funcional actualizada');
+          this.load(this.tableState.snapshot);
+        },
+        error: () => {
+          this.message.error('No se pudo marcar la moneda como funcional');
+          this.loading.set(false);
+        },
+        complete: () => this.loading.set(false),
+      });
+  }
+
+  private load(state: TableState): void {
+    this.loading.set(true);
+    this.error.set(null);
+
+    this.service.list({ page: state.page, size: state.size, search: state.q }).subscribe({
+      next: (response) => {
+        this.rows.set(response.data ?? []);
+        this.total.set(response.total ?? 0);
+      },
+      error: () => {
+        this.rows.set([]);
+        this.total.set(0);
+        this.error.set('No se pudieron cargar las monedas');
+      },
+      complete: () => this.loading.set(false),
+    });
+  }
+
+  private resetForm(): void {
+    this.form.reset({
+      code: '',
+      name: '',
+      symbol: '',
+      decimals: 2,
+      isFunctional: false,
+      active: true,
+    });
+    this.form.markAsPristine();
+  }
+
+  private formatDate(value?: string): string {
+    if (!value) {
+      return '-';
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleString('es-GT');
+  }
 }

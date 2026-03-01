@@ -32,3 +32,10 @@
   margin-top: 16px;
   text-align: right;
 }
+
+.empty-state {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
