@@ -1,27 +1,26 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
-import { NzModalModule } from 'ng-zorro-antd/modal';
-import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
 import { SessionStore } from '../../../core/state/session.store';
-import { OrgBranchService } from '../../../services/org/org-branch.service';
+import { OrgBranchRecord, OrgBranchService } from '../../../services/org/org-branch.service';
 import { OrgAssignmentRecord, OrgAssignmentService } from '../../../services/org/org-assignment.service';
 
 @Component({
   selector: 'app-org-assignments',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, NzCardModule, NzSelectModule, NzButtonModule, NzModalModule, NzTableModule, NzTagModule, NzIconModule, NzPopconfirmModule, NzFormModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, NzCardModule, NzSelectModule, NzButtonModule, NzModalModule, NzTableModule, NzTagModule, NzIconModule, NzFormModule],
   templateUrl: './org-assignments.component.html',
   styleUrl: './org-assignments.component.css',
   providers: [DatePipe],
@@ -33,17 +32,21 @@ export class OrgAssignmentsComponent implements OnInit {
   private readonly usersService = inject(UsersAdminService);
   private readonly sessionStore = inject(SessionStore);
   private readonly message = inject(NzMessageService);
+  private readonly modal = inject(NzModalService);
   private readonly datePipe = inject(DatePipe);
 
   readonly loading = signal(false);
+  readonly saving = signal(false);
   readonly rows = signal<OrgAssignmentRecord[]>([]);
   readonly total = signal(0);
   readonly page = signal(1);
   readonly size = signal(10);
-  readonly branches = signal<Array<{ label: string; value: string }>>([]);
-  readonly users = signal<Array<{ label: string; value: string }>>([]);
+  readonly hasAppliedFilters = signal(false);
+
+  readonly branches = signal<OrgBranchRecord[]>([]);
+  readonly branchOptions = signal<Array<{ label: string; value: string }>>([]);
+  readonly users = signal<Array<{ id: string; label: string; email?: string }>>([]);
   readonly modalVisible = signal(false);
-  readonly showSelectionMessage = signal(true);
 
   readonly filtersForm = this.fb.nonNullable.group({
     userId: [''],
@@ -70,6 +73,7 @@ export class OrgAssignmentsComponent implements OnInit {
 
   applyFilters(): void {
     this.page.set(1);
+    this.hasAppliedFilters.set(true);
     this.loadAssignments();
   }
 
@@ -84,6 +88,9 @@ export class OrgAssignmentsComponent implements OnInit {
   }
 
   closeCreateModal(): void {
+    if (this.saving()) {
+      return;
+    }
     this.modalVisible.set(false);
   }
 
@@ -93,7 +100,7 @@ export class OrgAssignmentsComponent implements OnInit {
       return;
     }
 
-    this.loading.set(true);
+    this.saving.set(true);
     this.assignmentService.create(this.createForm.getRawValue()).subscribe({
       next: () => {
         this.message.success('Asignación creada');
@@ -106,9 +113,9 @@ export class OrgAssignmentsComponent implements OnInit {
         } else {
           this.message.error('No se pudo crear la asignación');
         }
-        this.loading.set(false);
+        this.saving.set(false);
       },
-      complete: () => this.loading.set(false),
+      complete: () => this.saving.set(false),
     });
   }
 
@@ -138,12 +145,41 @@ export class OrgAssignmentsComponent implements OnInit {
     return this.datePipe.transform(value, 'dd/MM/yyyy HH:mm') ?? '-';
   }
 
+  resolveUserLabel(item: OrgAssignmentRecord): string {
+    if (item.user?.fullName) {
+      return item.user.fullName;
+    }
+    const found = this.users().find((user) => user.id === item.userId);
+    return found?.label ?? item.userId;
+  }
+
+  resolveBranchLabel(item: OrgAssignmentRecord): string {
+    if (item.branch?.name) {
+      return item.branch.code ? `${item.branch.code} - ${item.branch.name}` : item.branch.name;
+    }
+    const found = this.branches().find((branch) => branch.id === item.branchId);
+    if (!found) {
+      return item.branchId;
+    }
+    return found.code ? `${found.code} - ${found.name}` : found.name;
+  }
+
+  confirmDelete(item: OrgAssignmentRecord): void {
+    this.modal.confirm({
+      nzTitle: '¿Confirma eliminar esta asignación?',
+      nzContent: 'Esta acción no se puede deshacer.',
+      nzOkDanger: true,
+      nzOnOk: () => this.deleteAssignment(item.id),
+    });
+  }
+
   private loadUsers(): void {
     this.usersService.list().subscribe({
       next: (response) => {
         this.users.set((response ?? []).map((user) => ({
+          id: user.id,
           label: `${user.fullName || user.username} (${user.email})`,
-          value: user.id,
+          email: user.email,
         })));
       },
       error: () => {
@@ -155,9 +191,14 @@ export class OrgAssignmentsComponent implements OnInit {
   private loadBranches(): void {
     this.branchService.list({ page: 1, size: 200 }).subscribe({
       next: (response) => {
-        this.branches.set((response.data ?? []).map((branch) => ({ label: `${branch.code ?? ''} - ${branch.name ?? branch.id}`, value: branch.id })));
+        const mapped = response.data ?? [];
+        this.branches.set(mapped);
+        this.branchOptions.set(mapped.map((branch) => ({ label: `${branch.code ?? ''} - ${branch.name ?? branch.id}`, value: branch.id })));
       },
-      error: () => this.branches.set([]),
+      error: () => {
+        this.branches.set([]);
+        this.branchOptions.set([]);
+      },
     });
   }
 
@@ -165,13 +206,10 @@ export class OrgAssignmentsComponent implements OnInit {
     const { userId, branchId } = this.filtersForm.getRawValue();
 
     if (!userId && !branchId) {
-      this.showSelectionMessage.set(true);
       this.rows.set([]);
       this.total.set(0);
       return;
     }
-
-    this.showSelectionMessage.set(false);
 
     this.loading.set(true);
     this.assignmentService.list({

@@ -30,8 +30,12 @@
   align-items: center;
 }
 
-.empty-state h3 {
+.empty-state h3,
+.empty-state p {
   margin: 0;
+}
+
+.empty-state h3 {
   color: #111827;
 }
 

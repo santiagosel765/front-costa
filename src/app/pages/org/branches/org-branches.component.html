@@ -20,6 +20,7 @@
     <div class="empty-state">
       <span nz-icon nzType="apartment" class="empty-state-icon"></span>
       <h3>No hay sucursales registradas</h3>
+      <p>Crea una sucursal para comenzar a operar con inventario y asignaciones.</p>
       <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Crear primera sucursal</button>
     </div>
   </ng-template>
@@ -36,33 +37,32 @@
   </button>
 </ng-template>
 
-<nz-modal
-  [nzVisible]="isModalVisible()"
-  [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'"
-  [nzOkLoading]="loading()"
-  nzOkText="Guardar"
-  nzCancelText="Cancelar"
-  (nzOnCancel)="closeModal()"
-  (nzOnOk)="save()"
->
-  <form [formGroup]="form" class="branch-form">
-    <label>Código *</label>
-    <input nz-input formControlName="code" />
-    <small class="field-error" *ngIf="codeError">{{ codeError }}</small>
+<nz-modal [nzVisible]="isModalVisible()" [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'" [nzFooter]="modalFooter" (nzOnCancel)="closeModal()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="form" class="branch-form">
+      <label>Código *</label>
+      <input nz-input formControlName="code" />
+      <small class="field-error" *ngIf="codeError">{{ codeError }}</small>
 
-    <label>Nombre *</label>
-    <input nz-input formControlName="name" />
-    <small class="field-error" *ngIf="nameError">{{ nameError }}</small>
+      <label>Nombre *</label>
+      <input nz-input formControlName="name" />
+      <small class="field-error" *ngIf="nameError">{{ nameError }}</small>
 
-    <label>Dirección</label>
-    <textarea nz-input formControlName="address" rows="2"></textarea>
+      <label>Dirección</label>
+      <textarea nz-input formControlName="address" rows="2"></textarea>
 
-    <label>Descripción</label>
-    <textarea nz-input formControlName="description" rows="2"></textarea>
+      <label>Descripción</label>
+      <textarea nz-input formControlName="description" rows="2"></textarea>
 
-    <div class="switch-row">
-      <label>Activo</label>
-      <nz-switch formControlName="active"></nz-switch>
-    </div>
-  </form>
+      <div class="switch-row">
+        <label>Activo</label>
+        <nz-switch formControlName="active"></nz-switch>
+      </div>
+    </form>
+  </ng-container>
+
+  <ng-template #modalFooter>
+    <button nz-button nzType="default" (click)="closeModal()" [disabled]="saving()">Cancelar</button>
+    <button nz-button nzType="primary" (click)="save()" [disabled]="form.invalid || saving()" [nzLoading]="saving()">Guardar</button>
+  </ng-template>
 </nz-modal>

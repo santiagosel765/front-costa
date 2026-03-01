@@ -3,7 +3,14 @@ import { Observable, map } from 'rxjs';
 
 import { ApiResponse, PagedResponse, unwrapApiResponse } from '../../core/models/api.models';
 import { ApiService } from '../../core/services/api.service';
-import { CatalogRecord, normalizeCatalogRecord } from '../config/config.models';
+import { OrgBranchRecord } from './org-branch.service';
+
+export interface OrgAssignmentUser {
+  id: string;
+  username?: string;
+  fullName?: string;
+  email?: string;
+}
 
 export interface OrgAssignmentRecord {
   id: string;
@@ -11,6 +18,9 @@ export interface OrgAssignmentRecord {
   branchId: string;
   active: boolean;
   updatedAt?: string;
+  updated_at?: string;
+  user?: OrgAssignmentUser;
+  branch?: OrgBranchRecord;
 }
 
 export interface OrgAssignmentQuery {
@@ -38,13 +48,10 @@ export class OrgAssignmentService {
         map((response) => unwrapApiResponse(response)),
         map((response) => ({
           ...response,
-          data: (response.data ?? []).map((item) => {
-            const normalized = normalizeCatalogRecord(item as unknown as CatalogRecord);
-            return {
-              ...item,
-              updatedAt: normalized.updatedAt,
-            };
-          }),
+          data: (response.data ?? []).map((item) => ({
+            ...item,
+            updatedAt: item.updatedAt ?? item.updated_at,
+          })),
         })),
       );
   }
@@ -54,13 +61,10 @@ export class OrgAssignmentService {
       .post<ApiResponse<OrgAssignmentRecord> | OrgAssignmentRecord>('/v1/org/user-branch-assignments', payload)
       .pipe(
         map((response) => unwrapApiResponse(response)),
-        map((item) => {
-          const normalized = normalizeCatalogRecord(item as unknown as CatalogRecord);
-          return {
-            ...item,
-            updatedAt: normalized.updatedAt,
-          };
-        }),
+        map((item) => ({
+          ...item,
+          updatedAt: item.updatedAt ?? item.updated_at,
+        })),
       );
   }
 
