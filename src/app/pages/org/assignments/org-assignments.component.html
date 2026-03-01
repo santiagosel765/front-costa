@@ -35,10 +35,12 @@
       </div>
     </div>
 
-    <div *ngIf="initialized() && !loading() && !catalogsLoading() && rows().length === 0" class="selection-hint">
-      <span nz-icon nzType="inbox"></span>
-      No hay asignaciones para este criterio.
-    </div>
+    <nz-empty
+      *ngIf="initialized() && !loading() && !catalogsLoading() && rows().length === 0"
+      class="selection-empty"
+      nzNotFoundImage="simple"
+      nzNotFoundContent="No hay asignaciones para este criterio."
+    ></nz-empty>
 
     <nz-table [nzData]="rows()" [nzLoading]="loading()" [nzFrontPagination]="false" [nzShowPagination]="false" nzBordered>
         <thead>
