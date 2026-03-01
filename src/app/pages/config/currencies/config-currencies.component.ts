@@ -160,7 +160,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.markAsFunctional(event.row);
+    this.markAsFunctional(event.row.id);
   }
 
   onCodeBlur(): void {
@@ -194,7 +194,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
         this.message.success(editing ? 'Moneda actualizada' : 'Moneda creada');
         this.isModalVisible.set(false);
         this.resetForm();
-        this.load(this.tableState.snapshot);
+        this.loadCurrencies();
       },
       error: (error: HttpErrorResponse) => {
         if (error.status === 409) {
@@ -224,7 +224,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
           this.service.remove(row.id).subscribe({
             next: () => {
               this.message.success('Moneda eliminada');
-              this.load(this.tableState.snapshot);
+              this.loadCurrencies();
               resolve();
             },
             error: () => {
@@ -238,32 +238,23 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
     });
   }
 
-  private markAsFunctional(row: CurrencyRecord): void {
-    if (row.isFunctional) {
-      return;
-    }
-
+  private markAsFunctional(id: string): void {
     this.loading.set(true);
-    this.service
-      .update(row.id, {
-        code: row.code,
-        name: row.name,
-        symbol: row.symbol,
-        decimals: row.decimals,
-        isFunctional: true,
-        active: row.active,
-      })
-      .subscribe({
-        next: () => {
-          this.message.success('Moneda funcional actualizada');
-          this.load(this.tableState.snapshot);
-        },
-        error: () => {
-          this.message.error('No se pudo marcar la moneda como funcional');
-          this.loading.set(false);
-        },
-        complete: () => this.loading.set(false),
-      });
+    this.service.markFunctional(id).subscribe({
+      next: () => {
+        this.message.success('Moneda funcional actualizada');
+        this.loadCurrencies();
+      },
+      error: () => {
+        this.message.error('No se pudo marcar la moneda como funcional');
+        this.loading.set(false);
+      },
+      complete: () => this.loading.set(false),
+    });
+  }
+
+  private loadCurrencies(): void {
+    this.load(this.tableState.snapshot);
   }
 
   private load(state: TableState): void {

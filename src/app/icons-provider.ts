@@ -49,7 +49,8 @@ import {
   DeleteOutline,         // Para eliminar
   FileOutline,           // Para subcategorías
   RightOutline,          // Para la flecha de jerarquía
-  LockOutline            // Para formularios y pantallas con bloqueo
+  LockOutline,           // Para formularios y pantallas con bloqueo
+  StarOutline            // Marcar moneda funcional
 } from '@ant-design/icons-angular/icons';
 
 export const icons = [
@@ -103,5 +104,6 @@ export const icons = [
   DeleteOutline,         // Eliminar
   FileOutline,           // Archivo
   RightOutline,          // Flecha
-  LockOutline            // Candado
+  LockOutline,           // Candado
+  StarOutline            // Moneda funcional
 ];
