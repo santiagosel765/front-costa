@@ -20,7 +20,7 @@ export interface ApiResponse<T> {
 }
 
 export interface NormalizedPagedResponse<T> {
-  items: T[];
+  data: T[];
   total: number;
   page: number;
   size: number;
@@ -36,6 +36,16 @@ export function unwrapApiResponse<T>(payload: ApiResponse<T> | T): T {
 }
 
 export function normalizePagedResponse<T>(payload: unknown, fallback: { page: number; size: number }): NormalizedPagedResponse<T> {
+  if (Array.isArray(payload)) {
+    return {
+      data: payload as T[],
+      total: payload.length,
+      page: fallback.page,
+      size: fallback.size,
+      totalPages: Math.max(1, Math.ceil(payload.length / Math.max(1, fallback.size))),
+    };
+  }
+
   const source = (payload ?? {}) as Record<string, unknown>;
   const directData = source['data'];
   const directItems = source['items'];
@@ -45,6 +55,7 @@ export function normalizePagedResponse<T>(payload: unknown, fallback: { page: nu
 
   const itemsCandidate =
     (Array.isArray(directData) ? directData : undefined)
+    ?? (Array.isArray(nested['data']) ? (nested['data'] as unknown[]) : undefined)
     ?? (Array.isArray(nested['items']) ? (nested['items'] as unknown[]) : undefined)
     ?? (Array.isArray(directItems) ? (directItems as unknown[]) : []);
 
@@ -61,7 +72,7 @@ export function normalizePagedResponse<T>(payload: unknown, fallback: { page: nu
     : Math.max(1, Math.ceil(total / Math.max(1, size)));
 
   return {
-    items: itemsCandidate as T[],
+    data: itemsCandidate as T[],
     total,
     page,
     size,

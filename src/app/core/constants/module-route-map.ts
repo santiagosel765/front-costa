@@ -23,6 +23,9 @@ export const MODULE_ALIAS: Record<string, string> = {
   CONFIG: 'CONFIG',
   ORGANIZACION: 'ORG',
   ORGANIZATION: 'ORG',
+  HUB_ORGANIZACION: 'ORG',
+  HUB_ORGANIZATION: 'ORG',
+  ORG_HUB: 'ORG',
 };
 
 export interface ModuleUiManifest {
@@ -74,8 +77,10 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
 
   const shouldPreferManifestLabel = key === 'ORG' || key === 'CONFIG';
 
+  const shouldPreferManifestRoute = key === 'ORG';
+
   return {
-    route: module.baseRoute || fromManifest.route,
+    route: shouldPreferManifestRoute ? fromManifest.route : (module.baseRoute || fromManifest.route),
     icon: module.icon || fromManifest.icon,
     label: shouldPreferManifestLabel ? fromManifest.label : (module.label || fromManifest.label),
   };

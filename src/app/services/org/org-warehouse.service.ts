@@ -60,9 +60,9 @@ export class OrgWarehouseService {
         },
       })
       .pipe(
-        map((response) => normalizePagedResponse<OrgWarehouse>(unwrapApiResponse(response), { page: query.page, size: query.size })),
+        map((response) => normalizePagedResponse<OrgWarehouse>(response, { page: query.page, size: query.size })),
         map((response) => ({
-          data: response.items.map(normalizeWarehouse),
+          data: response.data.map(normalizeWarehouse),
           total: response.total,
           page: response.page,
           size: response.size,
