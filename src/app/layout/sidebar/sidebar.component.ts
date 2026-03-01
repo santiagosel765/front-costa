@@ -6,6 +6,7 @@ import {
   Input,
   OnDestroy,
   OnInit,
+  isDevMode,
   inject,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -26,6 +27,7 @@ interface SidebarMenuItem {
   label: string;
   icon: string;
   disabled: boolean;
+  disabledReason?: string | null;
 }
 
 @Component({
@@ -55,11 +57,27 @@ export class SidebarComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (modules) => {
+          if (isDevMode()) {
+            console.debug('[sidebar] modules from session', modules.map((module) => module.moduleKey));
+          }
+
           const uniqueModules = Array.from(new Map(modules.map((module) => [module.moduleKey, module])).values());
 
           this.menuItems = uniqueModules
             .map((module) => this.buildMenuItem(module))
             .sort((left, right) => left.label.localeCompare(right.label, 'es'));
+
+          if (isDevMode()) {
+            console.debug(
+              '[sidebar] mapped routes',
+              this.menuItems.map((item) => ({
+                key: item.key,
+                route: item.route,
+                disabled: item.disabled,
+                reason: item.disabledReason ?? 'enabled',
+              })),
+            );
+          }
 
           this.loading = false;
           this.cdr.markForCheck();
@@ -94,6 +112,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       label: metadata.label,
       icon: metadata.icon,
       disabled: metadata.disabled,
+      disabledReason: metadata.disabledReason,
     };
   }
 }
