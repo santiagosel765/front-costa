@@ -1,0 +1,14 @@
+<nz-card nzTitle="Categorías" [nzExtra]="createTpl">
+  <app-data-table [columns]="columns" [data]="rows()" [loading]="loading()" [total]="total()" [pageIndex]="table.snapshot.page" [pageSize]="table.snapshot.size" [searchValue]="table.snapshot.q" (pageChange)="onPageChange($event)" (searchChange)="onSearchChange($event)" (action)="action($event)"></app-data-table>
+</nz-card>
+<ng-template #createTpl><button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate()">Crear</button></ng-template>
+<nz-modal [nzVisible]="modal()" [nzTitle]="editing() ? 'Editar categoría' : 'Nueva categoría'" [nzOkLoading]="saving()" (nzOnCancel)="modal.set(false)" (nzOnOk)="save()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="form" class="grid" style="display:grid;gap:8px;">
+      <label>Nombre *</label><input nz-input formControlName="name" />
+      <label>Código</label><input nz-input formControlName="code" />
+      <label>Padre</label><nz-tree-select formControlName="parentId" [nzNodes]="$any(tree())" nzAllowClear nzPlaceHolder="Sin padre"></nz-tree-select>
+      <label>Orden</label><input nz-input type="number" formControlName="sortOrder" />
+    </form>
+  </ng-container>
+</nz-modal>

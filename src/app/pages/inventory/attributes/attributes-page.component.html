@@ -1,0 +1,30 @@
+<nz-card nzTitle="Atributos" [nzExtra]="createTpl">
+  <app-data-table [columns]="columns" [data]="rows()" [loading]="loading()" [total]="total()" [pageIndex]="table.snapshot.page" [pageSize]="table.snapshot.size" [searchValue]="table.snapshot.q" (pageChange)="onPageChange($event)" (searchChange)="onSearchChange($event)" (action)="action($event)"></app-data-table>
+</nz-card>
+<ng-template #createTpl><button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate()">Crear</button></ng-template>
+<nz-modal [nzVisible]="modal()" [nzTitle]="editing() ? 'Editar atributo' : 'Nuevo atributo'" [nzWidth]="820" [nzOkLoading]="saving()" (nzOnCancel)="modal.set(false)" (nzOnOk)="save()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="form">
+      <nz-tabset>
+        <nz-tab nzTitle="General">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <label>Nombre *</label><input nz-input formControlName="name"/>
+            <label>Código *</label><input nz-input formControlName="code"/>
+            <label>Tipo *</label><nz-select formControlName="type"><nz-option nzValue="TEXT" nzLabel="TEXT"></nz-option><nz-option nzValue="NUMBER" nzLabel="NUMBER"></nz-option><nz-option nzValue="BOOLEAN" nzLabel="BOOLEAN"></nz-option><nz-option nzValue="DATE" nzLabel="DATE"></nz-option><nz-option nzValue="SELECT" nzLabel="SELECT"></nz-option><nz-option nzValue="MULTISELECT" nzLabel="MULTISELECT"></nz-option></nz-select>
+            <label>Requerido</label><nz-switch formControlName="required"></nz-switch>
+            <label>Searchable</label><nz-switch formControlName="searchable"></nz-switch>
+            <label>Visible</label><nz-switch formControlName="visible"></nz-switch>
+          </div>
+        </nz-tab>
+        <nz-tab nzTitle="Opciones" *ngIf="showOptions">
+          <button nz-button nzType="dashed" (click)="addOption()">Agregar opción</button>
+          <div formArrayName="options" style="margin-top:8px;display:grid;gap:8px;">
+            <div *ngFor="let opt of options.controls; let i=index" [formGroupName]="i" style="display:grid;grid-template-columns:2fr 1fr auto auto;gap:8px;align-items:center;">
+              <input nz-input formControlName="value" placeholder="Valor"/><input nz-input type="number" formControlName="sortOrder" placeholder="Orden"/><nz-switch formControlName="active"></nz-switch><button nz-button nzDanger (click)="removeOption(i)">Quitar</button>
+            </div>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </form>
+  </ng-container>
+</nz-modal>

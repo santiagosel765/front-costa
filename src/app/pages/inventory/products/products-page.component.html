@@ -1,0 +1,55 @@
+<nz-card nzTitle="Catálogo de productos" [nzExtra]="createTpl">
+  <div style="display:grid;grid-template-columns:repeat(4,minmax(160px,1fr));gap:8px;margin-bottom:12px;" [formGroup]="filters">
+    <nz-select formControlName="categoryId" nzAllowClear nzPlaceHolder="Categoría"><nz-option *ngFor="let c of categories()" [nzValue]="c.id" [nzLabel]="c.name"></nz-option></nz-select>
+    <nz-select formControlName="brandId" nzAllowClear nzPlaceHolder="Marca"><nz-option *ngFor="let b of brands()" [nzValue]="b.id" [nzLabel]="b.name"></nz-option></nz-select>
+    <nz-select formControlName="type" nzAllowClear nzPlaceHolder="Tipo"><nz-option nzValue="PRODUCT" nzLabel="PRODUCT"></nz-option><nz-option nzValue="SERVICE" nzLabel="SERVICE"></nz-option><nz-option nzValue="KIT" nzLabel="KIT"></nz-option></nz-select>
+    <nz-select formControlName="status" nzAllowClear nzPlaceHolder="Status"><nz-option nzValue="DRAFT" nzLabel="DRAFT"></nz-option><nz-option nzValue="ACTIVE" nzLabel="ACTIVE"></nz-option><nz-option nzValue="ARCHIVED" nzLabel="ARCHIVED"></nz-option></nz-select>
+  </div>
+  <app-data-table [columns]="columns" [data]="rows()" [loading]="loading()" [total]="total()" [pageIndex]="table.snapshot.page" [pageSize]="table.snapshot.size" [searchValue]="table.snapshot.q" searchPlaceholder="Buscar SKU o nombre" (pageChange)="onPageChange($event)" (searchChange)="onSearchChange($event)" (action)="action($event)"></app-data-table>
+</nz-card>
+
+<ng-template #createTpl>
+  <button *appHasPermission="['INVENTORY','write']" nz-button nzType="primary" (click)="openCreate()">Crear</button>
+</ng-template>
+
+<nz-modal [nzVisible]="modal()" [nzTitle]="editing() ? 'Editar producto' : 'Nuevo producto'" [nzWidth]="960" [nzOkLoading]="saving()" (nzOnCancel)="modal.set(false)" (nzOnOk)="save()">
+  <ng-container *nzModalContent>
+    <form [formGroup]="form">
+      <nz-tabset>
+        <nz-tab nzTitle="General">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <label>Tipo *</label><nz-select formControlName="type"><nz-option nzValue="PRODUCT" nzLabel="PRODUCT"></nz-option><nz-option nzValue="SERVICE" nzLabel="SERVICE"></nz-option><nz-option nzValue="KIT" nzLabel="KIT"></nz-option></nz-select>
+            <label>Status *</label><nz-select formControlName="status"><nz-option nzValue="DRAFT" nzLabel="DRAFT"></nz-option><nz-option nzValue="ACTIVE" nzLabel="ACTIVE"></nz-option><nz-option nzValue="ARCHIVED" nzLabel="ARCHIVED"></nz-option></nz-select>
+            <label>SKU</label><input nz-input formControlName="sku" />
+            <label>Nombre *</label><input nz-input formControlName="name" />
+            <label>Categoría</label><nz-select formControlName="categoryId" nzAllowClear><nz-option *ngFor="let c of categories()" [nzValue]="c.id" [nzLabel]="c.name"></nz-option></nz-select>
+            <label>Marca</label><nz-select formControlName="brandId" nzAllowClear><nz-option *ngFor="let b of brands()" [nzValue]="b.id" [nzLabel]="b.name"></nz-option></nz-select>
+            <label>UOM</label><nz-select formControlName="uomId" nzAllowClear><nz-option *ngFor="let u of uoms()" [nzValue]="u.id" [nzLabel]="u.name"></nz-option></nz-select>
+            <label>Track stock</label><nz-switch formControlName="trackStock"></nz-switch>
+            <label>Track lot</label><nz-switch formControlName="trackLot"></nz-switch>
+            <label>Track serial</label><nz-switch formControlName="trackSerial"></nz-switch>
+          </div>
+        </nz-tab>
+        <nz-tab nzTitle="Precios">
+          <label>Base price</label><input nz-input type="number" min="0" formControlName="basePrice" />
+        </nz-tab>
+        <nz-tab nzTitle="Impuestos" [nzDisabled]="!editing()">
+          <label>Perfil de impuesto</label><nz-select formControlName="taxProfileId" nzAllowClear><nz-option *ngFor="let t of profiles()" [nzValue]="t.id" [nzLabel]="t.name"></nz-option></nz-select>
+        </nz-tab>
+        <nz-tab nzTitle="Atributos" [nzDisabled]="!editing()">
+          <div *ngFor="let a of attributes()" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <label>{{ a.name }}</label>
+            <ng-container [ngSwitch]="a.type">
+              <input *ngSwitchCase="'TEXT'" nz-input [ngModel]="attrValues()[a.code]" [name]="'attr_'+a.code" (ngModelChange)="setAttr(a.code,$event)" />
+              <input *ngSwitchCase="'NUMBER'" nz-input type="number" [ngModel]="attrValues()[a.code]" [name]="'attr_'+a.code" (ngModelChange)="setAttr(a.code,$event)" />
+              <nz-switch *ngSwitchCase="'BOOLEAN'" [ngModel]="attrValues()[a.code]" [name]="'attr_'+a.code" (ngModelChange)="setAttr(a.code,$event)"></nz-switch>
+              <input *ngSwitchCase="'DATE'" nz-input type="date" [ngModel]="attrValues()[a.code]" [name]="'attr_'+a.code" (ngModelChange)="setAttr(a.code,$event)" />
+              <nz-select *ngSwitchCase="'SELECT'" [ngModel]="attrValues()[a.code]" [name]="'attr_'+a.code" (ngModelChange)="setAttr(a.code,$event)"><nz-option *ngFor="let o of a.options || []" [nzValue]="o.value" [nzLabel]="o.value"></nz-option></nz-select>
+              <nz-select *ngSwitchCase="'MULTISELECT'" nzMode="multiple" [ngModel]="attrValues()[a.code]" [name]="'attr_'+a.code" (ngModelChange)="setAttr(a.code,$event)"><nz-option *ngFor="let o of a.options || []" [nzValue]="o.value" [nzLabel]="o.value"></nz-option></nz-select>
+            </ng-container>
+          </div>
+        </nz-tab>
+      </nz-tabset>
+    </form>
+  </ng-container>
+</nz-modal>
