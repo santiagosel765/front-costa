@@ -49,3 +49,12 @@
 :host ::ng-deep .ant-menu-inline .ant-menu-sub.ant-menu-inline .ant-menu-item {
   padding-left: 48px !important;
 }
+
+.disabled-module {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  gap: 10px;
+  cursor: not-allowed;
+  opacity: 0.65;
+}

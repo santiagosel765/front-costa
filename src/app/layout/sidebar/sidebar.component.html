@@ -18,11 +18,17 @@
   <ng-template #modulesList>
     <ng-container *ngIf="menuItems.length; else noModules">
       <ng-container *ngFor="let item of menuItems; trackBy: trackByKey">
-        <li nz-menu-item nzMatchRouter>
-          <a [routerLink]="item.route">
+        <li nz-menu-item nzMatchRouter [nzDisabled]="item.disabled">
+          <a *ngIf="!item.disabled; else disabledModule" [routerLink]="item.route">
             <nz-icon [nzType]="item.icon"></nz-icon>
             <span class="menu-label" [title]="item.label">{{ item.label }}</span>
           </a>
+          <ng-template #disabledModule>
+            <span class="disabled-module" nz-tooltip nzTooltipTitle="Módulo no configurado">
+              <nz-icon [nzType]="item.icon"></nz-icon>
+              <span class="menu-label" [title]="item.label">{{ item.label }}</span>
+            </span>
+          </ng-template>
         </li>
       </ng-container>
     </ng-container>
