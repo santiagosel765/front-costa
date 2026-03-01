@@ -57,8 +57,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
           modules.forEach((module) => {
             const item = this.buildMenuItem(module);
-            if (!uniqueMenuItems.has(item.key)) {
-              uniqueMenuItems.set(item.key, item);
+            const uniqueKey = this.resolveUniqueKey(module, item);
+            if (!uniqueMenuItems.has(uniqueKey)) {
+              uniqueMenuItems.set(uniqueKey, item);
             }
           });
 
@@ -85,6 +86,16 @@ export class SidebarComponent implements OnInit, OnDestroy {
   logout(event: Event): void {
     event.preventDefault();
     this.sessionStore.clearSession();
+  }
+
+
+  private resolveUniqueKey(module: AuthContextModule, item: SidebarMenuItem): string {
+    const normalizedKey = normalizeModuleName(module.key);
+    if (normalizedKey) {
+      return normalizedKey;
+    }
+
+    return item.key?.toUpperCase?.() || module.key || item.route;
   }
 
   private buildMenuItem(module: AuthContextModule): SidebarMenuItem {

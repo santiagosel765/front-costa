@@ -4,6 +4,14 @@
     <p>Hub central para administrar sucursales, asignaciones, bodegas y numeración.</p>
   </div>
 
+  <nz-alert
+    *ngIf="showBranchSelectionHint"
+    nzType="info"
+    nzShowIcon
+    nzMessage="Selecciona una sucursal para continuar"
+    nzDescription="Luego de seleccionar la sucursal activa, volverás automáticamente al módulo solicitado."
+  ></nz-alert>
+
   <nz-tabset [nzSelectedIndex]="selectedIndex" (nzSelectedIndexChange)="onTabChange($event)">
     <nz-tab nzTitle="Sucursales"></nz-tab>
     <nz-tab nzTitle="Asignaciones"></nz-tab>

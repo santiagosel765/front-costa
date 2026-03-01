@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { CanActivate, CanMatch, Route, Router, UrlSegment, UrlTree } from '@angular/router';
+import { ActivatedRouteSnapshot, CanActivate, CanMatch, Route, Router, RouterStateSnapshot, UrlSegment, UrlTree } from '@angular/router';
 import { Observable, of } from 'rxjs';
 
 import { BranchContextService } from '../services/branch-context.service';
@@ -9,15 +9,29 @@ export class ActiveBranchGuard implements CanActivate, CanMatch {
   private readonly router = inject(Router);
   private readonly branchContext = inject(BranchContextService);
 
-  canActivate(): Observable<boolean | UrlTree> {
-    return of(this.validate());
+  canActivate(_route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> {
+    return of(this.validate(state.url));
   }
 
-  canMatch(_route: Route, _segments: UrlSegment[]): Observable<boolean | UrlTree> {
-    return of(this.validate());
+  canMatch(route: Route, segments: UrlSegment[]): Observable<boolean | UrlTree> {
+    const segmentPath = segments.map((segment) => segment.path).join('/');
+    const routePath = route.path ?? '';
+    const suffix = segmentPath || routePath;
+    const returnUrl = suffix ? `/main/${suffix}` : '/main/welcome';
+
+    return of(this.validate(returnUrl));
   }
 
-  private validate(): boolean | UrlTree {
-    return this.branchContext.getActiveBranchId() ? true : this.router.parseUrl('/main/org?tab=branches');
+  private validate(returnUrl: string): boolean | UrlTree {
+    if (this.branchContext.getActiveBranchId()) {
+      return true;
+    }
+
+    return this.router.createUrlTree(['/main/org'], {
+      queryParams: {
+        tab: 'branches',
+        returnUrl,
+      },
+    });
   }
 }

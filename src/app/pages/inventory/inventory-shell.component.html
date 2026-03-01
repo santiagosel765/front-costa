@@ -7,14 +7,9 @@
     </div>
   </div>
 
-  <nav class="inv-nav" aria-label="Navegación de inventario">
-    <a routerLink="products" routerLinkActive="active">Productos</a>
-    <a routerLink="categories" routerLinkActive="active">Categorías</a>
-    <a routerLink="brands" routerLinkActive="active">Marcas</a>
-    <a routerLink="uom" routerLinkActive="active">UOM</a>
-    <a routerLink="attributes" routerLinkActive="active">Atributos</a>
-    <a routerLink="tax-profiles" routerLinkActive="active">Perfiles de Impuestos</a>
-  </nav>
+  <nz-tabset [nzSelectedIndex]="selectedIndex" (nzSelectedIndexChange)="onTabChange($event)">
+    <nz-tab *ngFor="let tab of tabs" [nzTitle]="tab.title"></nz-tab>
+  </nz-tabset>
 
   <router-outlet></router-outlet>
 </nz-card>
