@@ -49,6 +49,10 @@ export class ConfigCurrencyService {
       .pipe(map((response) => this.normalizeRecord(unwrapApiResponse(response))));
   }
 
+  markFunctional(id: string): Observable<void> {
+    return this.api.put(`/v1/config/currencies/${id}/functional`, {}).pipe(map(() => void 0));
+  }
+
   remove(id: string): Observable<void> {
     return this.api.delete(`/v1/config/currencies/${id}`).pipe(map(() => void 0));
   }

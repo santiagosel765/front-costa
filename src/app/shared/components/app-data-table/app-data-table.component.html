@@ -59,7 +59,7 @@
                         [disabled]="actionConfig.disabled?.(row) || false"
                         (click)="triggerAction(actionConfig.type, row)"
                       >
-                        <span *ngIf="actionConfig.icon" nz-icon [nzType]="actionConfig.icon"></span>
+                        <span *ngIf="actionConfig.icon" nz-icon [nzType]="actionConfig.icon" nzTheme="outline"></span>
                         {{ actionConfig.label }}
                       </button>
                     </span>
@@ -76,7 +76,7 @@
                         nzPopconfirmPlacement="left"
                         (nzOnConfirm)="triggerAction(actionConfig.type, row)"
                       >
-                        <span *ngIf="actionConfig.icon" nz-icon [nzType]="actionConfig.icon"></span>
+                        <span *ngIf="actionConfig.icon" nz-icon [nzType]="actionConfig.icon" nzTheme="outline"></span>
                         {{ actionConfig.label }}
                       </button>
                     </span>
