@@ -1,0 +1,35 @@
+<nz-card>
+  <div class="header-row">
+    <div>
+      <h2>Métodos de pago</h2>
+      <p>Gestiona los medios de pago que estarán disponibles para ventas y cobranzas.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="openModal()">Nuevo método</button>
+  </div>
+
+  <app-data-table
+    [columns]="columns"
+    [data]="[]"
+    [loading]="false"
+    [total]="0"
+    [showToolbar]="false"
+    emptyMessage="Aún no hay métodos de pago"
+    emptyActionLabel="Crear primero método"
+    (emptyAction)="openModal()"
+  ></app-data-table>
+</nz-card>
+
+<nz-modal
+  [nzVisible]="isModalVisible()"
+  nzTitle="Nuevo método de pago"
+  nzOkText="Guardar"
+  nzCancelText="Cancelar"
+  [nzOkDisabled]="!paymentMethodName.trim()"
+  (nzOnCancel)="closeModal()"
+  (nzOnOk)="save()"
+>
+  <ng-container *nzModalContent>
+    <label>Nombre</label>
+    <input nz-input [(ngModel)]="paymentMethodName" placeholder="Ej. Transferencia" />
+  </ng-container>
+</nz-modal>

@@ -1,0 +1,16 @@
+<nz-card nzTitle="Configuración" class="config-home-card">
+  <p class="description">Selecciona un módulo para gestionar catálogos y parámetros del sistema.</p>
+
+  <div class="cards-grid">
+    <nz-card *ngFor="let card of cards" nzType="inner" class="module-card">
+      <div class="module-header">
+        <h3>{{ card.title }}</h3>
+        <nz-tag [nzColor]="card.status === 'Listo' ? 'green' : 'orange'">{{ card.status }}</nz-tag>
+      </div>
+
+      <p>{{ card.description }}</p>
+
+      <button nz-button nzType="primary" [routerLink]="card.route">Ir</button>
+    </nz-card>
+  </div>
+</nz-card>
