@@ -13,6 +13,7 @@ import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
 import { NzSwitchModule } from 'ng-zorro-antd/switch';
 import { Subject, takeUntil } from 'rxjs';
 
+import { mapHttpErrorMessage } from '../../../core/utils/api-error.util';
 import { ConfigCurrencyService, CurrencyRecord } from '../../../services/config/config-currency.service';
 import { AppDataTableComponent } from '../../../shared/components/app-data-table/app-data-table.component';
 import { AppDataTableColumn, TableState } from '../../../shared/components/app-data-table/app-data-table.models';
@@ -56,10 +57,11 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
   readonly editingRow = signal<CurrencyRecord | null>(null);
 
   readonly form = this.fb.group({
-    code: this.fb.nonNullable.control('', [Validators.required]),
-    name: this.fb.nonNullable.control('', [Validators.required]),
-    symbol: this.fb.nonNullable.control(''),
-    decimals: this.fb.nonNullable.control(2),
+    code: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(10)]),
+    name: this.fb.nonNullable.control('', [Validators.required, Validators.maxLength(100)]),
+    description: this.fb.nonNullable.control(''),
+    symbol: this.fb.nonNullable.control('', [Validators.maxLength(5)]),
+    decimals: this.fb.nonNullable.control(2, [Validators.required, Validators.min(0), Validators.max(6)]),
     isFunctional: this.fb.nonNullable.control(false),
     active: this.fb.nonNullable.control(true),
   });
@@ -141,6 +143,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
     this.form.reset({
       code: row.code ?? '',
       name: row.name ?? '',
+      description: row.description ?? '',
       symbol: row.symbol ?? '',
       decimals: row.decimals ?? 2,
       isFunctional: !!row.isFunctional,
@@ -181,6 +184,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
       ...this.form.getRawValue(),
       code: this.form.controls.code.value.trim().toUpperCase(),
       name: this.form.controls.name.value.trim(),
+      description: this.form.controls.description.value.trim(),
       symbol: this.form.controls.symbol.value.trim(),
       decimals: Number(this.form.controls.decimals.value ?? 2),
     };
@@ -188,7 +192,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
     const editing = this.editingRow();
     this.saving.set(true);
 
-    const request$ = editing ? this.service.update(editing.id, payload) : this.service.create(payload);
+    const request$ = editing ? this.service.updateCurrency(editing.id, payload) : this.service.createCurrency(payload);
     request$.subscribe({
       next: () => {
         this.message.success(editing ? 'Moneda actualizada' : 'Moneda creada');
@@ -200,10 +204,11 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
         if (error.status === 409) {
           this.form.controls.code.setErrors({ duplicate: true });
           this.form.controls.code.markAsTouched();
-          this.message.warning('El código ya existe');
+          this.message.warning(mapHttpErrorMessage(error));
         } else {
-          this.message.error('No se pudo guardar la moneda');
+          this.message.error(mapHttpErrorMessage(error));
         }
+        this.saving.set(false);
       },
       complete: () => this.saving.set(false),
     });
@@ -216,19 +221,19 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
   private confirmDelete(row: CurrencyRecord): void {
     this.modal.confirm({
       nzTitle: '¿Eliminar moneda?',
-      nzContent: `La moneda ${row.code} será eliminada. Esta acción no se puede deshacer.`,
+      nzContent: `¿Deseas eliminar la moneda ${row.code}? (Esto la desactivará)`,
       nzOkDanger: true,
       nzOnOk: () =>
         new Promise<void>((resolve) => {
           this.loading.set(true);
-          this.service.remove(row.id).subscribe({
+          this.service.deleteCurrency(row.id).subscribe({
             next: () => {
               this.message.success('Moneda eliminada');
               this.loadCurrencies();
               resolve();
             },
-            error: () => {
-              this.message.error('No se pudo eliminar la moneda');
+            error: (error: HttpErrorResponse) => {
+              this.message.error(mapHttpErrorMessage(error));
               this.loading.set(false);
               resolve();
             },
@@ -279,6 +284,7 @@ export class ConfigCurrenciesComponent implements OnInit, OnDestroy {
     this.form.reset({
       code: '',
       name: '',
+      description: '',
       symbol: '',
       decimals: 2,
       isFunctional: false,

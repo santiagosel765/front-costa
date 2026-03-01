@@ -36,28 +36,35 @@
     <nz-form-item>
       <nz-form-label [nzRequired]="true">Código</nz-form-label>
       <nz-form-control [nzErrorTip]="codeErrorTpl">
-        <input nz-input formControlName="code" maxlength="10" (blur)="onCodeBlur()" />
+        <input nz-input formControlName="code" maxlength="10" (blur)="onCodeBlur()" style="text-transform: uppercase" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label [nzRequired]="true">Nombre</nz-form-label>
-      <nz-form-control nzErrorTip="Nombre es requerido">
-        <input nz-input formControlName="name" maxlength="80" />
+      <nz-form-control [nzErrorTip]="nameErrorTpl">
+        <input nz-input formControlName="name" maxlength="100" />
+      </nz-form-control>
+    </nz-form-item>
+
+    <nz-form-item>
+      <nz-form-label>Descripción</nz-form-label>
+      <nz-form-control>
+        <textarea nz-input formControlName="description" rows="3"></textarea>
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
       <nz-form-label>Símbolo</nz-form-label>
-      <nz-form-control>
-        <input nz-input formControlName="symbol" maxlength="8" />
+      <nz-form-control [nzErrorTip]="symbolErrorTpl">
+        <input nz-input formControlName="symbol" maxlength="5" />
       </nz-form-control>
     </nz-form-item>
 
     <nz-form-item>
-      <nz-form-label>Decimales</nz-form-label>
-      <nz-form-control>
-        <nz-input-number formControlName="decimals" [nzMin]="0" [nzMax]="8" [nzStep]="1"></nz-input-number>
+      <nz-form-label [nzRequired]="true">Decimales</nz-form-label>
+      <nz-form-control [nzErrorTip]="decimalsErrorTpl">
+        <nz-input-number formControlName="decimals" [nzMin]="0" [nzMax]="6" [nzStep]="1"></nz-input-number>
       </nz-form-control>
     </nz-form-item>
 
@@ -81,6 +88,22 @@
 
   <ng-template #codeErrorTpl>
     <ng-container *ngIf="form.controls.code.hasError('required')">Código es requerido</ng-container>
+    <ng-container *ngIf="form.controls.code.hasError('maxlength')">Máximo 10 caracteres</ng-container>
     <ng-container *ngIf="form.controls.code.hasError('duplicate')">El código ya existe</ng-container>
+  </ng-template>
+
+  <ng-template #nameErrorTpl>
+    <ng-container *ngIf="form.controls.name.hasError('required')">Nombre es requerido</ng-container>
+    <ng-container *ngIf="form.controls.name.hasError('maxlength')">Máximo 100 caracteres</ng-container>
+  </ng-template>
+
+  <ng-template #symbolErrorTpl>
+    <ng-container *ngIf="form.controls.symbol.hasError('maxlength')">Máximo 5 caracteres</ng-container>
+  </ng-template>
+
+  <ng-template #decimalsErrorTpl>
+    <ng-container *ngIf="form.controls.decimals.hasError('required')">Decimales es requerido</ng-container>
+    <ng-container *ngIf="form.controls.decimals.hasError('min')">El mínimo es 0</ng-container>
+    <ng-container *ngIf="form.controls.decimals.hasError('max')">El máximo es 6</ng-container>
   </ng-template>
 </nz-modal>
