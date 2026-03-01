@@ -1,5 +1,20 @@
-<nz-card nzTitle="Sucursales" [nzExtra]="actionsTpl" class="org-card">
-  <ng-container *ngIf="total() || loading() || error(); else emptyState">
+<div class="org-page-container">
+  <app-page-header
+    [breadcrumbs]="breadcrumbs"
+    title="Sucursales"
+    subtitle="Administra la estructura operativa de sucursales para inventario y asignaciones."
+  >
+    <button headerActions nz-button nzType="default" (click)="goAssignments()">
+      <span nz-icon nzType="interaction"></span>
+      Asignaciones
+    </button>
+    <button *ngIf="canWrite()" headerActions nz-button nzType="primary" (click)="openCreate()">
+      <span nz-icon nzType="plus"></span>
+      Nueva sucursal
+    </button>
+  </app-page-header>
+
+  <nz-card nzBordered>
     <app-data-table
       [columns]="columns"
       [data]="rows()"
@@ -9,33 +24,28 @@
       [pageIndex]="tableState.snapshot.page"
       [pageSize]="tableState.snapshot.size"
       [searchValue]="tableState.snapshot.q"
+      [emptyMessage]="emptyMessage"
       searchPlaceholder="Buscar sucursal"
       (pageChange)="onPageChange($event)"
       (searchChange)="onSearchChange($event)"
       (action)="handleAction($event)"
     ></app-data-table>
-  </ng-container>
 
-  <ng-template #emptyState>
-    <div class="empty-state">
-      <span nz-icon nzType="apartment" class="empty-state-icon"></span>
-      <h3>No hay sucursales registradas</h3>
-      <p>Crea una sucursal para comenzar a operar con inventario y asignaciones.</p>
-      <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">Crear primera sucursal</button>
+    <div *ngIf="!loading() && rows().length === 0 && tableState.snapshot.q" class="search-empty-actions">
+      <button nz-button nzType="default" (click)="clearSearch()">
+        <span nz-icon nzType="close-circle"></span>
+        Limpiar filtro
+      </button>
     </div>
-  </ng-template>
-</nz-card>
 
-<ng-template #actionsTpl>
-  <button nz-button nzType="default" (click)="goAssignments()">
-    <span nz-icon nzType="interaction"></span>
-    Asignaciones
-  </button>
-  <button *ngIf="canWrite()" nz-button nzType="primary" (click)="openCreate()">
-    <span nz-icon nzType="plus"></span>
-    Nueva sucursal
-  </button>
-</ng-template>
+    <div *ngIf="!loading() && rows().length === 0 && !tableState.snapshot.q && canWrite()" class="search-empty-actions">
+      <button nz-button nzType="primary" (click)="openCreate()">
+        <span nz-icon nzType="plus"></span>
+        Crear primera sucursal
+      </button>
+    </div>
+  </nz-card>
+</div>
 
 <nz-modal [nzVisible]="isModalVisible()" [nzTitle]="editingId() ? 'Editar sucursal' : 'Nueva sucursal'" [nzFooter]="modalFooter" (nzOnCancel)="closeModal()">
   <ng-container *nzModalContent>

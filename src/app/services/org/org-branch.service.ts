@@ -33,7 +33,7 @@ export class OrgBranchService {
   list(query: CatalogQuery): Observable<PagedResponse<OrgBranchRecord>> {
     return this.api
       .get<ApiResponse<PagedResponse<OrgBranchRecord>> | PagedResponse<OrgBranchRecord>>('/v1/org/branches', {
-        params: { page: query.page, size: query.size, search: query.search ?? '' },
+        params: { page: Math.max(1, query.page), size: query.size, search: query.search ?? '' },
       })
       .pipe(map((response) => unwrapApiResponse(response)), map((response) => ({ ...response, data: (response.data ?? []).map(normalizeBranchRecord) })));
   }

@@ -2,25 +2,42 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMessageService } from 'ng-zorro-antd/message';
 import { NzModalModule, NzModalService } from 'ng-zorro-antd/modal';
+import { NzPaginationModule } from 'ng-zorro-antd/pagination';
 import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzTagModule } from 'ng-zorro-antd/tag';
 
 import { UsersAdminService } from '../../../core/services/auth-admin/users-admin.service';
 import { SessionStore } from '../../../core/state/session.store';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { OrgBranchRecord, OrgBranchService } from '../../../services/org/org-branch.service';
 import { OrgAssignmentRecord, OrgAssignmentService } from '../../../services/org/org-assignment.service';
 
 @Component({
   selector: 'app-org-assignments',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, NzCardModule, NzSelectModule, NzButtonModule, NzModalModule, NzTableModule, NzTagModule, NzIconModule, NzFormModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    NzCardModule,
+    NzSelectModule,
+    NzButtonModule,
+    NzModalModule,
+    NzTableModule,
+    NzTagModule,
+    NzIconModule,
+    NzFormModule,
+    NzPaginationModule,
+    PageHeaderComponent,
+  ],
   templateUrl: './org-assignments.component.html',
   styleUrl: './org-assignments.component.css',
   providers: [DatePipe],
@@ -34,14 +51,20 @@ export class OrgAssignmentsComponent implements OnInit {
   private readonly message = inject(NzMessageService);
   private readonly modal = inject(NzModalService);
   private readonly datePipe = inject(DatePipe);
+  private readonly router = inject(Router);
 
   readonly loading = signal(false);
   readonly saving = signal(false);
   readonly rows = signal<OrgAssignmentRecord[]>([]);
   readonly total = signal(0);
-  readonly page = signal(1);
-  readonly size = signal(10);
+  readonly pageIndex = signal(1);
+  readonly pageSize = signal(10);
   readonly hasAppliedFilters = signal(false);
+
+  readonly breadcrumbs = [
+    { label: 'Organización', link: '/main/org' },
+    { label: 'Asignaciones' },
+  ];
 
   readonly branches = signal<OrgBranchRecord[]>([]);
   readonly branchOptions = signal<Array<{ label: string; value: string }>>([]);
@@ -72,14 +95,32 @@ export class OrgAssignmentsComponent implements OnInit {
   }
 
   applyFilters(): void {
-    this.page.set(1);
+    this.pageIndex.set(1);
     this.hasAppliedFilters.set(true);
     this.loadAssignments();
   }
 
-  onPageChange(page: number): void {
-    this.page.set(page);
+  onPageIndexChange(page: number): void {
+    this.pageIndex.set(page);
     this.loadAssignments();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize.set(size);
+    this.pageIndex.set(1);
+    this.loadAssignments();
+  }
+
+  clearFilters(): void {
+    this.filtersForm.reset({ userId: '', branchId: '' });
+    this.hasAppliedFilters.set(false);
+    this.rows.set([]);
+    this.total.set(0);
+    this.pageIndex.set(1);
+  }
+
+  goBranches(): void {
+    this.router.navigate(['/main/org/branches']);
   }
 
   openCreateModal(): void {
@@ -105,6 +146,7 @@ export class OrgAssignmentsComponent implements OnInit {
       next: () => {
         this.message.success('Asignación creada');
         this.modalVisible.set(false);
+        this.hasAppliedFilters.set(true);
         this.loadAssignments();
       },
       error: (error: unknown) => {
@@ -127,7 +169,11 @@ export class OrgAssignmentsComponent implements OnInit {
     this.loading.set(true);
     this.assignmentService.remove(id).subscribe({
       next: () => {
+        const shouldGoPreviousPage = this.rows().length === 1 && this.pageIndex() > 1;
         this.message.success('Asignación eliminada');
+        if (shouldGoPreviousPage) {
+          this.pageIndex.set(this.pageIndex() - 1);
+        }
         this.loadAssignments();
       },
       error: () => {
@@ -213,8 +259,8 @@ export class OrgAssignmentsComponent implements OnInit {
 
     this.loading.set(true);
     this.assignmentService.list({
-      page: this.page(),
-      size: this.size(),
+      page: this.pageIndex(),
+      size: this.pageSize(),
       userId: userId || undefined,
       branchId: branchId || undefined,
     }).subscribe({
