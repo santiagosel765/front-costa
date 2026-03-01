@@ -77,7 +77,7 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
 
   const shouldPreferManifestLabel = key === 'ORG' || key === 'CONFIG';
 
-  const shouldPreferManifestRoute = key === 'ORG';
+  const shouldPreferManifestRoute = key === 'ORG' || key === 'INVENTORY';
 
   return {
     route: shouldPreferManifestRoute ? fromManifest.route : (module.baseRoute || fromManifest.route),

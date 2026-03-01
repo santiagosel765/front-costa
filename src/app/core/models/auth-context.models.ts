@@ -8,6 +8,7 @@ export interface AuthContextUser {
   statusLabel?: string;
   statusKey?: string;
   statusId?: string | number;
+  roleIds?: string[];
 }
 
 export interface AuthContextTenant {
@@ -43,7 +44,13 @@ export interface AuthContextResponse {
   serverTime?: string;
 }
 
-export type AuthContextPermissions = Record<string, string[]>;
+export interface PermissionAccess {
+  read: boolean;
+  write: boolean;
+  delete?: boolean;
+}
+
+export type AuthContextPermissions = Record<string, PermissionAccess>;
 
 const KNOWN_STATUS_KEYS = new Set(['ACTIVE', 'INACTIVE', 'BLOCKED', 'PENDING', 'SUSPENDED']);
 
@@ -59,14 +66,36 @@ export function normalizeAuthContextUser(user: AuthContextUser): AuthContextUser
 }
 
 export function normalizeAuthContextPermissions(
-  permissions?: AuthContextPermissions | null,
+  permissions?: Record<string, unknown> | null,
 ): AuthContextPermissions {
   if (!permissions) {
     return {};
   }
 
-  return Object.entries(permissions).reduce<AuthContextPermissions>((acc, [moduleKey, values]) => {
-    acc[moduleKey] = (values ?? []).map((value) => value.toLowerCase());
+  return Object.entries(permissions).reduce<AuthContextPermissions>((acc, [moduleKey, rawValue]) => {
+    const normalizedKey = moduleKey.toUpperCase();
+
+    if (Array.isArray(rawValue)) {
+      const values = rawValue.map((value) => String(value).toLowerCase());
+      acc[normalizedKey] = {
+        read: values.includes('read'),
+        write: values.includes('write'),
+        delete: values.includes('delete'),
+      };
+      return acc;
+    }
+
+    if (rawValue && typeof rawValue === 'object') {
+      const value = rawValue as Partial<Record<keyof PermissionAccess, unknown>>;
+      acc[normalizedKey] = {
+        read: Boolean(value.read),
+        write: Boolean(value.write),
+        delete: Boolean(value.delete),
+      };
+      return acc;
+    }
+
+    acc[normalizedKey] = { read: false, write: false, delete: false };
     return acc;
   }, {});
 }
