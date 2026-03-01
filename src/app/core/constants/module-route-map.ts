@@ -50,7 +50,7 @@ export const MODULE_ALIAS: Record<string, string> = {
   CONFIGURACION: 'CONFIG',
   INVENTARIO: 'INVENTORY',
   INVENTORIES: 'INVENTORY',
-  DATOS_MAESTROS: 'INVENTORY',
+  DATOS_MAESTROS: 'DATOS_MAESTROS',
   CLIENTS: 'CLIENT',
   CLIENTES: 'CLIENT',
   SUPPLIERS: 'PROVIDER',
@@ -161,7 +161,9 @@ const MODULE_ICONS: Record<string, string> = {
 };
 
 export function resolveModulePresentation(module: AuthContextModule): ModuleUiManifest {
-  const key = normalizeModuleName(module.moduleKey) ?? module.moduleKey;
+  const rawKey = module.moduleKey ?? module.key;
+  const rawLabel = module.name ?? module.label;
+  const key = normalizeModuleName(rawKey) ?? rawKey ?? 'UNKNOWN';
   const route = resolveModuleRoute(key);
 
   if (!route) {
@@ -169,7 +171,7 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
 
     if (isDevMode()) {
       console.warn('[module-route-map] Unresolved module route:', {
-        rawKey: module.moduleKey,
+        rawKey,
         normalizedKey: key,
         reason: disabledReason,
       });
@@ -178,7 +180,7 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
     return {
       route: null,
       icon: module.icon || 'appstore',
-      label: module.name || 'Disponible (pendiente configuración)',
+      label: rawLabel || 'Disponible (pendiente configuración)',
       disabled: true,
       disabledReason,
     };
@@ -187,7 +189,7 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
   return {
     route,
     icon: module.icon || MODULE_ICONS[key] || 'appstore',
-    label: module.name || MODULE_LABELS[key] || key,
+    label: rawLabel || MODULE_LABELS[key] || key,
     disabled: false,
     disabledReason: null,
   };

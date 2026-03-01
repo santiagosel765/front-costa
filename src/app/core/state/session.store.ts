@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, inject, isDevMode } from '@angular/core';
 import { HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, catchError, map, of, tap } from 'rxjs';
@@ -67,13 +67,34 @@ export class SessionStore {
   }
 
   setContext(context: AuthContextResponse): void {
+    const normalizedModules = (context.modules ?? []).map((module) => {
+      const normalized = normalizeAuthContextModule(module);
+      const moduleKey = module.key ?? module.moduleKey ?? normalized.moduleKey;
+      const name = module.label ?? module.name ?? normalized.name;
+
+      return {
+        ...normalized,
+        moduleKey,
+        name,
+      };
+    });
+
+    if (isDevMode()) {
+      const modulesWithoutKey = normalizedModules.filter((module) => !module.moduleKey);
+      console.debug('[session.store] normalized modules', {
+        total: normalizedModules.length,
+        undefinedKeys: modulesWithoutKey.length,
+        keys: normalizedModules.map((module) => module.moduleKey ?? '(undefined)'),
+      });
+    }
+
     this.updateState({
       accessToken: context.token?.accessToken ?? this.snapshot.accessToken,
       expiresAt: context.token?.expiresAt ?? this.snapshot.expiresAt,
       user: normalizeAuthContextUser(context.user),
       tenant: context.tenant,
       roles: context.roles ?? [],
-      modules: (context.modules ?? []).map((module) => normalizeAuthContextModule(module)),
+      modules: normalizedModules,
       permissions: normalizeAuthContextPermissions(context.permissions),
       serverTime: context.serverTime ?? null,
     });
