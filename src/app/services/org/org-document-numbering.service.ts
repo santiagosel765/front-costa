@@ -62,9 +62,9 @@ export class OrgDocumentNumberingService {
         },
       })
       .pipe(
-        map((response) => normalizePagedResponse<OrgDocumentNumbering>(unwrapApiResponse(response), { page: query.page, size: query.size })),
+        map((response) => normalizePagedResponse<OrgDocumentNumbering>(response, { page: query.page, size: query.size })),
         map((response) => ({
-          data: response.items.map(normalizeNumbering),
+          data: response.data.map(normalizeNumbering),
           total: response.total,
           page: response.page,
           size: response.size,

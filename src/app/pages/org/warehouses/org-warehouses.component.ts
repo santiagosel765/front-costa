@@ -44,6 +44,8 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
   readonly saving = signal(false);
   readonly error = signal<string | null>(null);
   readonly total = signal(0);
+  readonly page = signal(1);
+  readonly size = signal(10);
   readonly isModalVisible = signal(false);
   readonly editingId = signal<string | null>(null);
   readonly branches = signal<OrgBranchRecord[]>([]);
@@ -217,11 +219,15 @@ export class OrgWarehousesComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.rows.set(response.data ?? []);
         this.total.set(response.total ?? 0);
+        this.page.set(response.page ?? state.page);
+        this.size.set(response.size ?? state.size);
       },
       error: () => {
         this.error.set('No se pudieron cargar las bodegas');
         this.rows.set([]);
         this.total.set(0);
+        this.page.set(state.page);
+        this.size.set(state.size);
       },
       complete: () => this.loading.set(false),
     });

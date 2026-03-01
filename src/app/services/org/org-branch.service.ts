@@ -50,9 +50,9 @@ export class OrgBranchService {
         params: { page: Math.max(1, query.page), size: query.size, search: query.search ?? '' },
       })
       .pipe(
-        map((response) => normalizePagedResponse<OrgBranchRecord>(unwrapApiResponse(response), { page: query.page, size: query.size })),
+        map((response) => normalizePagedResponse<OrgBranchRecord>(response, { page: query.page, size: query.size })),
         map((response) => ({
-          data: response.items.map(normalizeBranchRecord),
+          data: response.data.map(normalizeBranchRecord),
           total: response.total,
           page: Math.max(1, response.page),
           size: response.size,
