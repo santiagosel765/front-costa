@@ -2,7 +2,7 @@ import { isDevMode } from '@angular/core';
 
 import { AuthContextModule } from '../models/auth-context.models';
 
-const MODULE_ROUTES: Record<string, string> = {
+const MODULE_ROUTES: Record<string, string | null> = {
   CORE_AUTH: '/main/auth/users',
   ORG: '/main/org',
   CONFIG: '/main/config',
@@ -18,8 +18,22 @@ const MODULE_ROUTES: Record<string, string> = {
   PRODUCT: '/main/products',
   CATEGORY: '/main/categories',
   CLIENT: '/main/clients',
+  CLIENTES: '/main/clients',
   PROVIDER: '/main/providers',
+  PROVEEDORES: '/main/providers',
   QUOTE: '/main/quotes',
+  DATOS_MAESTROS: null,
+  DEVOLUCIONES: null,
+  GESTION_DE_PRECIOS: null,
+  GESTION_DOCUMENTAL: null,
+  INTEGRACIONES: null,
+  NOTIFICACIONES: null,
+  ORDENES_DE_SERVICIO: null,
+  PRODUCCION: null,
+  PRODUCTOS_Y_SERVICIOS: '/main/products',
+  PUNTO_DE_VENTA: null,
+  WMS: null,
+  WORKFLOWS: null,
 };
 
 export const MODULE_ALIAS: Record<string, string> = {
@@ -66,6 +80,7 @@ export interface ModuleUiManifest {
   label: string;
   icon: string;
   disabled: boolean;
+  disabledReason?: string | null;
 }
 
 export function normalizeModuleName(name?: string | null): string | undefined {
@@ -91,6 +106,23 @@ export function resolveModuleRoute(moduleKey?: string | null): string | null {
   }
 
   return MODULE_ROUTES[normalizedKey] ?? null;
+}
+
+export function resolveModuleRouteReason(moduleKey?: string | null): string | null {
+  const normalizedKey = normalizeModuleName(moduleKey);
+  if (!normalizedKey) {
+    return 'empty-module-key';
+  }
+
+  if (!(normalizedKey in MODULE_ROUTES)) {
+    return 'not-mapped';
+  }
+
+  if (!MODULE_ROUTES[normalizedKey]) {
+    return 'route-not-configured';
+  }
+
+  return null;
 }
 
 const MODULE_LABELS: Record<string, string> = {
@@ -133,8 +165,14 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
   const route = resolveModuleRoute(key);
 
   if (!route) {
+    const disabledReason = resolveModuleRouteReason(key) ?? 'route-not-configured';
+
     if (isDevMode()) {
-      console.warn('[module-route-map] Unknown module key:', module.moduleKey);
+      console.warn('[module-route-map] Unresolved module route:', {
+        rawKey: module.moduleKey,
+        normalizedKey: key,
+        reason: disabledReason,
+      });
     }
 
     return {
@@ -142,6 +180,7 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
       icon: module.icon || 'appstore',
       label: module.name || 'Disponible (pendiente configuración)',
       disabled: true,
+      disabledReason,
     };
   }
 
@@ -150,5 +189,6 @@ export function resolveModulePresentation(module: AuthContextModule): ModuleUiMa
     icon: module.icon || MODULE_ICONS[key] || 'appstore',
     label: module.name || MODULE_LABELS[key] || key,
     disabled: false,
+    disabledReason: null,
   };
 }
