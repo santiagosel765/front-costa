@@ -146,8 +146,13 @@ export class OrgAssignmentsComponent implements OnInit {
       next: () => {
         this.message.success('Asignación creada');
         this.modalVisible.set(false);
-        this.hasAppliedFilters.set(true);
-        this.loadAssignments();
+
+        const { userId, branchId } = this.filtersForm.getRawValue();
+        const hasSelectedFilters = !!userId || !!branchId;
+        if (hasSelectedFilters) {
+          this.hasAppliedFilters.set(true);
+          this.loadAssignments();
+        }
       },
       error: (error: unknown) => {
         if (error instanceof HttpErrorResponse && error.status === 409) {
@@ -237,7 +242,7 @@ export class OrgAssignmentsComponent implements OnInit {
   private loadBranches(): void {
     this.branchService.list({ page: 1, size: 200 }).subscribe({
       next: (response) => {
-        const mapped = response.data ?? [];
+        const mapped = response.data.data ?? [];
         this.branches.set(mapped);
         this.branchOptions.set(mapped.map((branch) => ({ label: `${branch.code ?? ''} - ${branch.name ?? branch.id}`, value: branch.id })));
       },
@@ -265,8 +270,10 @@ export class OrgAssignmentsComponent implements OnInit {
       branchId: branchId || undefined,
     }).subscribe({
       next: (response) => {
-        this.rows.set(response.data ?? []);
-        this.total.set(response.total ?? 0);
+        this.rows.set(response.data.data ?? []);
+        this.total.set(response.data.total ?? 0);
+        this.pageIndex.set(response.data.page ?? this.pageIndex());
+        this.pageSize.set(response.data.size ?? this.pageSize());
       },
       error: () => {
         this.rows.set([]);

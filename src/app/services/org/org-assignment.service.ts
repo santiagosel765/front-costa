@@ -34,9 +34,9 @@ export interface OrgAssignmentQuery {
 export class OrgAssignmentService {
   private readonly api = inject(ApiService);
 
-  list(query: OrgAssignmentQuery): Observable<PagedResponse<OrgAssignmentRecord>> {
+  list(query: OrgAssignmentQuery): Observable<ApiResponse<PagedResponse<OrgAssignmentRecord>>> {
     return this.api
-      .get<ApiResponse<PagedResponse<OrgAssignmentRecord>> | PagedResponse<OrgAssignmentRecord>>('/v1/org/user-branch-assignments', {
+      .get<ApiResponse<PagedResponse<OrgAssignmentRecord>>>('/v1/org/user-branch-assignments', {
         params: {
           page: Math.max(1, query.page),
           size: query.size,
@@ -45,13 +45,16 @@ export class OrgAssignmentService {
         },
       })
       .pipe(
-        map((response) => unwrapApiResponse(response)),
         map((response) => ({
           ...response,
-          data: (response.data ?? []).map((item) => ({
-            ...item,
-            updatedAt: item.updatedAt ?? item.updated_at,
-          })),
+          data: {
+            ...response.data,
+            page: Math.max(1, response.data?.page ?? 1),
+            data: (response.data?.data ?? []).map((item) => ({
+              ...item,
+              updatedAt: item.updatedAt ?? item.updated_at,
+            })),
+          },
         })),
       );
   }
