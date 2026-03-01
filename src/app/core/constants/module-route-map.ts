@@ -2,7 +2,41 @@ import { isDevMode } from '@angular/core';
 
 import { AuthContextModule } from '../models/auth-context.models';
 
+const MODULE_ROUTES: Record<string, string> = {
+  CORE_AUTH: '/main/auth/users',
+  ORG: '/main/org',
+  CONFIG: '/main/config',
+  INVENTORY: '/main/inventory',
+  AR: '/main/quotes',
+  AP: '/main/purchases',
+  PURCHASE: '/main/purchases',
+  SALES: '/main/quotes',
+  ACCOUNTING: '/main/welcome',
+  BANKS: '/main/welcome',
+  REPORTING_BI: '/main/welcome',
+  AUDIT_LOGS: '/main/welcome',
+  PRODUCT: '/main/products',
+  CATEGORY: '/main/categories',
+  CLIENT: '/main/clients',
+  PROVIDER: '/main/providers',
+  QUOTE: '/main/quotes',
+};
+
 export const MODULE_ALIAS: Record<string, string> = {
+  AUTH_CORE: 'CORE_AUTH',
+  CORE_DE_AUTENTICACION: 'CORE_AUTH',
+  CORE_DE_AUTENTICACION_Y_PERMISOS: 'CORE_AUTH',
+  ORGANIZACION: 'ORG',
+  ORG_BRANCH: 'ORG',
+  SUCURSALES_Y_ORGANIZACIONES: 'ORG',
+  ORGANIZATION: 'ORG',
+  HUB_ORGANIZACION: 'ORG',
+  HUB_ORGANIZATION: 'ORG',
+  ORG_HUB: 'ORG',
+  CONFIGURACION: 'CONFIG',
+  INVENTARIO: 'INVENTORY',
+  INVENTORIES: 'INVENTORY',
+  DATOS_MAESTROS: 'INVENTORY',
   CLIENTS: 'CLIENT',
   CLIENTES: 'CLIENT',
   SUPPLIERS: 'PROVIDER',
@@ -10,48 +44,29 @@ export const MODULE_ALIAS: Record<string, string> = {
   PROVIDERS: 'PROVIDER',
   QUOTES: 'QUOTE',
   COTIZACIONES: 'QUOTE',
-  VENTAS: 'QUOTE',
   PURCHASES: 'PURCHASE',
-  COMPRAS: 'PURCHASE',
   PURCHASE_ORDERS: 'PURCHASE',
+  COMPRAS: 'PURCHASE',
   PRODUCTS: 'PRODUCT',
   PRODUCTOS: 'PRODUCT',
   PRODUCTOS_Y_SERVICIOS: 'PRODUCT',
   CATEGORIES: 'CATEGORY',
   CATEGORIAS: 'CATEGORY',
-  INVENTORIES: 'INVENTORY',
-  INVENTARIO: 'INVENTORY',
-  DATOS_MAESTROS: 'INVENTORY',
-  CONFIGURACION: 'CONFIG',
-  CONFIG: 'CONFIG',
-  ORGANIZACION: 'ORG',
-  SUCURSALES_Y_ORGANIZACIONES: 'ORG',
-  ORGANIZATION: 'ORG',
-  HUB_ORGANIZACION: 'ORG',
-  HUB_ORGANIZATION: 'ORG',
-  ORG_HUB: 'ORG',
+  CUENTAS_POR_COBRAR: 'AR',
+  CUENTAS_POR_PAGAR: 'AP',
+  VENTAS: 'SALES',
+  CONTABILIDAD: 'ACCOUNTING',
+  BANCOS: 'BANKS',
+  REPORTES_Y_BI: 'REPORTING_BI',
+  AUDITORIA_Y_LOGS: 'AUDIT_LOGS',
 };
 
 export interface ModuleUiManifest {
-  route: string;
+  route: string | null;
   label: string;
   icon: string;
+  disabled: boolean;
 }
-
-export const MODULE_UI_MANIFEST: Record<string, ModuleUiManifest> = {
-  CORE_DE_AUTENTICACION: { route: '/main/auth/users', label: 'Core de Autenticación', icon: 'safety' },
-  INVENTORY: { route: '/main/inventory', label: 'Inventario', icon: 'database' },
-  DATOS_MAESTROS: { route: '/main/inventory/categories', label: 'Datos Maestros', icon: 'database' },
-  PRODUCT: { route: '/main/products', label: 'Productos', icon: 'shopping' },
-  CATEGORY: { route: '/main/categories', label: 'Categorías', icon: 'tags' },
-  CLIENT: { route: '/main/clients', label: 'Clientes', icon: 'team' },
-  PROVIDER: { route: '/main/providers', label: 'Proveedores', icon: 'contacts' },
-  QUOTE: { route: '/main/quotes', label: 'Cotizaciones', icon: 'file-search' },
-  PURCHASE: { route: '/main/purchases', label: 'Compras', icon: 'shopping-cart' },
-  CONFIG: { route: '/main/config', label: 'Configuración', icon: 'setting' },
-  ORG: { route: '/main/org', label: 'Organización', icon: 'apartment' },
-  SUCURSALES_Y_ORGANIZACIONES: { route: '/main/org?tab=branches', label: 'Sucursales y Organizaciones', icon: 'apartment' },
-};
 
 export function normalizeModuleName(name?: string | null): string | undefined {
   if (!name) {
@@ -69,29 +84,71 @@ export function normalizeModuleName(name?: string | null): string | undefined {
   return MODULE_ALIAS[sanitized] ?? sanitized;
 }
 
+export function resolveModuleRoute(moduleKey?: string | null): string | null {
+  const normalizedKey = normalizeModuleName(moduleKey);
+  if (!normalizedKey) {
+    return null;
+  }
+
+  return MODULE_ROUTES[normalizedKey] ?? null;
+}
+
+const MODULE_LABELS: Record<string, string> = {
+  CORE_AUTH: 'Core de Autenticación',
+  ORG: 'Organización',
+  CONFIG: 'Configuración',
+  INVENTORY: 'Inventario',
+  AR: 'Cuentas por Cobrar',
+  AP: 'Cuentas por Pagar',
+  PURCHASE: 'Compras',
+  SALES: 'Ventas',
+  ACCOUNTING: 'Contabilidad',
+  BANKS: 'Bancos',
+  REPORTING_BI: 'Reporting y BI',
+  AUDIT_LOGS: 'Auditoría y Logs',
+};
+
+const MODULE_ICONS: Record<string, string> = {
+  CORE_AUTH: 'safety',
+  ORG: 'apartment',
+  CONFIG: 'setting',
+  INVENTORY: 'database',
+  AR: 'wallet',
+  AP: 'reconciliation',
+  PURCHASE: 'shopping-cart',
+  SALES: 'shop',
+  ACCOUNTING: 'calculator',
+  BANKS: 'bank',
+  REPORTING_BI: 'bar-chart',
+  AUDIT_LOGS: 'audit',
+  PRODUCT: 'shopping',
+  CATEGORY: 'tags',
+  CLIENT: 'team',
+  PROVIDER: 'contacts',
+  QUOTE: 'file-search',
+};
+
 export function resolveModulePresentation(module: AuthContextModule): ModuleUiManifest {
   const key = normalizeModuleName(module.moduleKey) ?? module.moduleKey;
-  const fromManifest = MODULE_UI_MANIFEST[key];
+  const route = resolveModuleRoute(key);
 
-  if (!fromManifest) {
+  if (!route) {
     if (isDevMode()) {
       console.warn('[module-route-map] Unknown module key:', module.moduleKey);
     }
 
     return {
-      route: '/main/welcome',
-      icon: 'appstore',
+      route: null,
+      icon: module.icon || 'appstore',
       label: module.name || 'Disponible (pendiente configuración)',
+      disabled: true,
     };
   }
 
-  const shouldPreferManifestLabel = key === 'ORG' || key === 'CONFIG';
-
-  const shouldPreferManifestRoute = key === 'ORG' || key === 'INVENTORY' || key === 'CONFIG';
-
   return {
-    route: shouldPreferManifestRoute ? fromManifest.route : (module.baseRoute || fromManifest.route),
-    icon: module.icon || fromManifest.icon,
-    label: shouldPreferManifestLabel ? fromManifest.label : (module.name || fromManifest.label),
+    route,
+    icon: module.icon || MODULE_ICONS[key] || 'appstore',
+    label: module.name || MODULE_LABELS[key] || key,
+    disabled: false,
   };
 }

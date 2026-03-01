@@ -144,7 +144,7 @@ export class SessionStore {
       return '/main/welcome';
     }
 
-    return resolveModulePresentation(firstModule).route;
+    return resolveModulePresentation(firstModule).route ?? '/main/welcome';
   }
 
   getToken(): string | null {

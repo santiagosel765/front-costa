@@ -9,6 +9,7 @@ import {
   inject,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
@@ -21,15 +22,16 @@ import { SessionStore } from '../../core/state/session.store';
 
 interface SidebarMenuItem {
   key: string;
-  route: string;
+  route: string | null;
   label: string;
   icon: string;
+  disabled: boolean;
 }
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [CommonModule, RouterLink, NzIconModule, NzMenuModule, NzMessageModule, NzSpinModule],
+  imports: [CommonModule, RouterLink, NzIconModule, NzMenuModule, NzMessageModule, NzSpinModule, NzToolTipModule],
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.css'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,8 +91,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
     return {
       key: module.moduleKey,
       route: metadata.route,
-      label: module.name,
+      label: metadata.label,
       icon: metadata.icon,
+      disabled: metadata.disabled,
     };
   }
 }
